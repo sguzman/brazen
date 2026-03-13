@@ -73,6 +73,6 @@ cargo build
 
 The repo does not depend on the crates.io `servo` package because that package is not the browser engine integration path. When live embedding work starts, the backend should pin the official Servo source revision explicitly and keep that dependency isolated behind the `servo` feature.
 
-## Roadmap
+## Roadmaps
 
-The implementation checklist lives in [`docs/roadmap.md`](/win/linux/Code/rust/brazen/docs/roadmap.md) and is organized by feature dimension rather than milestone phase so future work can progress in parallel.
+The roadmap set lives at [`docs/roadmap.md`](/win/linux/Code/rust/brazen/docs/roadmap.md). It now fans out into separate files for each major dimension: shell/workspace UX, Servo integration, session model, capability permissions, security/audit, local connectors, automation APIs, cache/asset capture, extraction, knowledge workflows, media/reading/TTS, persistence/profiles, and observability/quality.
