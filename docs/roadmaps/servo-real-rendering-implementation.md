@@ -4,35 +4,35 @@ Focuses on replacing the current stub renderer with actual Servo output. This is
 
 ## Servo Runtime Integration
 
-- [ ] Add Servo workspace path dependencies behind a `servo-upstream` feature
-- [ ] Introduce a `servo_upstream` module that wraps Servo types and embedder traits
-- [ ] Implement an `EventLoopWaker` that integrates with `eframe`’s repaint cadence
-- [ ] Build a minimal Servo `Embedder` implementation that can receive `EmbedderMsg`
-- [ ] Wire Servo logging to `tracing` with per-target filtering
+- [x] Add Servo workspace path dependencies behind a `servo-upstream` feature
+- [x] Introduce a `servo_upstream` module that wraps Servo types and embedder traits
+- [x] Implement an `EventLoopWaker` that integrates with `eframe`’s repaint cadence
+- [x] Build a minimal Servo `Embedder` implementation that can receive `EmbedderMsg`
+- [x] Wire Servo logging to `tracing` with per-target filtering
 
 ## Rendering Pipeline
 
-- [ ] Initialize WebRender and compositor with the chosen backend
-- [ ] Create a render surface compatible with egui (CPU readback path)
-- [ ] Map Servo’s rendered frame into `egui::ColorImage`
-- [ ] Add a render loop that drains Servo paint messages each frame
-- [ ] Handle viewport resize and reallocate WebRender surfaces
-- [ ] Add explicit metrics for frame upload cost
+- [x] Initialize WebRender and compositor with the chosen backend
+- [x] Create a render surface compatible with egui (CPU readback path)
+- [x] Map Servo’s rendered frame into `egui::ColorImage`
+- [x] Add a render loop that drains Servo paint messages each frame
+- [x] Handle viewport resize and reallocate WebRender surfaces
+- [x] Add explicit metrics for frame upload cost
 
 ## Navigation + Metadata
 
-- [ ] Instantiate a real Servo browser instance and WebView
-- [ ] Wire `navigate/reload/stop` to Servo’s API
-- [ ] Translate Servo navigation events into `EngineEvent`
-- [ ] Update title, URL, and favicon from Servo metadata
-- [ ] Surface load progress / document ready from Servo
+- [x] Instantiate a real Servo browser instance and WebView
+- [x] Wire `navigate/reload/stop` to Servo’s API
+- [x] Translate Servo navigation events into `EngineEvent`
+- [x] Update title, URL, and favicon from Servo metadata
+- [x] Surface load progress / document ready from Servo
 
 ## Input + Focus
 
-- [ ] Translate pointer events into Servo embedder input
-- [ ] Translate keyboard + modifiers into Servo input
-- [ ] Translate scroll/zoom events into Servo input
-- [ ] Wire IME composition to Servo
+- [x] Translate pointer events into Servo embedder input
+- [x] Translate keyboard + modifiers into Servo input
+- [x] Translate scroll/zoom events into Servo input
+- [x] Wire IME composition to Servo
 - [ ] Bridge clipboard read/write requests
 
 ## Validation

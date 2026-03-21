@@ -275,6 +275,8 @@ pub struct BrazenApp {
     frame_times: VecDeque<f32>,
     last_frame_instant: Option<Instant>,
     last_frame_ms: Option<f32>,
+    upload_times: VecDeque<f32>,
+    last_upload_ms: Option<f32>,
     pending_restart_at: Option<chrono::DateTime<Utc>>,
     crash_count: u32,
     cache_store: AssetStore,
@@ -319,6 +321,8 @@ impl BrazenApp {
             frame_times: VecDeque::with_capacity(120),
             last_frame_instant: None,
             last_frame_ms: None,
+            upload_times: VecDeque::with_capacity(120),
+            last_upload_ms: None,
             pending_restart_at: None,
             crash_count: 0,
             cache_store,
@@ -372,6 +376,7 @@ impl BrazenApp {
         let size = [frame.width as usize, frame.height as usize];
         let image = eframe::egui::ColorImage::from_rgba_unmultiplied(size, &frame.pixels);
         let options = eframe::egui::TextureOptions::LINEAR;
+        let upload_start = Instant::now();
         match self.render_texture.as_mut() {
             Some(texture) => {
                 if texture.size() != size {
@@ -386,6 +391,12 @@ impl BrazenApp {
         }
         self.render_frame_number = Some(frame.frame_number);
         self.render_frame_size = Some((frame.width, frame.height));
+        let upload_ms = upload_start.elapsed().as_secs_f32() * 1000.0;
+        self.last_upload_ms = Some(upload_ms);
+        if self.upload_times.len() == 120 {
+            self.upload_times.pop_front();
+        }
+        self.upload_times.push_back(upload_ms);
         let now = Instant::now();
         if let Some(previous) = self.last_frame_instant {
             let ms = (now - previous).as_secs_f32() * 1000.0;
@@ -1039,9 +1050,14 @@ impl eframe::App for BrazenApp {
                     .last_frame_ms
                     .map(|ms| format!("{ms:.1}ms"))
                     .unwrap_or_else(|| "n/a".to_string());
-                ui.label(format!(
-                    "Frame timing: avg {avg:.1}ms (last {last})"
-                ));
+                ui.label(format!("Frame timing: avg {avg:.1}ms (last {last})"));
+            }
+            if let Some(avg) = frame_average_ms(&self.upload_times) {
+                let last = self
+                    .last_upload_ms
+                    .map(|ms| format!("{ms:.1}ms"))
+                    .unwrap_or_else(|| "n/a".to_string());
+                ui.label(format!("Frame upload: avg {avg:.1}ms (last {last})"));
             }
             ui.label(format!(
                 "Render mode: {} (pacing: {})",
@@ -1091,6 +1107,13 @@ impl eframe::App for BrazenApp {
                             .map(|ms| format!("{ms:.1}ms"))
                             .unwrap_or_else(|| "n/a".to_string());
                         ui.label(format!("Frame timing: avg {avg:.1}ms (last {last})"));
+                    }
+                    if let Some(avg) = frame_average_ms(&self.upload_times) {
+                        let last = self
+                            .last_upload_ms
+                            .map(|ms| format!("{ms:.1}ms"))
+                            .unwrap_or_else(|| "n/a".to_string());
+                        ui.label(format!("Frame upload: avg {avg:.1}ms (last {last})"));
                     }
                     eframe::egui::ScrollArea::vertical().show(ui, |ui| {
                         for event in self.shell_state.event_log.iter().rev().take(128) {

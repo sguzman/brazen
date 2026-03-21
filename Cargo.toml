@@ -6,7 +6,12 @@ build = "build.rs"
 
 [features]
 default = []
-servo = []
+servo = ["servo-upstream"]
+servo-upstream = [
+  "dep:dpi",
+  "dep:libservo",
+  "dep:tracing-log",
+]
 
 [dependencies]
 directories = "6.0.0"
@@ -24,6 +29,9 @@ tracing-appender = "0.2.4"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt"] }
 url = "2.5.8"
 uuid = { version = "1.22.0", features = ["v4", "serde"] }
+dpi = { version = "0.1.2", optional = true }
+libservo = { path = "vendor/servo/components/servo", optional = true, package = "libservo" }
+tracing-log = { version = "0.2.0", optional = true }
 
 [dev-dependencies]
 tempfile = "3.27.0"

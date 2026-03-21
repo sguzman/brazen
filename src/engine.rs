@@ -453,6 +453,8 @@ pub struct ServoEngine {
     loading: bool,
     frame_counter: u64,
     verbose_logging: bool,
+    #[cfg(feature = "servo-upstream")]
+    last_upstream_snapshot: Option<crate::servo_upstream::UpstreamSnapshot>,
 }
 
 #[cfg(feature = "servo")]
@@ -502,6 +504,8 @@ impl ServoEngine {
             loading: false,
             frame_counter: 0,
             verbose_logging,
+            #[cfg(feature = "servo-upstream")]
+            last_upstream_snapshot: None,
         }
     }
 }
@@ -649,6 +653,43 @@ impl BrowserEngine for ServoEngine {
 
     fn render_frame(&mut self) -> Option<EngineFrame> {
         self.embedder.tick();
+        #[cfg(feature = "servo-upstream")]
+        {
+            if let Some(endpoint) = self.embedder.take_devtools_endpoint() {
+                self.events.push(EngineEvent::DevtoolsReady { endpoint });
+            }
+            if let Some(error) = self.embedder.upstream_error() {
+                self.events.push(EngineEvent::Crashed { reason: error });
+            }
+            if let Some(snapshot) = self.embedder.upstream_snapshot() {
+                let should_update = self
+                    .last_upstream_snapshot
+                    .as_ref()
+                    .map(|previous| previous != &snapshot)
+                    .unwrap_or(true);
+                if should_update {
+                    self.navigation_state.url = snapshot.url.clone();
+                    if let Some(title) = snapshot.title.clone() {
+                        self.navigation_state.title = title;
+                    }
+                    self.navigation_state.favicon_url = snapshot.favicon_url.clone();
+                    self.navigation_state.can_go_back = snapshot.history_index > 0;
+                    self.navigation_state.can_go_forward =
+                        snapshot.history_index + 1 < snapshot.history.len();
+                    self.navigation_state.load_progress = match snapshot.load_status {
+                        libservo::LoadStatus::Started => 0.1,
+                        libservo::LoadStatus::HeadParsed => 0.6,
+                        libservo::LoadStatus::Complete => 1.0,
+                    };
+                    self.navigation_state.document_ready =
+                        matches!(snapshot.load_status, libservo::LoadStatus::Complete);
+                    self.events.push(EngineEvent::NavigationStateUpdated(
+                        self.navigation_state.clone(),
+                    ));
+                    self.last_upstream_snapshot = Some(snapshot);
+                }
+            }
+        }
         if self.loading {
             let next_progress = (self.navigation_state.load_progress + 0.08).min(1.0);
             self.navigation_state.load_progress = next_progress;

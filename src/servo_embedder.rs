@@ -8,6 +8,8 @@ use crate::engine::{
 use crate::servo_runtime::{
     FramePacing, FrameScheduler, RenderMode, ServoRuntimeConfig, ServoWindowAdapter,
 };
+#[cfg(feature = "servo-upstream")]
+use crate::servo_upstream::{ServoUpstreamRuntime, UpstreamSnapshot};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServoProcessModel {
@@ -162,6 +164,11 @@ pub struct ServoEmbedder {
     pub compositor_ready: bool,
     pub browser_state: ServoBrowserState,
     pub last_focus: FocusState,
+    #[cfg(feature = "servo-upstream")]
+    pub upstream: Option<ServoUpstreamRuntime>,
+    #[cfg(feature = "servo-upstream")]
+    pub last_snapshot: Option<UpstreamSnapshot>,
+    pub last_pointer: (f32, f32),
 }
 
 impl ServoEmbedder {
@@ -181,6 +188,11 @@ impl ServoEmbedder {
             compositor_ready: false,
             browser_state: ServoBrowserState::new(),
             last_focus: FocusState::Unfocused,
+            #[cfg(feature = "servo-upstream")]
+            upstream: None,
+            #[cfg(feature = "servo-upstream")]
+            last_snapshot: None,
+            last_pointer: (0.0, 0.0),
         }
     }
 
@@ -236,6 +248,8 @@ impl ServoEmbedder {
         self.window = Some(ServoWindowAdapter::from_metadata(&metadata));
         self.surface = Some(SurfaceSwapChain::new(surface, metadata));
         self.frame_scheduler.request_frame();
+        #[cfg(feature = "servo-upstream")]
+        self.ensure_upstream();
     }
 
     pub fn update_surface(&mut self, metadata: RenderSurfaceMetadata) {
@@ -249,6 +263,8 @@ impl ServoEmbedder {
         } else {
             self.window = Some(ServoWindowAdapter::from_metadata(&metadata));
         }
+        #[cfg(feature = "servo-upstream")]
+        self.resize_upstream(metadata.viewport_width, metadata.viewport_height);
     }
 
     pub fn suspend(&mut self) {
@@ -274,6 +290,10 @@ impl ServoEmbedder {
     }
 
     pub fn render_frame(&mut self) -> Option<EngineFrame> {
+        #[cfg(feature = "servo-upstream")]
+        if let Some(frame) = self.render_upstream_frame() {
+            return Some(frame);
+        }
         if !self.frame_scheduler.should_render() {
             return None;
         }
@@ -315,21 +335,107 @@ impl ServoEmbedder {
     pub fn navigate(&mut self, url: &str) {
         self.browser_state.navigate(url);
         self.frame_scheduler.request_frame();
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            let _ = upstream.navigate(url);
+        }
     }
 
     pub fn reload(&mut self) {
         self.browser_state.reload();
         self.frame_scheduler.request_frame();
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            upstream.reload();
+        }
     }
 
     pub fn stop(&mut self) {
         self.browser_state.stop();
         self.frame_scheduler.request_frame();
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            upstream.stop();
+        }
     }
 
     pub fn handle_input(&mut self, event: &InputEvent) {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?event, "input forwarded");
+        }
+        match event {
+            InputEvent::PointerMove { x, y } => {
+                self.last_pointer = (*x, *y);
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_mouse_move(*x, *y);
+                }
+            }
+            InputEvent::PointerDown { button } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_mouse_button(
+                        *button,
+                        true,
+                        self.last_pointer.0,
+                        self.last_pointer.1,
+                    );
+                }
+            }
+            InputEvent::PointerUp { button } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_mouse_button(
+                        *button,
+                        false,
+                        self.last_pointer.0,
+                        self.last_pointer.1,
+                    );
+                }
+            }
+            InputEvent::Scroll { delta_x, delta_y } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_wheel(
+                        *delta_x,
+                        *delta_y,
+                        self.last_pointer.0,
+                        self.last_pointer.1,
+                    );
+                }
+            }
+            InputEvent::Zoom { delta } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_wheel(0.0, *delta, self.last_pointer.0, self.last_pointer.1);
+                }
+            }
+            InputEvent::KeyDown { key, modifiers } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_keyboard(key, true, *modifiers);
+                }
+            }
+            InputEvent::KeyUp { key, modifiers } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_keyboard(key, false, *modifiers);
+                }
+            }
+            InputEvent::TextInput { text } =>
+            {
+                #[cfg(feature = "servo-upstream")]
+                if let Some(upstream) = &self.upstream {
+                    upstream.handle_ime(text.clone());
+                }
+            }
+            _ => {}
         }
         self.frame_scheduler.request_frame();
     }
@@ -337,6 +443,18 @@ impl ServoEmbedder {
     pub fn handle_ime(&mut self, event: &crate::engine::ImeEvent) {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?event, "ime forwarded");
+        }
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            match event {
+                crate::engine::ImeEvent::CompositionStart => {
+                    upstream.handle_ime(String::new());
+                }
+                crate::engine::ImeEvent::CompositionUpdate { text }
+                | crate::engine::ImeEvent::CompositionEnd { text } => {
+                    upstream.handle_ime(text.clone());
+                }
+            }
         }
         self.frame_scheduler.request_frame();
     }
@@ -352,6 +470,10 @@ impl ServoEmbedder {
         self.last_focus = focus;
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?focus, "focus updated");
+        }
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            let _ = upstream.snapshot();
         }
         self.frame_scheduler.request_frame();
     }
@@ -403,5 +525,75 @@ impl ServoEmbedder {
             "devtools transport configured"
         );
         endpoint
+    }
+
+    #[cfg(feature = "servo-upstream")]
+    fn ensure_upstream(&mut self) {
+        if self.upstream.is_some() {
+            return;
+        }
+        let Some(surface) = &self.surface else {
+            return;
+        };
+        match ServoUpstreamRuntime::new(
+            surface.metadata.viewport_width,
+            surface.metadata.viewport_height,
+        ) {
+            Ok(runtime) => {
+                self.upstream = Some(runtime);
+            }
+            Err(error) => {
+                tracing::error!(target: "brazen::servo", %error, "failed to init upstream servo");
+            }
+        }
+    }
+
+    #[cfg(feature = "servo-upstream")]
+    fn resize_upstream(&mut self, width: u32, height: u32) {
+        if let Some(upstream) = &self.upstream {
+            upstream.resize(width, height);
+        }
+    }
+
+    #[cfg(feature = "servo-upstream")]
+    fn render_upstream_frame(&mut self) -> Option<EngineFrame> {
+        let upstream = self.upstream.as_ref()?;
+        upstream.spin();
+        let pixels = upstream.render_frame()?;
+        let width = self
+            .surface
+            .as_ref()
+            .map(|surface| surface.metadata.viewport_width)
+            .unwrap_or(0);
+        let height = self
+            .surface
+            .as_ref()
+            .map(|surface| surface.metadata.viewport_height)
+            .unwrap_or(0);
+        self.last_snapshot = Some(upstream.snapshot());
+        self.frame_counter = self.frame_counter.wrapping_add(1);
+        Some(EngineFrame {
+            width,
+            height,
+            frame_number: self.frame_counter,
+            pixels,
+        })
+    }
+
+    #[cfg(feature = "servo-upstream")]
+    pub fn upstream_snapshot(&self) -> Option<UpstreamSnapshot> {
+        self.last_snapshot
+            .clone()
+            .or_else(|| self.upstream.as_ref().map(|runtime| runtime.snapshot()))
+    }
+
+    #[cfg(feature = "servo-upstream")]
+    pub fn take_devtools_endpoint(&self) -> Option<String> {
+        self.upstream.as_ref()?.take_devtools_endpoint()
+    }
+
+    #[cfg(feature = "servo-upstream")]
+    pub fn upstream_error(&self) -> Option<String> {
+        self.upstream.as_ref()?.last_error()
     }
 }

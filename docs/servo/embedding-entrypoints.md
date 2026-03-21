@@ -13,7 +13,7 @@ current public surfaces.
 
 ## Embedder Traits
 
-- `vendor/servo/components/embedder_traits`
+- `vendor/servo/components/shared/embedder`
   - `EmbedderMsg` / `EmbedderToConstellationMessage` (messages sent from Servo to embedder)
   - Input, clipboard, and dialog request traits used by the embedders
 
@@ -34,5 +34,5 @@ Servo workspace (requires `vendor/servo` to be checked out):
 ```toml
 [dependencies]
 libservo = { path = "vendor/servo/components/servo", package = "libservo" }
-embedder_traits = { path = "vendor/servo/components/embedder_traits" }
+embedder_traits = { path = "vendor/servo/components/shared/embedder" }
 ```
