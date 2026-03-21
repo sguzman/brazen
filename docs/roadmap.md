@@ -8,6 +8,7 @@ This file is the index. Each linked roadmap tracks one dimension and should only
 
 - [Shell And Workspace UX](./roadmaps/shell-and-workspace.md)
 - [Servo Engine Integration](./roadmaps/servo-engine-integration.md)
+- [Servo Live Integration](./roadmaps/servo-live-integration.md)
 - [Navigation And Session Model](./roadmaps/navigation-and-session-model.md)
 - [Capability Permissions](./roadmaps/capability-permissions.md)
 - [Security Policy And Audit](./roadmaps/security-policy-and-audit.md)
