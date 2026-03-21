@@ -1,21 +1,23 @@
 #![cfg(feature = "servo-upstream")]
 
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::engine::{AlphaMode, ColorSpace, KeyModifiers, PixelFormat};
 use dpi::PhysicalSize;
 use libservo::{
-    Code, CompositionEvent, DeviceIntPoint, DeviceIntRect, DeviceIntSize, DevicePoint,
-    EventLoopWaker, ImeEvent, InputEvent, Key, KeyState, KeyboardEvent, LoadStatus, Location,
-    Modifiers, MouseButton, MouseButtonAction, MouseButtonEvent, MouseMoveEvent, RenderingContext,
-    Servo, ServoBuilder, ServoDelegate, SoftwareRenderingContext, WebView, WebViewBuilder,
-    WebViewDelegate, WebViewPoint, WheelDelta, WheelEvent, WheelMode,
+    Code, CompositionEvent, CompositionState, DeviceIntPoint, DeviceIntRect, DeviceIntSize,
+    DevicePoint, EventLoopWaker, ImeEvent, InputEvent, Key, KeyState, KeyboardEvent, LoadStatus,
+    Location, Modifiers, MouseButton, MouseButtonAction, MouseButtonEvent, MouseMoveEvent,
+    NamedKey, RenderingContext, Servo, ServoBuilder, ServoDelegate, SoftwareRenderingContext,
+    WebView, WebViewBuilder, WebViewDelegate, WebViewPoint, WheelDelta, WheelEvent, WheelMode,
 };
 use tracing_log::LogTracer;
 use url::Url;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpstreamSnapshot {
     pub url: String,
     pub title: Option<String>,
@@ -70,11 +72,11 @@ impl Default for UpstreamSnapshot {
 #[derive(Clone)]
 pub struct BrazenWebViewDelegate {
     snapshot: Rc<RefCell<UpstreamSnapshot>>,
-    frame_ready: Rc<Cell<bool>>,
+    frame_ready: Arc<AtomicBool>,
 }
 
 impl BrazenWebViewDelegate {
-    pub fn new(snapshot: Rc<RefCell<UpstreamSnapshot>>, frame_ready: Rc<Cell<bool>>) -> Self {
+    pub fn new(snapshot: Rc<RefCell<UpstreamSnapshot>>, frame_ready: Arc<AtomicBool>) -> Self {
         Self {
             snapshot,
             frame_ready,
@@ -92,16 +94,15 @@ impl WebViewDelegate for BrazenWebViewDelegate {
     }
 
     fn notify_favicon_changed(&self, webview: WebView) {
-        let favicon = webview.favicon();
-        let favicon_url = favicon
-            .and_then(|image| image.url.map(|url| url.to_string()))
-            .or_else(|| {
-                if self.snapshot.borrow().url.starts_with("http") {
-                    Some(format!("{}/favicon.ico", self.snapshot.borrow().url))
-                } else {
-                    None
-                }
-            });
+        let favicon_url = if webview.favicon().is_some() {
+            if self.snapshot.borrow().url.starts_with("http") {
+                Some(format!("{}/favicon.ico", self.snapshot.borrow().url))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
         self.snapshot.borrow_mut().favicon_url = favicon_url;
     }
 
@@ -125,7 +126,7 @@ impl WebViewDelegate for BrazenWebViewDelegate {
     }
 
     fn notify_new_frame_ready(&self, _webview: WebView) {
-        self.frame_ready.set(true);
+        self.frame_ready.store(true, Ordering::Release);
         tracing::trace!(
             target: "brazen::servo::lifecycle",
             "new frame ready"
@@ -176,12 +177,12 @@ impl ServoDelegate for BrazenServoDelegate {
 }
 
 struct BrazenEventLoopWaker {
-    frame_ready: Rc<Cell<bool>>,
+    frame_ready: Arc<AtomicBool>,
 }
 
 impl EventLoopWaker for BrazenEventLoopWaker {
     fn wake(&self) {
-        self.frame_ready.set(true);
+        self.frame_ready.store(true, Ordering::Release);
     }
 
     fn clone_box(&self) -> Box<dyn EventLoopWaker> {
@@ -196,19 +197,33 @@ pub struct ServoUpstreamRuntime {
     webview: WebView,
     rendering_context: Rc<dyn RenderingContext>,
     snapshot: Rc<RefCell<UpstreamSnapshot>>,
-    frame_ready: Rc<Cell<bool>>,
+    frame_ready: Arc<AtomicBool>,
     devtools_endpoint: Rc<RefCell<Option<String>>>,
     last_error: Rc<RefCell<Option<String>>>,
-    pixel_format: Cell<PixelFormat>,
+    pixel_format: std::cell::Cell<PixelFormat>,
     alpha_mode: AlphaMode,
     color_space: ColorSpace,
     pixel_probe: Option<PixelProbeState>,
 }
 
+impl std::fmt::Debug for ServoUpstreamRuntime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ServoUpstreamRuntime")
+            .field("snapshot", &self.snapshot.borrow())
+            .field("devtools_endpoint", &self.devtools_endpoint.borrow())
+            .field("last_error", &self.last_error.borrow())
+            .field("pixel_format", &self.pixel_format.get())
+            .field("alpha_mode", &self.alpha_mode)
+            .field("color_space", &self.color_space)
+            .field("pixel_probe", &self.pixel_probe)
+            .finish()
+    }
+}
+
 impl ServoUpstreamRuntime {
     pub fn new(width: u32, height: u32, config: ServoUpstreamConfig) -> Result<Self, String> {
         let _ = LogTracer::init();
-        let frame_ready = Rc::new(Cell::new(true));
+        let frame_ready = Arc::new(AtomicBool::new(true));
         let rendering_context = Rc::new(
             SoftwareRenderingContext::new(PhysicalSize::new(width, height))
                 .map_err(|error| format!("rendering context error: {error:?}"))?,
@@ -265,7 +280,7 @@ impl ServoUpstreamRuntime {
             frame_ready,
             devtools_endpoint,
             last_error,
-            pixel_format: Cell::new(config.pixel_format),
+            pixel_format: std::cell::Cell::new(config.pixel_format),
             alpha_mode: config.alpha_mode,
             color_space: config.color_space,
             pixel_probe,
@@ -287,7 +302,7 @@ impl ServoUpstreamRuntime {
     pub fn resize(&self, width: u32, height: u32) {
         self.rendering_context
             .resize(PhysicalSize::new(width, height));
-        self.frame_ready.set(true);
+        self.frame_ready.store(true, Ordering::Release);
     }
 
     pub fn navigate(&self, url: &str) -> Result<(), String> {
@@ -307,7 +322,7 @@ impl ServoUpstreamRuntime {
     }
 
     pub fn render_frame(&mut self) -> Option<UpstreamFrame> {
-        if !self.frame_ready.replace(false) {
+        if !self.frame_ready.swap(false, Ordering::AcqRel) {
             return None;
         }
         let size = self.rendering_context.size();
@@ -317,7 +332,7 @@ impl ServoUpstreamRuntime {
         self.rendering_context.prepare_for_rendering();
         self.webview.paint();
         self.rendering_context.present();
-        let rect = DeviceIntRect::new(
+        let rect = DeviceIntRect::from_origin_and_size(
             DeviceIntPoint::new(0, 0),
             DeviceIntSize::new(size.width as i32, size.height as i32),
         );
@@ -330,7 +345,7 @@ impl ServoUpstreamRuntime {
         let image = self.rendering_context.read_to_image(rect)?;
         if let Some(probe) = &mut self.pixel_probe {
             if probe.pending {
-                self.apply_pixel_probe(probe, &image);
+                Self::apply_pixel_probe(&self.pixel_format, probe, &image);
             }
         }
         let pixels = image.into_raw();
@@ -353,7 +368,11 @@ impl ServoUpstreamRuntime {
         self.webview.notify_input_event(event);
     }
 
-    fn apply_pixel_probe(&mut self, probe: &mut PixelProbeState, image: &libservo::RgbaImage) {
+    fn apply_pixel_probe(
+        pixel_format: &std::cell::Cell<PixelFormat>,
+        probe: &mut PixelProbeState,
+        image: &libservo::RgbaImage,
+    ) {
         let width = image.width();
         let height = image.height();
         if width == 0 || height == 0 {
@@ -372,9 +391,9 @@ impl ServoUpstreamRuntime {
         } else if b > 200 && r < 50 && g < 50 {
             PixelFormat::Bgra8
         } else {
-            self.pixel_format.get()
+            pixel_format.get()
         };
-        self.pixel_format.set(detected);
+        pixel_format.set(detected);
         probe.pending = false;
         tracing::info!(
             target: "brazen::servo::probe",
@@ -426,7 +445,7 @@ impl ServoUpstreamRuntime {
         let key_value = if key.len() == 1 {
             Key::Character(key.to_string())
         } else {
-            Key::Unidentified
+            Key::Named(NamedKey::Unidentified)
         };
         let mut servo_modifiers = Modifiers::empty();
         if modifiers.alt {
@@ -455,8 +474,8 @@ impl ServoUpstreamRuntime {
 
     pub fn handle_ime(&self, text: String) {
         self.handle_input(InputEvent::Ime(ImeEvent::Composition(CompositionEvent {
-            data: Some(text),
-            ..Default::default()
+            state: CompositionState::Update,
+            data: text,
         })));
     }
 }

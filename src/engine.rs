@@ -267,7 +267,7 @@ pub enum EngineError {
     Startup(String),
 }
 
-pub trait BrowserEngine: Send {
+pub trait BrowserEngine {
     fn backend_name(&self) -> &'static str;
     fn instance_id(&self) -> EngineInstanceId;
     fn status(&self) -> EngineStatus;

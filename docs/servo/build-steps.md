@@ -32,3 +32,5 @@ cd vendor/servo
 - Servo uses its own build system. Brazen does not compile Servo automatically.
 - After Servo builds, set `BRAZEN_SERVO_SOURCE=vendor/servo` and build Brazen with
   `cargo build --features servo`.
+- Brazen patches `glslopt` via `vendor/glslopt` to avoid a `once_flag/call_once`
+  conflict on newer glibc.

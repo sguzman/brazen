@@ -683,6 +683,7 @@ dependencies = [
  "egui",
  "hex",
  "libservo",
+ "rustls",
  "serde",
  "serde_json",
  "sha2 0.11.0-rc.5",
@@ -2828,8 +2829,6 @@ dependencies = [
 [[package]]
 name = "glslopt"
 version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ba4741358604ca0848c27ecc069d68e62e11cde81e38aac1da3c54b79ab5adf"
 dependencies = [
  "cc",
 ]
@@ -6597,6 +6596,7 @@ version = "0.23.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "758025cb5fccfd3bc2fd74708fd4682be41d99e5dff73c377c0646c6012c73a4"
 dependencies = [
+ "aws-lc-rs",
  "log",
  "once_cell",
  "rustls-pki-types",
@@ -6659,6 +6659,7 @@ version = "0.103.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df33b2b81ac578cabaf06b89b0631153a3f416b0a886e8a7a1707fb51abbd1ef"
 dependencies = [
+ "aws-lc-rs",
  "ring",
  "rustls-pki-types",
  "untrusted",
