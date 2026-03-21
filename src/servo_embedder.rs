@@ -5,6 +5,7 @@ use crate::config::EngineConfig;
 use crate::engine::{
     EngineFrame, FocusState, InputEvent, RenderSurfaceHandle, RenderSurfaceMetadata,
 };
+use crate::servo_runtime::{FramePacing, RenderMode, ServoRuntimeConfig};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServoProcessModel {
@@ -27,6 +28,7 @@ pub struct ServoEmbedderConfig {
     pub gfx_backend: String,
     pub source_path: Option<PathBuf>,
     pub verbose_logging: bool,
+    pub runtime: ServoRuntimeConfig,
 }
 
 impl ServoEmbedderConfig {
@@ -49,6 +51,7 @@ impl ServoEmbedderConfig {
                 })
                 .map(PathBuf::from),
             verbose_logging: config.verbose_logging,
+            runtime: ServoRuntimeConfig::from_engine_config(config),
         }
     }
 }
@@ -104,6 +107,8 @@ pub struct ServoEmbedder {
     pub surface: Option<SurfaceSwapChain>,
     pub frame_counter: u64,
     pub verbose_logging: bool,
+    pub render_mode: RenderMode,
+    pub frame_pacing: FramePacing,
     pub devtools: Option<DevtoolsState>,
     pub renderer_ready: bool,
     pub compositor_ready: bool,
@@ -116,6 +121,8 @@ impl ServoEmbedder {
         Self {
             state: ServoEmbedderState::Uninitialized,
             verbose_logging: config.verbose_logging,
+            render_mode: config.runtime.render_mode,
+            frame_pacing: config.runtime.frame_pacing,
             config,
             surface: None,
             frame_counter: 0,
@@ -129,6 +136,13 @@ impl ServoEmbedder {
 
     pub fn init(&mut self) -> Result<(), String> {
         tracing::info!(target: "brazen::servo", "initializing servo embedder");
+        tracing::info!(
+            target: "brazen::servo",
+            render_mode = ?self.render_mode,
+            webrender_backend = %self.config.runtime.webrender_backend,
+            frame_pacing = ?self.frame_pacing,
+            "servo runtime config"
+        );
         self.state = ServoEmbedderState::Initializing;
         self.init_renderer()?;
         self.init_compositor()?;

@@ -1,4 +1,6 @@
 use chrono::Utc;
+use std::collections::VecDeque;
+use std::time::{Duration, Instant};
 
 use crate::cache::{AssetQuery, AssetStore};
 use crate::commands::{AppCommand, dispatch_command};
@@ -270,6 +272,9 @@ pub struct BrazenApp {
     render_texture: Option<eframe::egui::TextureHandle>,
     render_frame_number: Option<u64>,
     render_frame_size: Option<(u32, u32)>,
+    frame_times: VecDeque<f32>,
+    last_frame_instant: Option<Instant>,
+    last_frame_ms: Option<f32>,
     pending_restart_at: Option<chrono::DateTime<Utc>>,
     crash_count: u32,
     cache_store: AssetStore,
@@ -311,6 +316,9 @@ impl BrazenApp {
             render_texture: None,
             render_frame_number: None,
             render_frame_size: None,
+            frame_times: VecDeque::with_capacity(120),
+            last_frame_instant: None,
+            last_frame_ms: None,
             pending_restart_at: None,
             crash_count: 0,
             cache_store,
@@ -378,7 +386,21 @@ impl BrazenApp {
         }
         self.render_frame_number = Some(frame.frame_number);
         self.render_frame_size = Some((frame.width, frame.height));
-        ctx.request_repaint();
+        let now = Instant::now();
+        if let Some(previous) = self.last_frame_instant {
+            let ms = (now - previous).as_secs_f32() * 1000.0;
+            self.last_frame_ms = Some(ms);
+            if self.frame_times.len() == 120 {
+                self.frame_times.pop_front();
+            }
+            self.frame_times.push_back(ms);
+        }
+        self.last_frame_instant = Some(now);
+        match self.config.engine.frame_pacing.as_str() {
+            "manual" => ctx.request_repaint_after(Duration::from_millis(16)),
+            "on-demand" => {}
+            _ => ctx.request_repaint(),
+        }
     }
 
     fn forward_input_events(&mut self, ctx: &eframe::egui::Context) {
@@ -430,14 +452,27 @@ impl BrazenApp {
                         delta_y: delta.y,
                     });
                 }
+                eframe::egui::Event::Zoom(delta) => {
+                    self.engine.handle_input(InputEvent::Zoom { delta });
+                }
                 eframe::egui::Event::Key { key, pressed, .. } => {
                     let key_name = format!("{key:?}");
+                    let modifiers = crate::engine::KeyModifiers {
+                        alt: input.modifiers.alt,
+                        ctrl: input.modifiers.ctrl,
+                        shift: input.modifiers.shift,
+                        command: input.modifiers.command,
+                    };
                     if pressed {
-                        self.engine
-                            .handle_input(InputEvent::KeyDown { key: key_name });
+                        self.engine.handle_input(InputEvent::KeyDown {
+                            key: key_name,
+                            modifiers,
+                        });
                     } else {
-                        self.engine
-                            .handle_input(InputEvent::KeyUp { key: key_name });
+                        self.engine.handle_input(InputEvent::KeyUp {
+                            key: key_name,
+                            modifiers,
+                        });
                     }
                 }
                 eframe::egui::Event::Text(text) => {
@@ -999,6 +1034,19 @@ impl eframe::App for BrazenApp {
                     .unwrap_or_else(|| "unknown".to_string());
                 ui.label(format!("Frame: {frame_number} ({size})"));
             }
+            if let Some(avg) = frame_average_ms(&self.frame_times) {
+                let last = self
+                    .last_frame_ms
+                    .map(|ms| format!("{ms:.1}ms"))
+                    .unwrap_or_else(|| "n/a".to_string());
+                ui.label(format!(
+                    "Frame timing: avg {avg:.1}ms (last {last})"
+                ));
+            }
+            ui.label(format!(
+                "Render mode: {} (pacing: {})",
+                self.config.engine.render_mode, self.config.engine.frame_pacing
+            ));
             if let Some(texture) = &self.render_texture {
                 ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
             }
@@ -1037,6 +1085,13 @@ impl eframe::App for BrazenApp {
                 .default_height(180.0)
                 .show(ctx, |ui| {
                     ui.heading("Startup and Command Log");
+                    if let Some(avg) = frame_average_ms(&self.frame_times) {
+                        let last = self
+                            .last_frame_ms
+                            .map(|ms| format!("{ms:.1}ms"))
+                            .unwrap_or_else(|| "n/a".to_string());
+                        ui.label(format!("Frame timing: avg {avg:.1}ms (last {last})"));
+                    }
                     eframe::egui::ScrollArea::vertical().show(ui, |ui| {
                         for event in self.shell_state.event_log.iter().rev().take(128) {
                             ui.monospace(event);
@@ -1045,6 +1100,14 @@ impl eframe::App for BrazenApp {
                 });
         }
     }
+}
+
+fn frame_average_ms(times: &VecDeque<f32>) -> Option<f32> {
+    if times.is_empty() {
+        return None;
+    }
+    let sum: f32 = times.iter().copied().sum();
+    Some(sum / times.len() as f32)
 }
 
 impl Drop for BrazenApp {

@@ -7,6 +7,7 @@ pub mod logging;
 pub mod permissions;
 pub mod platform_paths;
 pub mod servo_embedder;
+pub mod servo_runtime;
 pub mod session;
 
 use std::path::{Path, PathBuf};

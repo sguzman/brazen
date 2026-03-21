@@ -103,6 +103,22 @@ impl BrazenConfig {
                 }
             }
         }
+        match self.engine.render_mode.as_str() {
+            "cpu-readback" | "gpu-texture" => {}
+            _ => {
+                return Err(ConfigError::Validation(
+                    "engine.render_mode must be cpu-readback or gpu-texture".to_string(),
+                ));
+            }
+        }
+        match self.engine.frame_pacing.as_str() {
+            "vsync" | "manual" | "on-demand" => {}
+            _ => {
+                return Err(ConfigError::Validation(
+                    "engine.frame_pacing must be vsync, manual, or on-demand".to_string(),
+                ));
+            }
+        }
         if self.automation.enabled {
             let url = Url::parse(&self.automation.bind).map_err(|error| {
                 ConfigError::Validation(format!("automation.bind must be a valid URL: {error}"))
@@ -262,6 +278,9 @@ pub struct EngineConfig {
     pub enable_multiprocess: bool,
     pub new_window_policy: String,
     pub verbose_logging: bool,
+    pub render_mode: String,
+    pub webrender_backend: String,
+    pub frame_pacing: String,
     pub devtools_enabled: bool,
     pub devtools_transport: String,
     pub resource_limits: ResourceLimits,
@@ -282,6 +301,9 @@ impl Default for EngineConfig {
             enable_multiprocess: false,
             new_window_policy: "same-tab".to_string(),
             verbose_logging: false,
+            render_mode: "cpu-readback".to_string(),
+            webrender_backend: "gl".to_string(),
+            frame_pacing: "vsync".to_string(),
             devtools_enabled: false,
             devtools_transport: "none".to_string(),
             resource_limits: ResourceLimits::default(),

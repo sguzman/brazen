@@ -15,13 +15,42 @@ pub enum FocusState {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum InputEvent {
-    PointerMove { x: f32, y: f32 },
-    PointerDown { button: u8 },
-    PointerUp { button: u8 },
-    Scroll { delta_x: f32, delta_y: f32 },
-    KeyDown { key: String },
-    KeyUp { key: String },
-    TextInput { text: String },
+    PointerMove {
+        x: f32,
+        y: f32,
+    },
+    PointerDown {
+        button: u8,
+    },
+    PointerUp {
+        button: u8,
+    },
+    Scroll {
+        delta_x: f32,
+        delta_y: f32,
+    },
+    Zoom {
+        delta: f32,
+    },
+    KeyDown {
+        key: String,
+        modifiers: KeyModifiers,
+    },
+    KeyUp {
+        key: String,
+        modifiers: KeyModifiers,
+    },
+    TextInput {
+        text: String,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeyModifiers {
+    pub alt: bool,
+    pub ctrl: bool,
+    pub shift: bool,
+    pub command: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
