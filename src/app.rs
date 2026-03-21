@@ -561,10 +561,27 @@ impl BrazenApp {
             session_id: empty_to_none(&self.cache_query_session),
         };
         let results = self.cache_store.query(query);
-        ui.label(format!("Assets: {}", self.cache_store.entries().len()));
+        ui.label(format!(
+            "Assets: {} (storage: {:?})",
+            self.cache_store.entries().len(),
+            self.cache_store.storage_mode()
+        ));
         ui.label(format!("Matches: {}", results.len()));
         for entry in results.iter().rev().take(5) {
-            ui.label(format!("{} {}", entry.mime, entry.url));
+            ui.horizontal(|ui| {
+                ui.label(format!("{} {}", entry.mime, entry.url));
+                if let Some(hash) = &entry.hash {
+                    if entry.pinned {
+                        if ui.button("Unpin").clicked() {
+                            let _ = self.cache_store.unpin_asset(hash);
+                            self.shell_state.record_event("asset unpinned");
+                        }
+                    } else if ui.button("Pin").clicked() {
+                        let _ = self.cache_store.pin_asset(hash);
+                        self.shell_state.record_event("asset pinned");
+                    }
+                }
+            });
         }
     }
 }

@@ -47,6 +47,7 @@ pub struct AssetMetadata {
     pub truncated: bool,
     pub is_third_party: bool,
     pub authenticated: bool,
+    pub pinned: bool,
     pub profile_id: String,
     pub session_id: Option<String>,
     pub tab_id: Option<String>,
@@ -67,9 +68,12 @@ pub struct AssetStore {
     blobs_dir: PathBuf,
     index_path: PathBuf,
     metadata_path: PathBuf,
+    headers_path: PathBuf,
+    pinned_path: PathBuf,
     config: CacheConfig,
     profile_id: String,
     entries: Vec<AssetMetadata>,
+    pinned: BTreeMap<String, bool>,
 }
 
 impl AssetStore {
@@ -78,16 +82,27 @@ impl AssetStore {
         let blobs_dir = root.join("blobs");
         let index_path = root.join("index.jsonl");
         let metadata_path = root.join("metadata.jsonl");
-        let entries = read_index(&index_path).unwrap_or_default();
+        let headers_path = root.join("headers.jsonl");
+        let pinned_path = root.join("pinned.json");
+        let mut entries = read_index(&index_path).unwrap_or_default();
+        let pinned = read_pins(&pinned_path).unwrap_or_default();
+        for entry in &mut entries {
+            if let Some(hash) = &entry.hash {
+                entry.pinned = pinned.get(hash).copied().unwrap_or(false);
+            }
+        }
 
         Self {
             root,
             blobs_dir,
             index_path,
             metadata_path,
+            headers_path,
+            pinned_path,
             config,
             profile_id,
             entries,
+            pinned,
         }
     }
 
@@ -167,6 +182,35 @@ impl AssetStore {
         tab_id: Option<String>,
         request_id: Option<String>,
     ) -> std::io::Result<AssetMetadata> {
+        self.record_asset_with_timing(
+            url,
+            mime,
+            body,
+            headers,
+            is_third_party,
+            authenticated,
+            session_id,
+            tab_id,
+            request_id,
+            None,
+            None,
+        )
+    }
+
+    pub fn record_asset_with_timing(
+        &mut self,
+        url: &str,
+        mime: &str,
+        body: Option<&[u8]>,
+        headers: BTreeMap<String, String>,
+        is_third_party: bool,
+        authenticated: bool,
+        session_id: Option<String>,
+        tab_id: Option<String>,
+        request_id: Option<String>,
+        request_started_at: Option<String>,
+        response_finished_at: Option<String>,
+    ) -> std::io::Result<AssetMetadata> {
         std::fs::create_dir_all(&self.blobs_dir)?;
         std::fs::create_dir_all(&self.root)?;
 
@@ -189,7 +233,7 @@ impl AssetStore {
             let digest = Sha256::digest(bytes);
             let hex_digest = hex::encode(digest);
             hash = Some(hex_digest.clone());
-            if decision.capture_body {
+            if decision.capture_body && self.storage_mode() != StorageMode::Memory {
                 let blob_path = self.blobs_dir.join(&hex_digest);
                 if !blob_path.exists() {
                     std::fs::write(&blob_path, bytes)?;
@@ -198,6 +242,21 @@ impl AssetStore {
         }
 
         let now = Utc::now().to_rfc3339();
+        let duration_ms = match (&request_started_at, &response_finished_at) {
+            (Some(start), Some(end)) => {
+                let start_dt = chrono::DateTime::parse_from_rfc3339(start).ok();
+                let end_dt = chrono::DateTime::parse_from_rfc3339(end).ok();
+                start_dt
+                    .zip(end_dt)
+                    .and_then(|(s, e)| e.signed_duration_since(s).to_std().ok())
+                    .map(|duration| duration.as_millis() as u64)
+            }
+            _ => None,
+        };
+        let pinned = hash
+            .as_ref()
+            .and_then(|value| self.pinned.get(value).copied())
+            .unwrap_or(false);
         let metadata = AssetMetadata {
             asset_id: format!("asset-{}", self.entries.len() + 1),
             url: url.to_string(),
@@ -206,13 +265,14 @@ impl AssetStore {
             hash,
             created_at: now,
             response_headers: normalize_headers(headers),
-            request_started_at: None,
-            response_finished_at: None,
-            duration_ms: None,
+            request_started_at,
+            response_finished_at,
+            duration_ms,
             capture_mode: decision.mode,
             truncated: decision.truncated,
             is_third_party,
             authenticated,
+            pinned,
             profile_id: self.profile_id.clone(),
             session_id,
             tab_id,
@@ -221,6 +281,7 @@ impl AssetStore {
 
         append_metadata(&self.index_path, &metadata)?;
         append_metadata(&self.metadata_path, &metadata)?;
+        append_headers(&self.headers_path, &metadata)?;
         self.entries.push(metadata.clone());
         self.gc_if_needed()?;
         Ok(metadata)
@@ -290,6 +351,42 @@ impl AssetStore {
         std::fs::write(path, data)
     }
 
+    pub fn replay_session(&self, session_id: &str) -> Vec<AssetMetadata> {
+        self.entries
+            .iter()
+            .filter(|entry| entry.session_id.as_deref() == Some(session_id))
+            .cloned()
+            .collect()
+    }
+
+    pub fn pin_asset(&mut self, hash: &str) -> std::io::Result<()> {
+        self.pinned.insert(hash.to_string(), true);
+        for entry in &mut self.entries {
+            if entry.hash.as_deref() == Some(hash) {
+                entry.pinned = true;
+            }
+        }
+        write_pins(&self.pinned_path, &self.pinned)
+    }
+
+    pub fn unpin_asset(&mut self, hash: &str) -> std::io::Result<()> {
+        self.pinned.remove(hash);
+        for entry in &mut self.entries {
+            if entry.hash.as_deref() == Some(hash) {
+                entry.pinned = false;
+            }
+        }
+        write_pins(&self.pinned_path, &self.pinned)
+    }
+
+    pub fn storage_mode(&self) -> StorageMode {
+        match self.config.storage_mode.as_str() {
+            "memory" => StorageMode::Memory,
+            "archive" => StorageMode::Archive,
+            _ => StorageMode::Disk,
+        }
+    }
+
     pub fn verify_asset(&self, hash: &str) -> std::io::Result<bool> {
         let blob_path = self.blobs_dir.join(hash);
         let bytes = std::fs::read(blob_path)?;
@@ -306,6 +403,17 @@ impl AssetStore {
         }
         self.entries.sort_by(|a, b| a.created_at.cmp(&b.created_at));
         while self.entries.len() > self.config.gc_max_entries as usize {
+            if let Some(entry) = self.entries.first() {
+                if entry
+                    .hash
+                    .as_ref()
+                    .map(|hash| self.pinned.contains_key(hash))
+                    == Some(true)
+                {
+                    self.entries.rotate_left(1);
+                    continue;
+                }
+            }
             self.entries.remove(0);
         }
         overwrite_index(&self.index_path, &self.entries)
@@ -380,6 +488,25 @@ fn append_metadata(path: &Path, metadata: &AssetMetadata) -> std::io::Result<()>
         .write_all(line.as_bytes())
 }
 
+fn append_headers(path: &Path, metadata: &AssetMetadata) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let entry = serde_json::json!({
+        "asset_id": metadata.asset_id,
+        "url": metadata.url,
+        "headers": metadata.response_headers,
+    });
+    let mut line = serde_json::to_string(&entry)
+        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    line.push('\n');
+    std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?
+        .write_all(line.as_bytes())
+}
+
 fn overwrite_index(path: &Path, entries: &[AssetMetadata]) -> std::io::Result<()> {
     let data = entries
         .iter()
@@ -402,6 +529,25 @@ fn read_index(path: &Path) -> std::io::Result<Vec<AssetMetadata>> {
         entries.push(entry);
     }
     Ok(entries)
+}
+
+fn read_pins(path: &Path) -> std::io::Result<BTreeMap<String, bool>> {
+    if !path.exists() {
+        return Ok(BTreeMap::new());
+    }
+    let data = std::fs::read_to_string(path)?;
+    let pins: BTreeMap<String, bool> = serde_json::from_str(&data)
+        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    Ok(pins)
+}
+
+fn write_pins(path: &Path, pins: &BTreeMap<String, bool>) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let data = serde_json::to_vec_pretty(pins)
+        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    std::fs::write(path, data)
 }
 
 #[cfg(test)]

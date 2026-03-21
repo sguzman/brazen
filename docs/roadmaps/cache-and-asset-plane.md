@@ -16,7 +16,7 @@ Tracks request/response capture, asset storage, replay, and the “intimate brow
 - [x] Full archival replay capture
 - [x] First-party vs third-party capture policy
 - [x] Authenticated-page capture policy
-- [ ] Request/response timing capture
+- [x] Request/response timing capture
 - [x] Response header storage and normalization
 - [x] Capture policy evaluation logging
 - [x] Capture denylist and allowlist by host
@@ -29,11 +29,11 @@ Tracks request/response capture, asset storage, replay, and the “intimate brow
 - [x] Content hashing and deduplication
 - [x] On-disk asset indexing
 - [x] Link assets to tab/session/article entities
-- [ ] Pin important assets to long-term storage
-- [ ] Memory-cache vs disk-cache vs archive-store controls
+- [x] Pin important assets to long-term storage
+- [x] Memory-cache vs disk-cache vs archive-store controls
 - [x] Asset metadata schema (url, mime, size, hash, timestamps)
 - [x] Store content-addressed bodies under hash paths
-- [ ] Separate index for headers and metadata
+- [x] Separate index for headers and metadata
 - [x] Garbage-collection policy for expired assets
 - [x] Per-profile asset roots
 - [x] Asset provenance (tab/session/request ids)
@@ -43,7 +43,7 @@ Tracks request/response capture, asset storage, replay, and the “intimate brow
 
 - [x] Cache inspector UI
 - [x] Query assets by URL, MIME, hash, or session
-- [ ] Reconstruct captured sessions for replay/debugging
+- [x] Reconstruct captured sessions for replay/debugging
 - [x] Export/import captured asset sets
 - [x] Minimal CLI for asset queries
 - [x] JSON export format for assets and metadata
