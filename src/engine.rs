@@ -527,7 +527,7 @@ impl BrowserEngine for ServoEngine {
     fn navigate(&mut self, url: &str) {
         tracing::info!(target: "brazen::engine::servo", %url, "servo scaffold navigate");
         self.active_tab.current_url = url.to_string();
-        self.embedder.current_url = url.to_string();
+        self.embedder.navigate(url);
         self.navigation_state.url = url.to_string();
         self.navigation_state.redirect_chain = vec![url.to_string()];
         self.navigation_state.title = format!("Loading {url}");
@@ -553,6 +553,7 @@ impl BrowserEngine for ServoEngine {
 
     fn reload(&mut self) {
         tracing::info!(target: "brazen::engine::servo", "servo scaffold reload");
+        self.embedder.reload();
         self.loading = true;
         self.navigation_state.load_progress = 0.05;
         self.navigation_state.document_ready = false;
@@ -563,6 +564,7 @@ impl BrowserEngine for ServoEngine {
 
     fn stop(&mut self) {
         tracing::info!(target: "brazen::engine::servo", "servo scaffold stop");
+        self.embedder.stop();
         self.loading = false;
         self.navigation_state.load_progress = 0.0;
         self.navigation_state.document_ready = false;
@@ -578,7 +580,7 @@ impl BrowserEngine for ServoEngine {
             self.history_index -= 1;
             let url = self.history[self.history_index].clone();
             self.active_tab.current_url = url.clone();
-            self.embedder.current_url = url.clone();
+            self.embedder.navigate(&url);
             self.navigation_state.url = url.clone();
             self.navigation_state.redirect_chain = vec![url.clone()];
             self.navigation_state.title = format!("Loading {url}");
@@ -599,7 +601,7 @@ impl BrowserEngine for ServoEngine {
             self.history_index += 1;
             let url = self.history[self.history_index].clone();
             self.active_tab.current_url = url.clone();
-            self.embedder.current_url = url.clone();
+            self.embedder.navigate(&url);
             self.navigation_state.url = url.clone();
             self.navigation_state.redirect_chain = vec![url.clone()];
             self.navigation_state.title = format!("Loading {url}");
@@ -652,12 +654,9 @@ impl BrowserEngine for ServoEngine {
             self.navigation_state.load_progress = next_progress;
             if next_progress >= 1.0 {
                 self.navigation_state.document_ready = true;
-                self.navigation_state.title = format!("Servo: {}", self.navigation_state.url);
+                self.navigation_state.title = self.embedder.browser_state.title.clone();
                 self.navigation_state.metadata_summary = Some("Document ready".to_string());
-                if self.navigation_state.url.starts_with("http") {
-                    self.navigation_state.favicon_url =
-                        Some(format!("{}/favicon.ico", self.navigation_state.url));
-                }
+                self.navigation_state.favicon_url = self.embedder.browser_state.favicon_url.clone();
                 self.loading = false;
             }
             self.events.push(EngineEvent::NavigationStateUpdated(

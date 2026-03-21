@@ -5,7 +5,9 @@ use crate::config::EngineConfig;
 use crate::engine::{
     EngineFrame, FocusState, InputEvent, RenderSurfaceHandle, RenderSurfaceMetadata,
 };
-use crate::servo_runtime::{FramePacing, RenderMode, ServoRuntimeConfig};
+use crate::servo_runtime::{
+    FramePacing, FrameScheduler, RenderMode, ServoRuntimeConfig, ServoWindowAdapter,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServoProcessModel {
@@ -75,17 +77,17 @@ impl SurfaceSwapChain {
         }
     }
 
-    pub fn resize(&mut self, metadata: RenderSurfaceMetadata) {
+    pub fn resize(&mut self, metadata: &RenderSurfaceMetadata) {
         if self.metadata.viewport_width == metadata.viewport_width
             && self.metadata.viewport_height == metadata.viewport_height
         {
-            self.metadata = metadata;
+            self.metadata = metadata.clone();
             return;
         }
         let size = (metadata.viewport_width as usize)
             .saturating_mul(metadata.viewport_height as usize)
             .saturating_mul(4);
-        self.metadata = metadata;
+        self.metadata = metadata.clone();
         self.pixels.resize(size, 0);
     }
 
@@ -100,6 +102,50 @@ pub struct DevtoolsState {
     pub listener: Option<TcpListener>,
 }
 
+#[derive(Debug, Clone)]
+pub struct ServoBrowserState {
+    pub history: Vec<String>,
+    pub history_index: usize,
+    pub last_committed_url: String,
+    pub title: String,
+    pub favicon_url: Option<String>,
+}
+
+impl ServoBrowserState {
+    pub fn new() -> Self {
+        Self {
+            history: vec!["about:blank".to_string()],
+            history_index: 0,
+            last_committed_url: "about:blank".to_string(),
+            title: "Servo".to_string(),
+            favicon_url: None,
+        }
+    }
+
+    pub fn navigate(&mut self, url: &str) {
+        if self.history_index + 1 < self.history.len() {
+            self.history.truncate(self.history_index + 1);
+        }
+        self.history.push(url.to_string());
+        self.history_index = self.history.len().saturating_sub(1);
+        self.last_committed_url = url.to_string();
+        self.title = format!("Loading {url}");
+        self.favicon_url = if url.starts_with("http") {
+            Some(format!("{url}/favicon.ico"))
+        } else {
+            None
+        };
+    }
+
+    pub fn reload(&mut self) {
+        self.title = format!("Reloading {}", self.last_committed_url);
+    }
+
+    pub fn stop(&mut self) {
+        self.title = format!("Stopped {}", self.last_committed_url);
+    }
+}
+
 #[derive(Debug)]
 pub struct ServoEmbedder {
     pub state: ServoEmbedderState,
@@ -109,10 +155,12 @@ pub struct ServoEmbedder {
     pub verbose_logging: bool,
     pub render_mode: RenderMode,
     pub frame_pacing: FramePacing,
+    pub window: Option<ServoWindowAdapter>,
+    pub frame_scheduler: FrameScheduler,
     pub devtools: Option<DevtoolsState>,
     pub renderer_ready: bool,
     pub compositor_ready: bool,
-    pub current_url: String,
+    pub browser_state: ServoBrowserState,
     pub last_focus: FocusState,
 }
 
@@ -123,13 +171,15 @@ impl ServoEmbedder {
             verbose_logging: config.verbose_logging,
             render_mode: config.runtime.render_mode,
             frame_pacing: config.runtime.frame_pacing,
+            window: None,
+            frame_scheduler: FrameScheduler::new(config.runtime.frame_pacing),
             config,
             surface: None,
             frame_counter: 0,
             devtools: None,
             renderer_ready: false,
             compositor_ready: false,
-            current_url: "about:blank".to_string(),
+            browser_state: ServoBrowserState::new(),
             last_focus: FocusState::Unfocused,
         }
     }
@@ -146,6 +196,7 @@ impl ServoEmbedder {
         self.state = ServoEmbedderState::Initializing;
         self.init_renderer()?;
         self.init_compositor()?;
+        self.init_webrender()?;
         self.state = ServoEmbedderState::Running;
         Ok(())
     }
@@ -162,6 +213,15 @@ impl ServoEmbedder {
         Ok(())
     }
 
+    pub fn init_webrender(&mut self) -> Result<(), String> {
+        tracing::info!(
+            target: "brazen::servo",
+            backend = %self.config.runtime.webrender_backend,
+            "webrender initialized (stub)"
+        );
+        Ok(())
+    }
+
     pub fn attach_surface(
         &mut self,
         surface: RenderSurfaceHandle,
@@ -173,12 +233,21 @@ impl ServoEmbedder {
             height = metadata.viewport_height,
             "attach surface"
         );
+        self.window = Some(ServoWindowAdapter::from_metadata(&metadata));
         self.surface = Some(SurfaceSwapChain::new(surface, metadata));
+        self.frame_scheduler.request_frame();
     }
 
     pub fn update_surface(&mut self, metadata: RenderSurfaceMetadata) {
         if let Some(surface) = self.surface.as_mut() {
-            surface.resize(metadata);
+            surface.resize(&metadata);
+        }
+        if let Some(window) = self.window.as_mut() {
+            if window.resize(&metadata) {
+                self.frame_scheduler.request_frame();
+            }
+        } else {
+            self.window = Some(ServoWindowAdapter::from_metadata(&metadata));
         }
     }
 
@@ -205,6 +274,9 @@ impl ServoEmbedder {
     }
 
     pub fn render_frame(&mut self) -> Option<EngineFrame> {
+        if !self.frame_scheduler.should_render() {
+            return None;
+        }
         let surface = self.surface.as_mut()?;
         let width = surface.metadata.viewport_width;
         let height = surface.metadata.viewport_height;
@@ -240,22 +312,40 @@ impl ServoEmbedder {
         })
     }
 
+    pub fn navigate(&mut self, url: &str) {
+        self.browser_state.navigate(url);
+        self.frame_scheduler.request_frame();
+    }
+
+    pub fn reload(&mut self) {
+        self.browser_state.reload();
+        self.frame_scheduler.request_frame();
+    }
+
+    pub fn stop(&mut self) {
+        self.browser_state.stop();
+        self.frame_scheduler.request_frame();
+    }
+
     pub fn handle_input(&mut self, event: &InputEvent) {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?event, "input forwarded");
         }
+        self.frame_scheduler.request_frame();
     }
 
     pub fn handle_ime(&mut self, event: &crate::engine::ImeEvent) {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?event, "ime forwarded");
         }
+        self.frame_scheduler.request_frame();
     }
 
     pub fn handle_clipboard(&mut self, request: &crate::engine::ClipboardRequest) {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?request, "clipboard forwarded");
         }
+        self.frame_scheduler.request_frame();
     }
 
     pub fn set_focus(&mut self, focus: FocusState) {
@@ -263,6 +353,7 @@ impl ServoEmbedder {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?focus, "focus updated");
         }
+        self.frame_scheduler.request_frame();
     }
 
     pub fn set_verbose_logging(&mut self, enabled: bool) {
