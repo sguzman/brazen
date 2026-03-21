@@ -131,6 +131,7 @@ fn command_dispatch_routes_navigation_and_panel_state() {
     let mut shell = brazen::ShellState {
         app_name: "Brazen".to_string(),
         backend_name: "null".to_string(),
+        engine_instance_id: 1,
         engine_status: EngineStatus::NoEngine,
         active_tab: BrowserTab {
             id: 1,
@@ -142,6 +143,12 @@ fn command_dispatch_routes_navigation_and_panel_state() {
         load_progress: 0.0,
         can_go_back: false,
         can_go_forward: false,
+        document_ready: false,
+        favicon_url: None,
+        metadata_summary: None,
+        history: Vec::new(),
+        last_committed_url: None,
+        was_minimized: false,
         event_log: Vec::new(),
         log_panel_open: true,
         permission_panel_open: false,

@@ -5,6 +5,7 @@ pub mod engine;
 pub mod logging;
 pub mod permissions;
 pub mod platform_paths;
+pub mod servo_embedder;
 
 use std::path::{Path, PathBuf};
 
