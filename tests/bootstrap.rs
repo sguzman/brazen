@@ -69,6 +69,23 @@ initial_width = 320.0
 }
 
 #[test]
+fn startup_url_validation_rejects_unknown_schemes() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("brazen.toml");
+    std::fs::write(
+        &path,
+        r#"
+[engine]
+startup_url = "chrome://version"
+"#,
+    )
+    .unwrap();
+
+    let error = BrazenConfig::load_with_defaults(&path).unwrap_err();
+    assert!(error.to_string().contains("startup_url"));
+}
+
+#[test]
 fn runtime_paths_resolve_relative_to_config_directory() {
     let roots = PlatformPaths::from_roots(
         "/tmp/brazen-config",
@@ -195,7 +212,7 @@ fn command_dispatch_routes_navigation_and_panel_state() {
         AppCommand::NavigateTo("https://example.com".to_string()),
     );
     assert_eq!(outcome, CommandOutcome::NavigationScheduled);
-    assert_eq!(engine.active_tab().current_url, "https://example.com");
+    assert_eq!(engine.active_tab().current_url, "https://example.com/");
 
     let outcome = dispatch_command(&mut shell, &mut engine, AppCommand::GoBack);
     assert_eq!(outcome, CommandOutcome::BackScheduled);
@@ -211,6 +228,69 @@ fn command_dispatch_routes_navigation_and_panel_state() {
 
     let outcome = dispatch_command(&mut shell, &mut engine, AppCommand::OpenPermissionPanel);
     assert_eq!(outcome, CommandOutcome::PermissionPanelVisibility(true));
+}
+
+#[test]
+fn command_dispatch_rejects_invalid_urls() {
+    let dir = tempdir().unwrap();
+    let runtime_paths = brazen::RuntimePaths {
+        config_path: dir.path().join("brazen.toml"),
+        data_dir: dir.path().join("data"),
+        logs_dir: dir.path().join("logs"),
+        profiles_dir: dir.path().join("profiles"),
+        cache_dir: dir.path().join("cache"),
+        downloads_dir: dir.path().join("downloads"),
+        crash_dumps_dir: dir.path().join("crash-dumps"),
+        active_profile_dir: dir.path().join("profiles/default"),
+        session_path: dir.path().join("profiles/default/session.json"),
+    };
+    let mut shell = brazen::ShellState {
+        app_name: "Brazen".to_string(),
+        backend_name: "null".to_string(),
+        engine_instance_id: 1,
+        engine_status: EngineStatus::NoEngine,
+        active_tab: BrowserTab {
+            id: 1,
+            title: "Platform Skeleton".to_string(),
+            current_url: "about:blank".to_string(),
+        },
+        address_bar_input: String::new(),
+        page_title: "Platform Skeleton".to_string(),
+        load_progress: 0.0,
+        can_go_back: false,
+        can_go_forward: false,
+        document_ready: false,
+        favicon_url: None,
+        metadata_summary: None,
+        history: Vec::new(),
+        last_committed_url: None,
+        was_minimized: false,
+        pending_popup: None,
+        pending_dialog: None,
+        pending_context_menu: None,
+        pending_new_window: None,
+        last_download: None,
+        last_security_warning: None,
+        last_crash: None,
+        last_crash_dump: None,
+        devtools_endpoint: None,
+        engine_verbose_logging: false,
+        session: brazen::session::SessionSnapshot::new("default".to_string(), "now".to_string()),
+        event_log: Vec::new(),
+        log_panel_open: true,
+        permission_panel_open: false,
+        capabilities_snapshot: Vec::new(),
+        runtime_paths,
+    };
+    let mut engine = NullEngine::new();
+
+    let outcome = dispatch_command(
+        &mut shell,
+        &mut engine,
+        AppCommand::NavigateTo("chrome://version".to_string()),
+    );
+    assert_eq!(outcome, CommandOutcome::NavigationFailed);
+    assert_eq!(engine.active_tab().current_url, "about:blank");
 }
 
 #[test]

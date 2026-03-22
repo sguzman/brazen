@@ -4,6 +4,7 @@ pub mod commands;
 pub mod config;
 pub mod engine;
 pub mod logging;
+pub mod navigation;
 pub mod permissions;
 pub mod platform_paths;
 pub mod rendering;

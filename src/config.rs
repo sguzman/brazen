@@ -5,6 +5,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 use url::Url;
 
+use crate::navigation::resolve_startup_url;
 use crate::permissions::PermissionPolicy;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -87,6 +88,11 @@ impl BrazenConfig {
             return Err(ConfigError::Validation(
                 "engine.resource_limits.memory_mb must be greater than zero".to_string(),
             ));
+        }
+        if let Err(reason) = resolve_startup_url(&self.engine.startup_url) {
+            return Err(ConfigError::Validation(format!(
+                "engine.startup_url is invalid: {reason}"
+            )));
         }
         if self.engine.resource_limits.max_tabs == 0 {
             return Err(ConfigError::Validation(
@@ -309,6 +315,7 @@ pub struct EngineConfig {
     pub servo_source: Option<String>,
     pub servo_source_tag: String,
     pub servo_source_rev: String,
+    pub startup_url: String,
     pub enable_multiprocess: bool,
     pub new_window_policy: String,
     pub verbose_logging: bool,
@@ -340,6 +347,7 @@ impl Default for EngineConfig {
             servo_source: None,
             servo_source_tag: "v0.0.4".to_string(),
             servo_source_rev: "b73ae02".to_string(),
+            startup_url: "https://example.com".to_string(),
             enable_multiprocess: false,
             new_window_policy: "same-tab".to_string(),
             verbose_logging: false,

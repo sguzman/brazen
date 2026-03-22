@@ -225,6 +225,10 @@ pub enum EngineEvent {
         endpoint: String,
     },
     ClipboardRequested(ClipboardRequest),
+    NavigationFailed {
+        input: String,
+        reason: String,
+    },
     PopupRequested {
         url: String,
         disposition: WindowDisposition,
@@ -525,6 +529,8 @@ pub struct ServoEngine {
     verbose_logging: bool,
     #[cfg(feature = "servo-upstream")]
     last_upstream_snapshot: Option<crate::servo_upstream::UpstreamSnapshot>,
+    #[cfg(feature = "servo-upstream")]
+    upstream_error_reported: bool,
 }
 
 #[cfg(feature = "servo")]
@@ -576,6 +582,8 @@ impl ServoEngine {
             verbose_logging,
             #[cfg(feature = "servo-upstream")]
             last_upstream_snapshot: None,
+            #[cfg(feature = "servo-upstream")]
+            upstream_error_reported: false,
         }
     }
 }
@@ -583,7 +591,11 @@ impl ServoEngine {
 #[cfg(feature = "servo")]
 impl BrowserEngine for ServoEngine {
     fn backend_name(&self) -> &'static str {
-        "servo-scaffold"
+        if self.embedder.upstream_active() {
+            "servo-upstream"
+        } else {
+            "servo-scaffold"
+        }
     }
 
     fn instance_id(&self) -> EngineInstanceId {
@@ -729,7 +741,13 @@ impl BrowserEngine for ServoEngine {
                 self.events.push(EngineEvent::DevtoolsReady { endpoint });
             }
             if let Some(error) = self.embedder.upstream_error() {
-                self.events.push(EngineEvent::Crashed { reason: error });
+                if !self.upstream_error_reported {
+                    self.upstream_error_reported = true;
+                    self.status = EngineStatus::Error(error.clone());
+                    self.events
+                        .push(EngineEvent::StatusChanged(self.status.clone()));
+                    self.events.push(EngineEvent::Crashed { reason: error });
+                }
             }
             if let Some(snapshot) = self.embedder.upstream_snapshot() {
                 let should_update = self
@@ -742,6 +760,8 @@ impl BrowserEngine for ServoEngine {
                     if let Some(title) = snapshot.title.clone() {
                         self.navigation_state.title = title;
                     }
+                    self.active_tab.title = self.navigation_state.title.clone();
+                    self.active_tab.current_url = self.navigation_state.url.clone();
                     self.navigation_state.favicon_url = snapshot.favicon_url.clone();
                     self.navigation_state.can_go_back = snapshot.history_index > 0;
                     self.navigation_state.can_go_forward =

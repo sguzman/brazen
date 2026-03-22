@@ -179,9 +179,13 @@ pub struct ServoEmbedder {
     pub upstream: Option<ServoUpstreamRuntime>,
     #[cfg(feature = "servo-upstream")]
     pub last_snapshot: Option<UpstreamSnapshot>,
+    pub upstream_active: bool,
+    pub upstream_error: Option<String>,
     pub last_pointer: (f32, f32),
     pub input_scale: f32,
     pub last_frame_checksum: Option<u64>,
+    pub pending_navigation: Option<String>,
+    pub logged_first_frame: bool,
 }
 
 impl ServoEmbedder {
@@ -205,9 +209,13 @@ impl ServoEmbedder {
             upstream: None,
             #[cfg(feature = "servo-upstream")]
             last_snapshot: None,
+            upstream_active: false,
+            upstream_error: None,
             last_pointer: (0.0, 0.0),
             input_scale: 1.0,
             last_frame_checksum: None,
+            pending_navigation: None,
+            logged_first_frame: false,
         }
     }
 
@@ -298,6 +306,11 @@ impl ServoEmbedder {
         tracing::info!(target: "brazen::servo", "embedder shutdown");
         self.state = ServoEmbedderState::Shutdown;
         self.surface = None;
+        self.upstream_active = false;
+        #[cfg(feature = "servo-upstream")]
+        {
+            self.upstream = None;
+        }
     }
 
     pub fn tick(&mut self) {
@@ -358,7 +371,12 @@ impl ServoEmbedder {
         self.frame_scheduler.request_frame();
         #[cfg(feature = "servo-upstream")]
         if let Some(upstream) = &self.upstream {
-            let _ = upstream.navigate(url);
+            if let Err(error) = upstream.navigate(url) {
+                self.upstream_error = Some(error.clone());
+                tracing::error!(target: "brazen::servo", %error, "upstream navigation failed");
+            }
+        } else {
+            self.pending_navigation = Some(url.to_string());
         }
     }
 
@@ -587,9 +605,30 @@ impl ServoEmbedder {
             upstream_config,
         ) {
             Ok(runtime) => {
+                tracing::info!(
+                    target: "brazen::servo",
+                    width = surface.metadata.viewport_width,
+                    height = surface.metadata.viewport_height,
+                    "upstream runtime initialized"
+                );
                 self.upstream = Some(runtime);
+                self.upstream_active = true;
+                if let Some(url) = self.pending_navigation.take() {
+                    if let Some(upstream) = &self.upstream {
+                        if let Err(error) = upstream.navigate(&url) {
+                            self.upstream_error = Some(error.clone());
+                            tracing::error!(
+                                target: "brazen::servo",
+                                %error,
+                                "pending navigation failed"
+                            );
+                        }
+                    }
+                }
             }
             Err(error) => {
+                self.upstream_active = false;
+                self.upstream_error = Some(error.clone());
                 tracing::error!(target: "brazen::servo", %error, "failed to init upstream servo");
             }
         }
@@ -609,6 +648,16 @@ impl ServoEmbedder {
         let frame = upstream.render_frame()?;
         if frame.width == 0 || frame.height == 0 {
             return None;
+        }
+        if !self.logged_first_frame {
+            self.logged_first_frame = true;
+            tracing::info!(
+                target: "brazen::servo",
+                width = frame.width,
+                height = frame.height,
+                format = frame.pixel_format.as_str(),
+                "first upstream frame captured"
+            );
         }
         let expected_width = self
             .surface
@@ -660,6 +709,17 @@ impl ServoEmbedder {
             .or_else(|| self.upstream.as_ref().map(|runtime| runtime.snapshot()))
     }
 
+    pub fn upstream_active(&self) -> bool {
+        #[cfg(feature = "servo-upstream")]
+        {
+            self.upstream_active && self.upstream.is_some()
+        }
+        #[cfg(not(feature = "servo-upstream"))]
+        {
+            false
+        }
+    }
+
     #[cfg(feature = "servo-upstream")]
     pub fn take_devtools_endpoint(&self) -> Option<String> {
         self.upstream.as_ref()?.take_devtools_endpoint()
@@ -667,6 +727,8 @@ impl ServoEmbedder {
 
     #[cfg(feature = "servo-upstream")]
     pub fn upstream_error(&self) -> Option<String> {
-        self.upstream.as_ref()?.last_error()
+        self.upstream_error
+            .clone()
+            .or_else(|| self.upstream.as_ref()?.last_error())
     }
 }

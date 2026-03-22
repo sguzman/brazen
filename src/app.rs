@@ -10,6 +10,7 @@ use crate::engine::{
     FocusState, InputEvent, RenderSurfaceHandle, RenderSurfaceMetadata, SecurityWarningKind,
     WindowDisposition,
 };
+use crate::navigation::{normalize_url_input, resolve_startup_url};
 use crate::permissions::Capability;
 use crate::platform_paths::RuntimePaths;
 use crate::rendering::normalize_pixels;
@@ -58,6 +59,7 @@ impl ShellState {
 
     pub fn sync_from_engine(&mut self, engine: &mut dyn BrowserEngine) {
         self.engine_instance_id = engine.instance_id();
+        self.backend_name = engine.backend_name().to_string();
         self.engine_status = engine.status();
         self.active_tab = engine.active_tab().clone();
         for event in engine.take_events() {
@@ -98,6 +100,9 @@ impl ShellState {
                 }
                 EngineEvent::ClipboardRequested(request) => {
                     self.record_event(format!("clipboard request: {request:?}"));
+                }
+                EngineEvent::NavigationFailed { input, reason } => {
+                    self.record_event(format!("navigation failed: {input} ({reason})"));
                 }
                 EngineEvent::DevtoolsReady { endpoint } => {
                     self.devtools_endpoint = Some(endpoint.clone());
@@ -207,6 +212,9 @@ pub fn build_shell_state(
             Utc::now().to_rfc3339(),
         )
     });
+    let startup_url = resolve_startup_url(&config.engine.startup_url)
+        .ok()
+        .flatten();
 
     let mut shell_state = ShellState {
         app_name: config.app.name.clone(),
@@ -214,7 +222,9 @@ pub fn build_shell_state(
         engine_instance_id: engine.instance_id(),
         engine_status: engine.status(),
         active_tab: engine.active_tab().clone(),
-        address_bar_input: config.app.homepage.clone(),
+        address_bar_input: startup_url
+            .clone()
+            .unwrap_or_else(|| config.app.homepage.clone()),
         page_title: engine.active_tab().title.clone(),
         load_progress: 0.0,
         can_go_back: false,
@@ -253,6 +263,10 @@ pub fn build_shell_state(
                 config.engine.resource_limits.cpu_ms,
                 config.engine.resource_limits.max_tabs
             ),
+            format!(
+                "startup url: {}",
+                startup_url.as_deref().unwrap_or("about:blank (disabled)")
+            ),
         ],
         log_panel_open: config.window.show_log_panel_on_startup,
         permission_panel_open: config.window.show_permission_panel_on_startup,
@@ -274,6 +288,11 @@ pub struct BrazenApp {
     render_texture: Option<eframe::egui::TextureHandle>,
     render_frame_number: Option<u64>,
     render_frame_size: Option<(u32, u32)>,
+    render_frame_format: Option<(
+        crate::engine::PixelFormat,
+        AlphaMode,
+        crate::engine::ColorSpace,
+    )>,
     frame_times: VecDeque<f32>,
     last_frame_instant: Option<Instant>,
     last_frame_ms: Option<f32>,
@@ -291,6 +310,7 @@ pub struct BrazenApp {
     cache_export_path: String,
     cache_import_path: String,
     cache_manifest_path: String,
+    pending_startup_url: Option<String>,
 }
 
 impl BrazenApp {
@@ -312,6 +332,9 @@ impl BrazenApp {
             config.profiles.active_profile.clone(),
         );
         let capture_next_frame = config.engine.debug_capture_next_frame;
+        let pending_startup_url = resolve_startup_url(&config.engine.startup_url)
+            .ok()
+            .flatten();
 
         Self {
             config,
@@ -323,6 +346,7 @@ impl BrazenApp {
             render_texture: None,
             render_frame_number: None,
             render_frame_size: None,
+            render_frame_format: None,
             frame_times: VecDeque::with_capacity(120),
             last_frame_instant: None,
             last_frame_ms: None,
@@ -340,6 +364,7 @@ impl BrazenApp {
             cache_export_path: "cache-export.json".to_string(),
             cache_import_path: "cache-import.json".to_string(),
             cache_manifest_path: "cache-manifest.json".to_string(),
+            pending_startup_url,
         }
     }
 
@@ -381,6 +406,16 @@ impl BrazenApp {
             self.engine.attach_surface(self.surface_handle.clone());
             self.engine.set_render_surface(metadata.clone());
             self.last_surface = Some(metadata);
+            if let Some(startup_url) = self.pending_startup_url.take() {
+                if let Ok(normalized) = normalize_url_input(&startup_url) {
+                    self.shell_state
+                        .record_event(format!("startup navigation: {normalized}"));
+                    self.engine.navigate(&normalized);
+                } else {
+                    self.shell_state
+                        .record_event(format!("startup navigation failed: {startup_url}"));
+                }
+            }
         }
     }
 
@@ -388,6 +423,7 @@ impl BrazenApp {
         let Some(frame) = self.engine.render_frame() else {
             return;
         };
+        self.render_frame_format = Some((frame.pixel_format, frame.alpha_mode, frame.color_space));
         if let Some(surface) = &self.last_surface {
             if surface.viewport_width != frame.width || surface.viewport_height != frame.height {
                 tracing::warn!(
@@ -670,14 +706,26 @@ impl BrazenApp {
 
         match decision {
             WindowDisposition::ForegroundTab => {
-                self.engine.navigate(&url);
-                self.shell_state
-                    .record_event(format!("new window routed to current tab: {url}"));
+                if let Ok(normalized) = normalize_url_input(&url) {
+                    self.engine.navigate(&normalized);
+                    self.shell_state
+                        .record_event(format!("new window routed to current tab: {normalized}"));
+                } else {
+                    self.shell_state
+                        .record_event(format!("new window navigation failed: {url}"));
+                }
             }
             WindowDisposition::BackgroundTab | WindowDisposition::NewWindow => {
-                self.shell_state.session.open_new_tab(&url, "New Tab");
-                self.shell_state
-                    .record_event(format!("new window opened as tab: {url}"));
+                if let Ok(normalized) = normalize_url_input(&url) {
+                    self.shell_state
+                        .session
+                        .open_new_tab(&normalized, "New Tab");
+                    self.shell_state
+                        .record_event(format!("new window opened as tab: {normalized}"));
+                } else {
+                    self.shell_state
+                        .record_event(format!("new window tab open failed: {url}"));
+                }
             }
             WindowDisposition::Blocked => {
                 self.shell_state
@@ -1168,6 +1216,14 @@ impl eframe::App for BrazenApp {
                     .map(|(w, h)| format!("{w}x{h}"))
                     .unwrap_or_else(|| "unknown".to_string());
                 ui.label(format!("Frame: {frame_number} ({size})"));
+            }
+            if let Some((format, alpha, color_space)) = self.render_frame_format {
+                ui.label(format!(
+                    "Format: {} / {} / {}",
+                    format.as_str(),
+                    alpha.as_str(),
+                    color_space.as_str()
+                ));
             }
             if let Some(avg) = frame_average_ms(&self.frame_times) {
                 let last = self

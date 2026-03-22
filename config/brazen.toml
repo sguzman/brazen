@@ -28,6 +28,7 @@ gfx_backend = "gl"
 servo_source = ""
 servo_source_tag = "v0.0.4"
 servo_source_rev = "b73ae02"
+startup_url = "https://example.com"
 enable_multiprocess = false
 new_window_policy = "same-tab"
 verbose_logging = false

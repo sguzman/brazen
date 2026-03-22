@@ -40,3 +40,26 @@ Focuses on replacing the current stub renderer with actual Servo output. This is
 - [ ] Load `about:blank` without crashing and draw a frame
 - [ ] Load a basic HTTP URL and show real content
 - [ ] Add a smoke test that boots Servo and renders one real frame
+
+## Tranche 1: Rendering Bootstrap (20 items)
+
+- [x] Add `engine.startup_url` to the config schema for initial navigation
+- [x] Validate `engine.startup_url` for supported schemes
+- [x] Document `engine.startup_url` in the default TOML
+- [x] Add a navigation helper module for URL normalization
+- [x] Normalize address bar navigation before dispatching to the engine
+- [x] Emit a navigation failure event for rejected inputs
+- [x] Schedule startup navigation after the render surface is attached
+- [x] Normalize new-window navigation targets before routing
+- [x] Queue pending navigation in the Servo embedder when upstream is not ready
+- [x] Flush pending navigation after upstream initialization
+- [x] Track upstream active/error state in the Servo embedder
+- [x] Log upstream init success with surface dimensions
+- [x] Log the first upstream frame capture with format metadata
+- [x] Surface upstream activity in `backend_name`
+- [x] Refresh the shell backend name each sync cycle
+- [x] Promote upstream errors into `EngineStatus::Error`
+- [x] Sync active tab title and URL from upstream snapshots
+- [x] Display render format metadata in the UI panel
+- [x] Add URL normalization unit tests
+- [x] Add config validation coverage for startup URLs

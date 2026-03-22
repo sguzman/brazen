@@ -1,5 +1,6 @@
 use crate::app::ShellState;
-use crate::engine::BrowserEngine;
+use crate::engine::{BrowserEngine, EngineEvent};
+use crate::navigation::normalize_url_input;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AppCommand {
@@ -15,6 +16,7 @@ pub enum AppCommand {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommandOutcome {
     NavigationScheduled,
+    NavigationFailed,
     ReloadScheduled,
     StopScheduled,
     BackScheduled,
@@ -29,12 +31,19 @@ pub fn dispatch_command(
     command: AppCommand,
 ) -> CommandOutcome {
     match command {
-        AppCommand::NavigateTo(url) => {
-            state.address_bar_input = url.clone();
-            state.record_event(format!("queued navigation to {url}"));
-            engine.navigate(&url);
-            CommandOutcome::NavigationScheduled
-        }
+        AppCommand::NavigateTo(url) => match normalize_url_input(&url) {
+            Ok(normalized) => {
+                state.address_bar_input = normalized.clone();
+                state.record_event(format!("queued navigation to {normalized}"));
+                engine.navigate(&normalized);
+                CommandOutcome::NavigationScheduled
+            }
+            Err(reason) => {
+                state.record_event(format!("navigation failed: {url} ({reason})"));
+                engine.inject_event(EngineEvent::NavigationFailed { input: url, reason });
+                CommandOutcome::NavigationFailed
+            }
+        },
         AppCommand::ReloadActiveTab => {
             state.record_event("queued reload for active tab");
             engine.reload();
