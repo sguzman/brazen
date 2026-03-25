@@ -34,6 +34,7 @@ pub struct ServoEmbedderConfig {
     pub process_model: ServoProcessModel,
     pub gfx_backend: String,
     pub source_path: Option<PathBuf>,
+    pub resources_dir: Option<PathBuf>,
     pub verbose_logging: bool,
     pub pixel_format: PixelFormat,
     pub alpha_mode: AlphaMode,
@@ -52,6 +53,17 @@ impl ServoEmbedderConfig {
             gfx_backend: config.gfx_backend.clone(),
             source_path: config
                 .servo_source
+                .as_ref()
+                .and_then(|value| {
+                    if value.trim().is_empty() {
+                        None
+                    } else {
+                        Some(value)
+                    }
+                })
+                .map(PathBuf::from),
+            resources_dir: config
+                .servo_resources_dir
                 .as_ref()
                 .and_then(|value| {
                     if value.trim().is_empty() {
@@ -181,6 +193,8 @@ pub struct ServoEmbedder {
     pub last_snapshot: Option<UpstreamSnapshot>,
     pub upstream_active: bool,
     pub upstream_error: Option<String>,
+    pub resource_reader_ready: Option<bool>,
+    pub resource_reader_path: Option<PathBuf>,
     pub last_pointer: (f32, f32),
     pub input_scale: f32,
     pub last_frame_checksum: Option<u64>,
@@ -211,6 +225,8 @@ impl ServoEmbedder {
             last_snapshot: None,
             upstream_active: false,
             upstream_error: None,
+            resource_reader_ready: None,
+            resource_reader_path: None,
             last_pointer: (0.0, 0.0),
             input_scale: 1.0,
             last_frame_checksum: None,
@@ -307,6 +323,8 @@ impl ServoEmbedder {
         self.state = ServoEmbedderState::Shutdown;
         self.surface = None;
         self.upstream_active = false;
+        self.resource_reader_ready = None;
+        self.resource_reader_path = None;
         #[cfg(feature = "servo-upstream")]
         {
             self.upstream = None;
@@ -598,6 +616,7 @@ impl ServoEmbedder {
             alpha_mode: self.config.alpha_mode,
             color_space: self.config.color_space,
             enable_pixel_probe: self.config.enable_pixel_probe,
+            resources_dir: self.config.resources_dir.clone(),
         };
         match ServoUpstreamRuntime::new(
             surface.metadata.viewport_width,
@@ -611,6 +630,8 @@ impl ServoEmbedder {
                     height = surface.metadata.viewport_height,
                     "upstream runtime initialized"
                 );
+                self.resource_reader_ready = Some(true);
+                self.resource_reader_path = Some(runtime.resources_dir().to_path_buf());
                 self.upstream = Some(runtime);
                 self.upstream_active = true;
                 if let Some(url) = self.pending_navigation.take() {
@@ -629,6 +650,7 @@ impl ServoEmbedder {
             Err(error) => {
                 self.upstream_active = false;
                 self.upstream_error = Some(error.clone());
+                self.resource_reader_ready = Some(false);
                 tracing::error!(target: "brazen::servo", %error, "failed to init upstream servo");
             }
         }
@@ -718,6 +740,16 @@ impl ServoEmbedder {
         {
             false
         }
+    }
+
+    pub fn resource_reader_ready(&self) -> Option<bool> {
+        self.resource_reader_ready
+    }
+
+    pub fn resource_reader_path(&self) -> Option<String> {
+        self.resource_reader_path
+            .as_ref()
+            .map(|path| path.display().to_string())
     }
 
     #[cfg(feature = "servo-upstream")]

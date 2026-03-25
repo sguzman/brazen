@@ -63,3 +63,26 @@ Focuses on replacing the current stub renderer with actual Servo output. This is
 - [x] Display render format metadata in the UI panel
 - [x] Add URL normalization unit tests
 - [x] Add config validation coverage for startup URLs
+
+## Tranche 2: Resource Reader + Deep Diagnostics (20 items)
+
+- [x] Add `engine.servo_resources_dir` to the config schema
+- [x] Resolve the resources directory from config, env var, or vendor path
+- [x] Implement a Servo resource reader for required files
+- [x] Initialize the resource reader before Servo builder creation
+- [x] Emit a clear error when the resources directory cannot be resolved
+- [x] Track resource reader readiness in the Servo embedder
+- [x] Surface resource reader status in render health updates
+- [x] Add a render frame probe for non-white ratio and alpha stats
+- [x] Log a warning after 30 mostly-white frames post navigation
+- [x] Display probe stats in the backend UI panel
+- [x] Display render health (reader/upstream/load status/error) in the UI
+- [x] Track load status transitions from Servo snapshots
+- [x] Emit warnings when load status is stuck at Started for 10s
+- [x] Reset blank-frame counters on new navigation
+- [x] Add unit tests for resource resolution order
+- [x] Add unit test for resource reader file loading
+- [x] Add config wiring for debug frame probe in dev mode
+- [x] Keep debug pixel probe intact for format detection
+- [x] Gate probe metrics behind config toggle
+- [x] Preserve per-launch log behavior for diagnostics

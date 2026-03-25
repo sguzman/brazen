@@ -1,11 +1,16 @@
 #![cfg(feature = "servo-upstream")]
 
 use std::cell::RefCell;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::engine::{AlphaMode, ColorSpace, KeyModifiers, PixelFormat};
+use crate::servo_resources::{
+    ResourceDirResolution, ResourceDirSource, SERVO_SOURCE_ENV, ServoResourceReader,
+    resolve_resource_dir,
+};
 use dpi::PhysicalSize;
 use libservo::{
     Code, CompositionEvent, CompositionState, DeviceIntPoint, DeviceIntRect, DeviceIntSize,
@@ -46,6 +51,7 @@ pub struct ServoUpstreamConfig {
     pub alpha_mode: AlphaMode,
     pub color_space: ColorSpace,
     pub enable_pixel_probe: bool,
+    pub resources_dir: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone)]
@@ -204,6 +210,8 @@ pub struct ServoUpstreamRuntime {
     alpha_mode: AlphaMode,
     color_space: ColorSpace,
     pixel_probe: Option<PixelProbeState>,
+    resources_dir: PathBuf,
+    resource_source: ResourceDirSource,
 }
 
 impl std::fmt::Debug for ServoUpstreamRuntime {
@@ -216,6 +224,8 @@ impl std::fmt::Debug for ServoUpstreamRuntime {
             .field("alpha_mode", &self.alpha_mode)
             .field("color_space", &self.color_space)
             .field("pixel_probe", &self.pixel_probe)
+            .field("resources_dir", &self.resources_dir)
+            .field("resource_source", &self.resource_source)
             .finish()
     }
 }
@@ -223,6 +233,26 @@ impl std::fmt::Debug for ServoUpstreamRuntime {
 impl ServoUpstreamRuntime {
     pub fn new(width: u32, height: u32, config: ServoUpstreamConfig) -> Result<Self, String> {
         let _ = LogTracer::init();
+        let env_source = std::env::var(SERVO_SOURCE_ENV).ok();
+        let ResourceDirResolution { path, source } = resolve_resource_dir(
+            config.resources_dir.as_ref().and_then(|dir| dir.to_str()),
+            env_source.as_deref(),
+        )
+        .map_err(|error| {
+            tracing::error!(
+                target: "brazen::servo::resources",
+                %error,
+                "failed to resolve servo resources directory"
+            );
+            format!("servo resources error: {error}")
+        })?;
+        tracing::info!(
+            target: "brazen::servo::resources",
+            path = %path.display(),
+            source = ?source,
+            "servo resources resolved"
+        );
+        libservo::resources::set(Box::new(ServoResourceReader::new(path.clone())));
         let frame_ready = Arc::new(AtomicBool::new(true));
         let rendering_context = Rc::new(
             SoftwareRenderingContext::new(PhysicalSize::new(width, height))
@@ -284,7 +314,17 @@ impl ServoUpstreamRuntime {
             alpha_mode: config.alpha_mode,
             color_space: config.color_space,
             pixel_probe,
+            resources_dir: path,
+            resource_source: source,
         })
+    }
+
+    pub fn resources_dir(&self) -> &Path {
+        &self.resources_dir
+    }
+
+    pub fn resource_source(&self) -> ResourceDirSource {
+        self.resource_source
     }
 
     pub fn snapshot(&self) -> UpstreamSnapshot {

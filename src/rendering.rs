@@ -3,6 +3,17 @@ use std::hash::{Hash, Hasher};
 
 use crate::engine::{EngineFrame, PixelFormat};
 
+#[derive(Debug, Clone, Copy)]
+pub struct FrameProbeStats {
+    pub non_white_ratio: f32,
+    pub avg_r: u8,
+    pub avg_g: u8,
+    pub avg_b: u8,
+    pub alpha_min: u8,
+    pub alpha_avg: f32,
+    pub sample_count: usize,
+}
+
 pub fn normalize_pixels(frame: &EngineFrame, bypass_swizzle: bool) -> Vec<u8> {
     let width = frame.width as usize;
     let height = frame.height as usize;
@@ -35,6 +46,62 @@ pub fn normalize_pixels(frame: &EngineFrame, bypass_swizzle: bool) -> Vec<u8> {
         }
     }
     out
+}
+
+pub fn probe_frame_stats(
+    pixels: &[u8],
+    width: u32,
+    height: u32,
+    samples: usize,
+) -> Option<FrameProbeStats> {
+    let width = width as usize;
+    let height = height as usize;
+    if width == 0 || height == 0 {
+        return None;
+    }
+    let pixel_count = width.saturating_mul(height);
+    if pixels.len() < pixel_count.saturating_mul(4) {
+        return None;
+    }
+    let sample_count = samples.min(pixel_count).max(1);
+    let mut non_white = 0usize;
+    let mut sum_r: u64 = 0;
+    let mut sum_g: u64 = 0;
+    let mut sum_b: u64 = 0;
+    let mut sum_a: u64 = 0;
+    let mut min_a: u8 = 255;
+    let mut state: u64 = 0x1234_5678_9abc_def0;
+    for _ in 0..sample_count {
+        state = state.wrapping_mul(1103515245).wrapping_add(12345);
+        let x = (state % width as u64) as usize;
+        state = state.wrapping_mul(1103515245).wrapping_add(12345);
+        let y = (state % height as u64) as usize;
+        let idx = (y * width + x) * 4;
+        let r = pixels[idx];
+        let g = pixels[idx + 1];
+        let b = pixels[idx + 2];
+        let a = pixels[idx + 3];
+        if r < 245 || g < 245 || b < 245 {
+            non_white += 1;
+        }
+        sum_r += r as u64;
+        sum_g += g as u64;
+        sum_b += b as u64;
+        sum_a += a as u64;
+        if a < min_a {
+            min_a = a;
+        }
+    }
+    let denom = sample_count as f32;
+    Some(FrameProbeStats {
+        non_white_ratio: non_white as f32 / denom,
+        avg_r: (sum_r / sample_count as u64) as u8,
+        avg_g: (sum_g / sample_count as u64) as u8,
+        avg_b: (sum_b / sample_count as u64) as u8,
+        alpha_min: min_a,
+        alpha_avg: sum_a as f32 / denom,
+        sample_count,
+    })
 }
 
 pub fn frame_checksum(pixels: &[u8]) -> u64 {

@@ -89,6 +89,13 @@ impl BrazenConfig {
                 "engine.resource_limits.memory_mb must be greater than zero".to_string(),
             ));
         }
+        if let Some(path) = &self.engine.servo_resources_dir {
+            if path.trim().is_empty() {
+                return Err(ConfigError::Validation(
+                    "engine.servo_resources_dir must be non-empty when set".to_string(),
+                ));
+            }
+        }
         if let Err(reason) = resolve_startup_url(&self.engine.startup_url) {
             return Err(ConfigError::Validation(format!(
                 "engine.startup_url is invalid: {reason}"
@@ -189,7 +196,28 @@ fn merge_defaults(raw: &str) -> Result<toml::Value, ConfigError> {
     let mut base =
         toml::Value::try_from(BrazenConfig::default()).map_err(ConfigError::Serialize)?;
     let overlay = toml::from_str::<toml::Value>(raw).map_err(ConfigError::Parse)?;
+    let has_debug_frame_probe = overlay
+        .get("engine")
+        .and_then(|value| value.get("debug_frame_probe"))
+        .is_some();
     merge_value(&mut base, overlay);
+    if !has_debug_frame_probe {
+        let mode = base
+            .get("app")
+            .and_then(|value| value.get("mode"))
+            .and_then(|value| value.as_str())
+            .unwrap_or("dev")
+            .to_string();
+        if let Some(engine) = base
+            .get_mut("engine")
+            .and_then(|value| value.as_table_mut())
+        {
+            engine.insert(
+                "debug_frame_probe".to_string(),
+                toml::Value::Boolean(mode == "dev"),
+            );
+        }
+    }
     Ok(base)
 }
 
@@ -315,6 +343,7 @@ pub struct EngineConfig {
     pub servo_source: Option<String>,
     pub servo_source_tag: String,
     pub servo_source_rev: String,
+    pub servo_resources_dir: Option<String>,
     pub startup_url: String,
     pub enable_multiprocess: bool,
     pub new_window_policy: String,
@@ -329,6 +358,7 @@ pub struct EngineConfig {
     pub debug_capture_next_frame: bool,
     pub debug_capture_dir: String,
     pub debug_pixel_probe: bool,
+    pub debug_frame_probe: bool,
     pub debug_pointer_overlay: bool,
     pub devtools_enabled: bool,
     pub devtools_transport: String,
@@ -347,6 +377,7 @@ impl Default for EngineConfig {
             servo_source: None,
             servo_source_tag: "v0.0.4".to_string(),
             servo_source_rev: "b73ae02".to_string(),
+            servo_resources_dir: None,
             startup_url: "https://example.com".to_string(),
             enable_multiprocess: false,
             new_window_policy: "same-tab".to_string(),
@@ -361,6 +392,7 @@ impl Default for EngineConfig {
             debug_capture_next_frame: false,
             debug_capture_dir: "logs".to_string(),
             debug_pixel_probe: false,
+            debug_frame_probe: true,
             debug_pointer_overlay: false,
             devtools_enabled: false,
             devtools_transport: "none".to_string(),

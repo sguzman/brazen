@@ -209,6 +209,7 @@ pub struct NavigationState {
     pub can_go_forward: bool,
     pub load_progress: f32,
     pub document_ready: bool,
+    pub load_status: Option<EngineLoadStatus>,
     pub title: String,
     pub url: String,
     pub redirect_chain: Vec<String>,
@@ -216,11 +217,29 @@ pub struct NavigationState {
     pub metadata_summary: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EngineLoadStatus {
+    Started,
+    HeadParsed,
+    Complete,
+}
+
+impl EngineLoadStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Started => "Started",
+            Self::HeadParsed => "HeadParsed",
+            Self::Complete => "Complete",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum EngineEvent {
     StatusChanged(EngineStatus),
     NavigationRequested(String),
     NavigationStateUpdated(NavigationState),
+    RenderHealthUpdated(RenderHealth),
     DevtoolsReady {
         endpoint: String,
     },
@@ -256,6 +275,14 @@ pub enum EngineEvent {
     Crashed {
         reason: String,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RenderHealth {
+    pub resource_reader_ready: Option<bool>,
+    pub resource_reader_path: Option<String>,
+    pub upstream_active: bool,
+    pub last_error: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -319,6 +346,7 @@ impl NullEngine {
             can_go_forward: false,
             load_progress: 0.0,
             document_ready: false,
+            load_status: None,
             title: "Platform Skeleton".to_string(),
             url: "about:blank".to_string(),
             redirect_chain: Vec::new(),
@@ -372,6 +400,7 @@ impl BrowserEngine for NullEngine {
         self.navigation_state.title = "Loading...".to_string();
         self.navigation_state.load_progress = 0.1;
         self.navigation_state.document_ready = false;
+        self.navigation_state.load_status = Some(EngineLoadStatus::Started);
         if self.active_tab.current_url != "about:blank" {
             self.navigation_state.can_go_back = true;
         }
@@ -385,6 +414,7 @@ impl BrowserEngine for NullEngine {
     fn reload(&mut self) {
         self.navigation_state.load_progress = 1.0;
         self.navigation_state.document_ready = true;
+        self.navigation_state.load_status = Some(EngineLoadStatus::Complete);
         self.events.push(EngineEvent::NavigationStateUpdated(
             self.navigation_state.clone(),
         ));
@@ -393,6 +423,7 @@ impl BrowserEngine for NullEngine {
     fn stop(&mut self) {
         self.navigation_state.load_progress = 0.0;
         self.navigation_state.document_ready = false;
+        self.navigation_state.load_status = None;
         self.events.push(EngineEvent::NavigationStateUpdated(
             self.navigation_state.clone(),
         ));
@@ -403,6 +434,7 @@ impl BrowserEngine for NullEngine {
             self.navigation_state.can_go_forward = true;
             self.navigation_state.load_progress = 0.2;
             self.navigation_state.document_ready = false;
+            self.navigation_state.load_status = Some(EngineLoadStatus::Started);
             self.events.push(EngineEvent::NavigationStateUpdated(
                 self.navigation_state.clone(),
             ));
@@ -413,6 +445,7 @@ impl BrowserEngine for NullEngine {
         if self.navigation_state.can_go_forward {
             self.navigation_state.load_progress = 0.2;
             self.navigation_state.document_ready = false;
+            self.navigation_state.load_status = Some(EngineLoadStatus::Started);
             self.events.push(EngineEvent::NavigationStateUpdated(
                 self.navigation_state.clone(),
             ));
@@ -531,6 +564,8 @@ pub struct ServoEngine {
     last_upstream_snapshot: Option<crate::servo_upstream::UpstreamSnapshot>,
     #[cfg(feature = "servo-upstream")]
     upstream_error_reported: bool,
+    #[cfg(feature = "servo-upstream")]
+    last_render_health: Option<RenderHealth>,
 }
 
 #[cfg(feature = "servo")]
@@ -546,6 +581,7 @@ impl ServoEngine {
             can_go_forward: false,
             load_progress: 0.0,
             document_ready: false,
+            load_status: None,
             title: "Servo Scaffold".to_string(),
             url: "about:blank".to_string(),
             redirect_chain: Vec::new(),
@@ -584,6 +620,8 @@ impl ServoEngine {
             last_upstream_snapshot: None,
             #[cfg(feature = "servo-upstream")]
             upstream_error_reported: false,
+            #[cfg(feature = "servo-upstream")]
+            last_render_health: None,
         }
     }
 }
@@ -619,6 +657,7 @@ impl BrowserEngine for ServoEngine {
         self.navigation_state.title = format!("Loading {url}");
         self.navigation_state.load_progress = 0.05;
         self.navigation_state.document_ready = false;
+        self.navigation_state.load_status = Some(EngineLoadStatus::Started);
         if self.active_tab.current_url != "about:blank" {
             self.navigation_state.can_go_back = true;
         }
@@ -643,6 +682,7 @@ impl BrowserEngine for ServoEngine {
         self.loading = true;
         self.navigation_state.load_progress = 0.05;
         self.navigation_state.document_ready = false;
+        self.navigation_state.load_status = Some(EngineLoadStatus::Started);
         self.events.push(EngineEvent::NavigationStateUpdated(
             self.navigation_state.clone(),
         ));
@@ -654,6 +694,7 @@ impl BrowserEngine for ServoEngine {
         self.loading = false;
         self.navigation_state.load_progress = 0.0;
         self.navigation_state.document_ready = false;
+        self.navigation_state.load_status = None;
         self.navigation_state.metadata_summary = Some("Load stopped".to_string());
         self.events.push(EngineEvent::NavigationStateUpdated(
             self.navigation_state.clone(),
@@ -672,6 +713,7 @@ impl BrowserEngine for ServoEngine {
             self.navigation_state.title = format!("Loading {url}");
             self.navigation_state.load_progress = 0.05;
             self.navigation_state.document_ready = false;
+            self.navigation_state.load_status = Some(EngineLoadStatus::Started);
             self.navigation_state.can_go_back = self.history_index > 0;
             self.navigation_state.can_go_forward = self.history_index + 1 < self.history.len();
             self.loading = true;
@@ -693,6 +735,7 @@ impl BrowserEngine for ServoEngine {
             self.navigation_state.title = format!("Loading {url}");
             self.navigation_state.load_progress = 0.05;
             self.navigation_state.document_ready = false;
+            self.navigation_state.load_status = Some(EngineLoadStatus::Started);
             self.navigation_state.can_go_back = self.history_index > 0;
             self.navigation_state.can_go_forward = self.history_index + 1 < self.history.len();
             self.loading = true;
@@ -766,10 +809,16 @@ impl BrowserEngine for ServoEngine {
                     self.navigation_state.can_go_back = snapshot.history_index > 0;
                     self.navigation_state.can_go_forward =
                         snapshot.history_index + 1 < snapshot.history.len();
-                    self.navigation_state.load_progress = match snapshot.load_status {
-                        libservo::LoadStatus::Started => 0.1,
-                        libservo::LoadStatus::HeadParsed => 0.6,
-                        libservo::LoadStatus::Complete => 1.0,
+                    let load_status = match snapshot.load_status {
+                        libservo::LoadStatus::Started => EngineLoadStatus::Started,
+                        libservo::LoadStatus::HeadParsed => EngineLoadStatus::HeadParsed,
+                        libservo::LoadStatus::Complete => EngineLoadStatus::Complete,
+                    };
+                    self.navigation_state.load_status = Some(load_status);
+                    self.navigation_state.load_progress = match load_status {
+                        EngineLoadStatus::Started => 0.1,
+                        EngineLoadStatus::HeadParsed => 0.6,
+                        EngineLoadStatus::Complete => 1.0,
                     };
                     self.navigation_state.document_ready =
                         matches!(snapshot.load_status, libservo::LoadStatus::Complete);
@@ -778,6 +827,22 @@ impl BrowserEngine for ServoEngine {
                     ));
                     self.last_upstream_snapshot = Some(snapshot);
                 }
+            }
+            let render_health = RenderHealth {
+                resource_reader_ready: self.embedder.resource_reader_ready(),
+                resource_reader_path: self.embedder.resource_reader_path(),
+                upstream_active: self.embedder.upstream_active(),
+                last_error: self.embedder.upstream_error(),
+            };
+            if self
+                .last_render_health
+                .as_ref()
+                .map(|previous| previous != &render_health)
+                .unwrap_or(true)
+            {
+                self.events
+                    .push(EngineEvent::RenderHealthUpdated(render_health.clone()));
+                self.last_render_health = Some(render_health);
             }
         }
         if self.loading {

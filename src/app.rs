@@ -6,14 +6,14 @@ use crate::cache::{AssetQuery, AssetStore};
 use crate::commands::{AppCommand, dispatch_command};
 use crate::config::BrazenConfig;
 use crate::engine::{
-    AlphaMode, BrowserEngine, BrowserTab, DialogKind, EngineEvent, EngineFactory, EngineStatus,
-    FocusState, InputEvent, RenderSurfaceHandle, RenderSurfaceMetadata, SecurityWarningKind,
-    WindowDisposition,
+    AlphaMode, BrowserEngine, BrowserTab, DialogKind, EngineEvent, EngineFactory, EngineLoadStatus,
+    EngineStatus, FocusState, InputEvent, RenderSurfaceHandle, RenderSurfaceMetadata,
+    SecurityWarningKind, WindowDisposition,
 };
 use crate::navigation::{normalize_url_input, resolve_startup_url};
 use crate::permissions::Capability;
 use crate::platform_paths::RuntimePaths;
-use crate::rendering::normalize_pixels;
+use crate::rendering::{normalize_pixels, probe_frame_stats};
 use crate::session::{NavigationEntry, SessionSnapshot, load_session, save_session};
 
 #[derive(Debug, Clone)]
@@ -29,6 +29,7 @@ pub struct ShellState {
     pub can_go_back: bool,
     pub can_go_forward: bool,
     pub document_ready: bool,
+    pub load_status: Option<EngineLoadStatus>,
     pub favicon_url: Option<String>,
     pub metadata_summary: Option<String>,
     pub history: Vec<String>,
@@ -44,6 +45,11 @@ pub struct ShellState {
     pub last_crash_dump: Option<String>,
     pub devtools_endpoint: Option<String>,
     pub engine_verbose_logging: bool,
+    pub resource_reader_ready: Option<bool>,
+    pub resource_reader_path: Option<String>,
+    pub upstream_active: bool,
+    pub upstream_last_error: Option<String>,
+    pub render_warning: Option<String>,
     pub session: SessionSnapshot,
     pub event_log: Vec<String>,
     pub log_panel_open: bool,
@@ -74,6 +80,7 @@ impl ShellState {
                     self.can_go_back = state.can_go_back;
                     self.can_go_forward = state.can_go_forward;
                     self.document_ready = state.document_ready;
+                    self.load_status = state.load_status;
                     self.favicon_url = state.favicon_url.clone();
                     self.metadata_summary = state.metadata_summary.clone();
                     if self
@@ -103,6 +110,12 @@ impl ShellState {
                 }
                 EngineEvent::NavigationFailed { input, reason } => {
                     self.record_event(format!("navigation failed: {input} ({reason})"));
+                }
+                EngineEvent::RenderHealthUpdated(health) => {
+                    self.resource_reader_ready = health.resource_reader_ready;
+                    self.resource_reader_path = health.resource_reader_path;
+                    self.upstream_active = health.upstream_active;
+                    self.upstream_last_error = health.last_error;
                 }
                 EngineEvent::DevtoolsReady { endpoint } => {
                     self.devtools_endpoint = Some(endpoint.clone());
@@ -230,6 +243,7 @@ pub fn build_shell_state(
         can_go_back: false,
         can_go_forward: false,
         document_ready: false,
+        load_status: None,
         favicon_url: None,
         metadata_summary: None,
         history: Vec::new(),
@@ -245,6 +259,11 @@ pub fn build_shell_state(
         last_crash_dump: None,
         devtools_endpoint: None,
         engine_verbose_logging: config.engine.verbose_logging,
+        resource_reader_ready: None,
+        resource_reader_path: None,
+        upstream_active: false,
+        upstream_last_error: None,
+        render_warning: None,
         session,
         event_log: vec![
             format!("loaded config for {}", config.app.name),
@@ -293,6 +312,12 @@ pub struct BrazenApp {
         AlphaMode,
         crate::engine::ColorSpace,
     )>,
+    frame_probe: Option<crate::rendering::FrameProbeStats>,
+    blank_frame_streak: u32,
+    blank_frame_warned: bool,
+    load_status_started_at: Option<Instant>,
+    load_status_warned: bool,
+    last_nav_url: Option<String>,
     frame_times: VecDeque<f32>,
     last_frame_instant: Option<Instant>,
     last_frame_ms: Option<f32>,
@@ -347,6 +372,12 @@ impl BrazenApp {
             render_frame_number: None,
             render_frame_size: None,
             render_frame_format: None,
+            frame_probe: None,
+            blank_frame_streak: 0,
+            blank_frame_warned: false,
+            load_status_started_at: None,
+            load_status_warned: false,
+            last_nav_url: None,
             frame_times: VecDeque::with_capacity(120),
             last_frame_instant: None,
             last_frame_ms: None,
@@ -365,6 +396,43 @@ impl BrazenApp {
             cache_import_path: "cache-import.json".to_string(),
             cache_manifest_path: "cache-manifest.json".to_string(),
             pending_startup_url,
+        }
+    }
+
+    fn frame_probe_enabled(&self) -> bool {
+        self.config.engine.debug_frame_probe
+    }
+
+    fn update_render_health(&mut self) {
+        if self.shell_state.last_committed_url != self.last_nav_url {
+            self.last_nav_url = self.shell_state.last_committed_url.clone();
+            self.blank_frame_streak = 0;
+            self.blank_frame_warned = false;
+            self.load_status_started_at = None;
+            self.load_status_warned = false;
+            self.shell_state.render_warning = None;
+        }
+
+        match self.shell_state.load_status {
+            Some(EngineLoadStatus::Started) => {
+                if self.load_status_started_at.is_none() {
+                    self.load_status_started_at = Some(Instant::now());
+                }
+                if let Some(started_at) = self.load_status_started_at {
+                    if started_at.elapsed() >= Duration::from_secs(10) && !self.load_status_warned {
+                        self.load_status_warned = true;
+                        let warning = "load status stuck at Started for 10s".to_string();
+                        tracing::warn!(target: "brazen::render", "{warning}");
+                        self.shell_state.record_event(warning.clone());
+                        self.shell_state.render_warning = Some(warning);
+                    }
+                }
+            }
+            Some(_) | None => {
+                self.load_status_started_at = None;
+                self.load_status_warned = false;
+                self.shell_state.render_warning = None;
+            }
         }
     }
 
@@ -439,6 +507,33 @@ impl BrazenApp {
         let pixels = normalize_pixels(&frame, self.config.engine.debug_bypass_swizzle);
         if pixels.is_empty() {
             return;
+        }
+        if self.frame_probe_enabled() {
+            self.frame_probe = probe_frame_stats(&pixels, frame.width, frame.height, 256);
+            if let Some(stats) = self.frame_probe {
+                if stats.non_white_ratio < 0.01 {
+                    self.blank_frame_streak = self.blank_frame_streak.saturating_add(1);
+                    if self.blank_frame_streak >= 30
+                        && !self.blank_frame_warned
+                        && self.shell_state.load_progress > 0.0
+                    {
+                        self.blank_frame_warned = true;
+                        tracing::warn!(
+                            target: "brazen::render",
+                            ratio = stats.non_white_ratio,
+                            samples = stats.sample_count,
+                            "render probe detected mostly white frames after navigation"
+                        );
+                        self.shell_state
+                            .record_event("render probe: mostly white frames after navigation");
+                    }
+                } else {
+                    self.blank_frame_streak = 0;
+                    self.blank_frame_warned = false;
+                }
+            }
+        } else {
+            self.frame_probe = None;
         }
         let size = [frame.width as usize, frame.height as usize];
         let image = match frame.alpha_mode {
@@ -913,6 +1008,7 @@ impl eframe::App for BrazenApp {
         self.forward_input_events(ctx);
         self.update_render_frame(ctx);
         self.shell_state.sync_from_engine(self.engine.as_mut());
+        self.update_render_health();
         self.apply_new_window_policy();
         if let Some(reason) = self.shell_state.last_crash.clone() {
             if self.shell_state.last_crash_dump.is_none() {
@@ -1225,6 +1321,17 @@ impl eframe::App for BrazenApp {
                     color_space.as_str()
                 ));
             }
+            if let Some(stats) = self.frame_probe {
+                ui.label(format!(
+                    "Probe: non-white {:.1}% avg rgb {} {} {} alpha min {} avg {:.0}",
+                    stats.non_white_ratio * 100.0,
+                    stats.avg_r,
+                    stats.avg_g,
+                    stats.avg_b,
+                    stats.alpha_min,
+                    stats.alpha_avg
+                ));
+            }
             if let Some(avg) = frame_average_ms(&self.frame_times) {
                 let last = self
                     .last_frame_ms
@@ -1243,6 +1350,28 @@ impl eframe::App for BrazenApp {
                 "Render mode: {} (pacing: {})",
                 self.config.engine.render_mode, self.config.engine.frame_pacing
             ));
+            let resource_status = match self.shell_state.resource_reader_ready {
+                Some(true) => "ok",
+                Some(false) => "missing",
+                None => "unknown",
+            };
+            let load_status = self
+                .shell_state
+                .load_status
+                .map(|status| status.as_str())
+                .unwrap_or("n/a");
+            let last_error = self
+                .shell_state
+                .upstream_last_error
+                .as_deref()
+                .unwrap_or("none");
+            ui.label(format!(
+                "Render health: resource_reader={} upstream_active={} load_status={} last_error={}",
+                resource_status, self.shell_state.upstream_active, load_status, last_error
+            ));
+            if let Some(warning) = &self.shell_state.render_warning {
+                ui.colored_label(eframe::egui::Color32::YELLOW, warning);
+            }
             if let Some(texture) = &self.render_texture {
                 let response =
                     ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
@@ -1439,6 +1568,7 @@ mod tests {
             can_go_back: false,
             can_go_forward: false,
             document_ready: false,
+            load_status: None,
             favicon_url: None,
             metadata_summary: None,
             history: Vec::new(),
@@ -1454,6 +1584,11 @@ mod tests {
             last_crash_dump: None,
             devtools_endpoint: None,
             engine_verbose_logging: false,
+            resource_reader_ready: None,
+            resource_reader_path: None,
+            upstream_active: false,
+            upstream_last_error: None,
+            render_warning: None,
             session: SessionSnapshot::new("default".to_string(), "now".to_string()),
             event_log: Vec::new(),
             log_panel_open: true,

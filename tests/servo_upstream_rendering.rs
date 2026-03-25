@@ -10,6 +10,7 @@ mod tests {
             alpha_mode: AlphaMode::Straight,
             color_space: ColorSpace::Srgb,
             enable_pixel_probe: false,
+            resources_dir: None,
         };
         let mut runtime = ServoUpstreamRuntime::new(64, 64, config).expect("servo runtime");
         for _ in 0..40 {
