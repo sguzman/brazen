@@ -14,13 +14,13 @@ Tracks the `egui`/`eframe` operator shell, browser chrome, and custom inspector 
 
 ## Browser Chrome
 
-- [ ] Multi-tab workspace management
+- [x] Multi-tab workspace management
 - [ ] Window management
 - [ ] Bookmark surface
 - [ ] History surface
 - [ ] Download surface
-- [ ] Keyboard shortcuts
-- [ ] Command palette
+- [x] Keyboard shortcuts
+- [x] Command palette
 - [ ] Layout presets for operator workflows
 
 ## Inspector Surfaces
@@ -38,6 +38,6 @@ Tracks the `egui`/`eframe` operator shell, browser chrome, and custom inspector 
 
 - [ ] Split-pane and dockable panels
 - [ ] Persisted workspace layout
-- [ ] Context menus for browser-internal actions
+- [x] Context menus for browser-internal actions
 - [ ] Theme and density options
 - [ ] Accessibility and keyboard reachability review

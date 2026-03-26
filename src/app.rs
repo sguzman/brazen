@@ -368,11 +368,33 @@ pub struct BrazenApp {
     cache_export_path: String,
     cache_import_path: String,
     cache_manifest_path: String,
+    command_palette_open: bool,
+    command_palette_query: String,
+    command_palette_focus_pending: bool,
+    address_bar_focus_pending: bool,
     pending_startup_url: Option<String>,
     automation_handle: Option<AutomationHandle>,
     automation_rx: Option<tokio::sync::mpsc::UnboundedReceiver<AutomationCommand>>,
     last_nav_event: Option<(String, Option<EngineLoadStatus>, f32)>,
     last_event_log_len: usize,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum PaletteCommand {
+    NewTab,
+    CloseTab,
+    Reload,
+    StopLoading,
+    GoBack,
+    GoForward,
+    FocusAddressBar,
+    ToggleLogs,
+    TogglePermissions,
+}
+
+struct PaletteEntry {
+    label: &'static str,
+    action: PaletteCommand,
 }
 
 impl BrazenApp {
@@ -453,6 +475,10 @@ impl BrazenApp {
             cache_export_path: "cache-export.json".to_string(),
             cache_import_path: "cache-import.json".to_string(),
             cache_manifest_path: "cache-manifest.json".to_string(),
+            command_palette_open: false,
+            command_palette_query: String::new(),
+            command_palette_focus_pending: false,
+            address_bar_focus_pending: false,
             pending_startup_url,
             automation_handle,
             automation_rx,
@@ -1067,6 +1093,7 @@ impl BrazenApp {
         };
         self.engine.set_focus(focused);
         let input_logging = self.config.engine.input_logging;
+        let suppress_engine_input = self.command_palette_open;
 
         if let Some(minimized) = input.raw.viewport().minimized {
             if minimized && !self.shell_state.was_minimized {
@@ -1265,6 +1292,7 @@ impl BrazenApp {
                     ..
                 } => {
                     let is_command = modifiers.ctrl || modifiers.command;
+                    let mut handled_shortcut = false;
                     if pressed && is_command {
                         match key {
                             eframe::egui::Key::C | eframe::egui::Key::X => {
@@ -1272,13 +1300,38 @@ impl BrazenApp {
                                     .handle_clipboard(crate::engine::ClipboardRequest::Read);
                                 self.shell_state
                                     .record_event(format!("shortcut {:?} => copy", key));
+                                handled_shortcut = true;
                             }
                             eframe::egui::Key::A => {
                                 self.shell_state.record_event("shortcut: select all");
+                                handled_shortcut = true;
                             }
                             eframe::egui::Key::F => {
                                 self.shell_state.find_panel_open = true;
                                 self.shell_state.record_event("shortcut: find");
+                                handled_shortcut = true;
+                            }
+                            eframe::egui::Key::K => {
+                                self.open_command_palette();
+                                self.shell_state.record_event("shortcut: command palette");
+                                handled_shortcut = true;
+                            }
+                            eframe::egui::Key::L => {
+                                self.address_bar_focus_pending = true;
+                                self.shell_state.record_event("shortcut: focus address bar");
+                                handled_shortcut = true;
+                            }
+                            eframe::egui::Key::T => {
+                                self.apply_palette_command(PaletteCommand::NewTab);
+                                handled_shortcut = true;
+                            }
+                            eframe::egui::Key::W => {
+                                self.apply_palette_command(PaletteCommand::CloseTab);
+                                handled_shortcut = true;
+                            }
+                            eframe::egui::Key::R => {
+                                self.apply_palette_command(PaletteCommand::Reload);
+                                handled_shortcut = true;
                             }
                             _ => {}
                         }
@@ -1314,6 +1367,9 @@ impl BrazenApp {
                         }
                         continue;
                     }
+                    if handled_shortcut {
+                        continue;
+                    }
                     let key_name = format!("{key:?}");
                     let modifiers = crate::engine::KeyModifiers {
                         alt: modifiers.alt,
@@ -1321,20 +1377,25 @@ impl BrazenApp {
                         shift: modifiers.shift,
                         command: modifiers.command,
                     };
-                    if pressed {
-                        self.engine.handle_input(InputEvent::KeyDown {
-                            key: key_name,
-                            modifiers,
-                            repeat,
-                        });
-                    } else {
-                        self.engine.handle_input(InputEvent::KeyUp {
-                            key: key_name,
-                            modifiers,
-                        });
+                    if !suppress_engine_input {
+                        if pressed {
+                            self.engine.handle_input(InputEvent::KeyDown {
+                                key: key_name,
+                                modifiers,
+                                repeat,
+                            });
+                        } else {
+                            self.engine.handle_input(InputEvent::KeyUp {
+                                key: key_name,
+                                modifiers,
+                            });
+                        }
                     }
                 }
                 eframe::egui::Event::Text(text) => {
+                    if suppress_engine_input {
+                        continue;
+                    }
                     if input_logging {
                         tracing::trace!(
                             target: "brazen::input",
@@ -1545,6 +1606,232 @@ impl BrazenApp {
             self.shell_state.session.crash_recovery_pending = false;
             self.pending_restart_at = None;
         }
+    }
+
+    fn palette_entries() -> &'static [PaletteEntry] {
+        &[
+            PaletteEntry {
+                label: "New Tab",
+                action: PaletteCommand::NewTab,
+            },
+            PaletteEntry {
+                label: "Close Tab",
+                action: PaletteCommand::CloseTab,
+            },
+            PaletteEntry {
+                label: "Reload",
+                action: PaletteCommand::Reload,
+            },
+            PaletteEntry {
+                label: "Stop Loading",
+                action: PaletteCommand::StopLoading,
+            },
+            PaletteEntry {
+                label: "Go Back",
+                action: PaletteCommand::GoBack,
+            },
+            PaletteEntry {
+                label: "Go Forward",
+                action: PaletteCommand::GoForward,
+            },
+            PaletteEntry {
+                label: "Focus Address Bar",
+                action: PaletteCommand::FocusAddressBar,
+            },
+            PaletteEntry {
+                label: "Toggle Logs Panel",
+                action: PaletteCommand::ToggleLogs,
+            },
+            PaletteEntry {
+                label: "Toggle Permissions Panel",
+                action: PaletteCommand::TogglePermissions,
+            },
+        ]
+    }
+
+    fn open_command_palette(&mut self) {
+        self.command_palette_open = true;
+        self.command_palette_focus_pending = true;
+        self.command_palette_query.clear();
+    }
+
+    fn apply_palette_command(&mut self, action: PaletteCommand) {
+        match action {
+            PaletteCommand::NewTab => {
+                self.shell_state
+                    .session
+                    .open_new_tab("about:blank", "New Tab");
+                self.shell_state.session.active_tab_mut().zoom_level =
+                    self.config.engine.zoom_default;
+                self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
+                self.sync_active_tab_from_session();
+                self.shell_state.address_bar_input =
+                    self.shell_state.active_tab.current_url.clone();
+                self.shell_state.record_event("palette: new tab");
+            }
+            PaletteCommand::CloseTab => {
+                self.shell_state.session.close_active_tab();
+                self.sync_active_tab_from_session();
+                self.shell_state.address_bar_input =
+                    self.shell_state.active_tab.current_url.clone();
+                self.shell_state.record_event("palette: close tab");
+            }
+            PaletteCommand::Reload => {
+                let _ = dispatch_command(
+                    &mut self.shell_state,
+                    self.engine.as_mut(),
+                    AppCommand::ReloadActiveTab,
+                );
+                self.shell_state.record_event("palette: reload");
+            }
+            PaletteCommand::StopLoading => {
+                let _ = dispatch_command(
+                    &mut self.shell_state,
+                    self.engine.as_mut(),
+                    AppCommand::StopLoading,
+                );
+                self.shell_state.record_event("palette: stop loading");
+            }
+            PaletteCommand::GoBack => {
+                let _ = dispatch_command(
+                    &mut self.shell_state,
+                    self.engine.as_mut(),
+                    AppCommand::GoBack,
+                );
+                self.shell_state.session.go_back(Utc::now().to_rfc3339());
+                self.shell_state.record_event("palette: go back");
+            }
+            PaletteCommand::GoForward => {
+                let _ = dispatch_command(
+                    &mut self.shell_state,
+                    self.engine.as_mut(),
+                    AppCommand::GoForward,
+                );
+                self.shell_state.session.go_forward(Utc::now().to_rfc3339());
+                self.shell_state.record_event("palette: go forward");
+            }
+            PaletteCommand::FocusAddressBar => {
+                self.address_bar_focus_pending = true;
+                self.shell_state.record_event("palette: focus address bar");
+            }
+            PaletteCommand::ToggleLogs => {
+                let _ = dispatch_command(
+                    &mut self.shell_state,
+                    self.engine.as_mut(),
+                    AppCommand::ToggleLogPanel,
+                );
+            }
+            PaletteCommand::TogglePermissions => {
+                self.shell_state.permission_panel_open = !self.shell_state.permission_panel_open;
+                self.shell_state.record_event(format!(
+                    "permission panel {}",
+                    if self.shell_state.permission_panel_open {
+                        "opened"
+                    } else {
+                        "closed"
+                    }
+                ));
+            }
+        }
+    }
+
+    fn render_command_palette(&mut self, ctx: &eframe::egui::Context) {
+        if !self.command_palette_open {
+            return;
+        }
+        let mut open = true;
+        let mut close_requested = false;
+        eframe::egui::Window::new("Command Palette")
+            .collapsible(false)
+            .resizable(false)
+            .open(&mut open)
+            .anchor(
+                eframe::egui::Align2::CENTER_TOP,
+                eframe::egui::vec2(0.0, 24.0),
+            )
+            .show(ctx, |ui| {
+                let response = ui.add(
+                    eframe::egui::TextEdit::singleline(&mut self.command_palette_query)
+                        .hint_text("Type a command"),
+                );
+                if self.command_palette_focus_pending {
+                    response.request_focus();
+                    self.command_palette_focus_pending = false;
+                }
+                let query = self.command_palette_query.trim().to_lowercase();
+                let entries = Self::palette_entries()
+                    .iter()
+                    .filter(|entry| entry.label.to_lowercase().contains(&query))
+                    .collect::<Vec<_>>();
+                ui.separator();
+                for entry in entries.iter().take(8) {
+                    if ui.button(entry.label).clicked() {
+                        self.apply_palette_command(entry.action);
+                        close_requested = true;
+                    }
+                }
+                if ui.input(|input| input.key_pressed(eframe::egui::Key::Enter)) {
+                    if let Some(entry) = entries.first() {
+                        self.apply_palette_command(entry.action);
+                    }
+                    close_requested = true;
+                }
+                if ui.input(|input| input.key_pressed(eframe::egui::Key::Escape)) {
+                    close_requested = true;
+                }
+            });
+        if close_requested {
+            open = false;
+        }
+        if !open {
+            self.command_palette_open = false;
+        }
+    }
+
+    fn render_tab_strip(&mut self, ctx: &eframe::egui::Context) {
+        eframe::egui::TopBottomPanel::top("tab_strip").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                let active_window = self.shell_state.session.active_window;
+                let Some(window) = self.shell_state.session.windows.get(active_window) else {
+                    return;
+                };
+                let active_index = window.active_tab;
+                let tabs = window.tabs.clone();
+                for (index, tab) in tabs.iter().enumerate() {
+                    let is_active = index == active_index;
+                    let label = if tab.title.is_empty() {
+                        tab.url.clone()
+                    } else {
+                        tab.title.clone()
+                    };
+                    let response = ui.selectable_label(is_active, label);
+                    if response.clicked() {
+                        self.shell_state.session.set_active_tab(index);
+                        self.sync_active_tab_from_session();
+                        self.shell_state.address_bar_input = tab.url.clone();
+                    }
+                    if tabs.len() > 1 {
+                        if ui.small_button("x").clicked() && index == active_index {
+                            self.shell_state.session.close_active_tab();
+                            self.sync_active_tab_from_session();
+                            self.shell_state.address_bar_input =
+                                self.shell_state.active_tab.current_url.clone();
+                        }
+                    }
+                }
+                if ui.small_button("+").clicked() {
+                    self.shell_state
+                        .session
+                        .open_new_tab("about:blank", "New Tab");
+                    self.shell_state.session.active_tab_mut().zoom_level =
+                        self.config.engine.zoom_default;
+                    self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
+                    self.sync_active_tab_from_session();
+                    self.shell_state.address_bar_input =
+                        self.shell_state.active_tab.current_url.clone();
+                }
+            });
+        });
     }
 
     fn render_cache_panel(&mut self, ui: &mut eframe::egui::Ui) {
@@ -1801,6 +2088,10 @@ impl eframe::App for BrazenApp {
                     }
                 });
                 let response = ui.text_edit_singleline(&mut self.shell_state.address_bar_input);
+                if self.address_bar_focus_pending {
+                    response.request_focus();
+                    self.address_bar_focus_pending = false;
+                }
                 let enter_pressed = ui.input(|input| input.key_pressed(eframe::egui::Key::Enter));
                 if response.lost_focus() && enter_pressed {
                     self.handle_navigation();
@@ -1857,6 +2148,8 @@ impl eframe::App for BrazenApp {
                     .desired_width(f32::INFINITY),
             );
         });
+
+        self.render_tab_strip(ctx);
 
         eframe::egui::SidePanel::left("tab_sidebar")
             .default_width(240.0)
@@ -2233,6 +2526,7 @@ impl eframe::App for BrazenApp {
                 });
         }
 
+        self.render_command_palette(ctx);
         self.render_context_menu(ctx);
     }
 }
