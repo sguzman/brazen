@@ -16,7 +16,7 @@ use libservo::{
     Code, CompositionEvent, CompositionState, DeviceIntPoint, DeviceIntRect, DeviceIntSize,
     DevicePoint, EventLoopWaker, ImeEvent, InputEvent, Key, KeyState, KeyboardEvent, LoadStatus,
     Location, Modifiers, MouseButton, MouseButtonAction, MouseButtonEvent, MouseMoveEvent,
-    NamedKey, RenderingContext, Servo, ServoBuilder, ServoDelegate, SoftwareRenderingContext,
+    NamedKey, Opts, RenderingContext, Servo, ServoBuilder, ServoDelegate, SoftwareRenderingContext,
     WebView, WebViewBuilder, WebViewDelegate, WebViewPoint, WheelDelta, WheelEvent, WheelMode,
 };
 use tracing_log::LogTracer;
@@ -52,6 +52,8 @@ pub struct ServoUpstreamConfig {
     pub color_space: ColorSpace,
     pub enable_pixel_probe: bool,
     pub resources_dir: Option<PathBuf>,
+    pub certificate_path: Option<PathBuf>,
+    pub ignore_certificate_errors: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -252,7 +254,18 @@ impl ServoUpstreamRuntime {
             source = ?source,
             "servo resources resolved"
         );
+        tracing::info!(
+            target: "brazen::servo::network",
+            ignore_certificate_errors = config.ignore_certificate_errors,
+            certificate_path = ?config.certificate_path,
+            "servo network configuration"
+        );
         libservo::resources::set(Box::new(ServoResourceReader::new(path.clone())));
+        let mut opts = Opts::default();
+        opts.ignore_certificate_errors = config.ignore_certificate_errors;
+        if let Some(cert_path) = &config.certificate_path {
+            opts.certificate_path = Some(cert_path.display().to_string());
+        }
         let frame_ready = Arc::new(AtomicBool::new(true));
         let rendering_context = Rc::new(
             SoftwareRenderingContext::new(PhysicalSize::new(width, height))
@@ -262,6 +275,7 @@ impl ServoUpstreamRuntime {
             .event_loop_waker(Box::new(BrazenEventLoopWaker {
                 frame_ready: frame_ready.clone(),
             }))
+            .opts(opts)
             .build();
         let snapshot = Rc::new(RefCell::new(UpstreamSnapshot::default()));
         let devtools_endpoint = Rc::new(RefCell::new(None));

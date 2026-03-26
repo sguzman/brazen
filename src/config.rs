@@ -96,6 +96,13 @@ impl BrazenConfig {
                 ));
             }
         }
+        if let Some(path) = &self.engine.certificate_path {
+            if path.trim().is_empty() {
+                return Err(ConfigError::Validation(
+                    "engine.certificate_path must be non-empty when set".to_string(),
+                ));
+            }
+        }
         if let Err(reason) = resolve_startup_url(&self.engine.startup_url) {
             return Err(ConfigError::Validation(format!(
                 "engine.startup_url is invalid: {reason}"
@@ -200,21 +207,36 @@ fn merge_defaults(raw: &str) -> Result<toml::Value, ConfigError> {
         .get("engine")
         .and_then(|value| value.get("debug_frame_probe"))
         .is_some();
+    let has_ignore_cert_errors = overlay
+        .get("engine")
+        .and_then(|value| value.get("ignore_certificate_errors"))
+        .is_some();
     merge_value(&mut base, overlay);
+    let mode_is_dev = base
+        .get("app")
+        .and_then(|value| value.get("mode"))
+        .and_then(|value| value.as_str())
+        .unwrap_or("dev")
+        == "dev";
     if !has_debug_frame_probe {
-        let mode = base
-            .get("app")
-            .and_then(|value| value.get("mode"))
-            .and_then(|value| value.as_str())
-            .unwrap_or("dev")
-            .to_string();
         if let Some(engine) = base
             .get_mut("engine")
             .and_then(|value| value.as_table_mut())
         {
             engine.insert(
                 "debug_frame_probe".to_string(),
-                toml::Value::Boolean(mode == "dev"),
+                toml::Value::Boolean(mode_is_dev),
+            );
+        }
+    }
+    if !has_ignore_cert_errors {
+        if let Some(engine) = base
+            .get_mut("engine")
+            .and_then(|value| value.as_table_mut())
+        {
+            engine.insert(
+                "ignore_certificate_errors".to_string(),
+                toml::Value::Boolean(mode_is_dev),
             );
         }
     }
@@ -344,6 +366,8 @@ pub struct EngineConfig {
     pub servo_source_tag: String,
     pub servo_source_rev: String,
     pub servo_resources_dir: Option<String>,
+    pub certificate_path: Option<String>,
+    pub ignore_certificate_errors: bool,
     pub startup_url: String,
     pub enable_multiprocess: bool,
     pub new_window_policy: String,
@@ -378,6 +402,8 @@ impl Default for EngineConfig {
             servo_source_tag: "v0.0.4".to_string(),
             servo_source_rev: "b73ae02".to_string(),
             servo_resources_dir: None,
+            certificate_path: None,
+            ignore_certificate_errors: false,
             startup_url: "https://example.com".to_string(),
             enable_multiprocess: false,
             new_window_policy: "same-tab".to_string(),

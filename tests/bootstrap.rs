@@ -86,6 +86,34 @@ startup_url = "chrome://version"
 }
 
 #[test]
+fn ignore_certificate_errors_defaults_to_dev_mode() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("brazen.toml");
+    std::fs::write(
+        &path,
+        r#"
+[app]
+mode = "prod"
+"#,
+    )
+    .unwrap();
+
+    let config = BrazenConfig::load_with_defaults(&path).unwrap();
+    assert!(!config.engine.ignore_certificate_errors);
+
+    std::fs::write(
+        &path,
+        r#"
+[app]
+mode = "dev"
+"#,
+    )
+    .unwrap();
+    let config = BrazenConfig::load_with_defaults(&path).unwrap();
+    assert!(config.engine.ignore_certificate_errors);
+}
+
+#[test]
 fn runtime_paths_resolve_relative_to_config_directory() {
     let roots = PlatformPaths::from_roots(
         "/tmp/brazen-config",

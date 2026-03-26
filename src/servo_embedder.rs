@@ -35,6 +35,8 @@ pub struct ServoEmbedderConfig {
     pub gfx_backend: String,
     pub source_path: Option<PathBuf>,
     pub resources_dir: Option<PathBuf>,
+    pub certificate_path: Option<PathBuf>,
+    pub ignore_certificate_errors: bool,
     pub verbose_logging: bool,
     pub pixel_format: PixelFormat,
     pub alpha_mode: AlphaMode,
@@ -73,6 +75,18 @@ impl ServoEmbedderConfig {
                     }
                 })
                 .map(PathBuf::from),
+            certificate_path: config
+                .certificate_path
+                .as_ref()
+                .and_then(|value| {
+                    if value.trim().is_empty() {
+                        None
+                    } else {
+                        Some(value)
+                    }
+                })
+                .map(PathBuf::from),
+            ignore_certificate_errors: config.ignore_certificate_errors,
             verbose_logging: config.verbose_logging,
             pixel_format: PixelFormat::from_str(&config.pixel_format),
             alpha_mode: AlphaMode::from_str(&config.alpha_mode),
@@ -617,6 +631,8 @@ impl ServoEmbedder {
             color_space: self.config.color_space,
             enable_pixel_probe: self.config.enable_pixel_probe,
             resources_dir: self.config.resources_dir.clone(),
+            certificate_path: self.config.certificate_path.clone(),
+            ignore_certificate_errors: self.config.ignore_certificate_errors,
         };
         match ServoUpstreamRuntime::new(
             surface.metadata.viewport_width,
