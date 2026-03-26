@@ -123,19 +123,19 @@ impl BrazenConfig {
                 "engine.resource_limits.memory_mb must be greater than zero".to_string(),
             ));
         }
-        if let Some(path) = &self.engine.servo_resources_dir {
-            if path.trim().is_empty() {
-                return Err(ConfigError::Validation(
-                    "engine.servo_resources_dir must be non-empty when set".to_string(),
-                ));
-            }
+        if let Some(path) = &self.engine.servo_resources_dir
+            && path.trim().is_empty()
+        {
+            return Err(ConfigError::Validation(
+                "engine.servo_resources_dir must be non-empty when set".to_string(),
+            ));
         }
-        if let Some(path) = &self.engine.certificate_path {
-            if path.trim().is_empty() {
-                return Err(ConfigError::Validation(
-                    "engine.certificate_path must be non-empty when set".to_string(),
-                ));
-            }
+        if let Some(path) = &self.engine.certificate_path
+            && path.trim().is_empty()
+        {
+            return Err(ConfigError::Validation(
+                "engine.certificate_path must be non-empty when set".to_string(),
+            ));
         }
         if let Err(reason) = resolve_startup_url(&self.engine.startup_url) {
             return Err(ConfigError::Validation(format!(
@@ -287,27 +287,25 @@ fn merge_defaults(raw: &str) -> Result<toml::Value, ConfigError> {
         .and_then(|value| value.as_str())
         .unwrap_or("dev")
         == "dev";
-    if !has_debug_frame_probe {
-        if let Some(engine) = base
+    if !has_debug_frame_probe
+        && let Some(engine) = base
             .get_mut("engine")
             .and_then(|value| value.as_table_mut())
-        {
-            engine.insert(
-                "debug_frame_probe".to_string(),
-                toml::Value::Boolean(mode_is_dev),
-            );
-        }
+    {
+        engine.insert(
+            "debug_frame_probe".to_string(),
+            toml::Value::Boolean(mode_is_dev),
+        );
     }
-    if !has_ignore_cert_errors {
-        if let Some(engine) = base
+    if !has_ignore_cert_errors
+        && let Some(engine) = base
             .get_mut("engine")
             .and_then(|value| value.as_table_mut())
-        {
-            engine.insert(
-                "ignore_certificate_errors".to_string(),
-                toml::Value::Boolean(mode_is_dev),
-            );
-        }
+    {
+        engine.insert(
+            "ignore_certificate_errors".to_string(),
+            toml::Value::Boolean(mode_is_dev),
+        );
     }
     Ok(base)
 }

@@ -127,10 +127,10 @@ impl SessionSnapshot {
     }
 
     pub fn set_active_tab(&mut self, index: usize) {
-        if let Some(window) = self.windows.get_mut(self.active_window) {
-            if index < window.tabs.len() {
-                window.active_tab = index;
-            }
+        if let Some(window) = self.windows.get_mut(self.active_window)
+            && index < window.tabs.len()
+        {
+            window.active_tab = index;
         }
     }
 
@@ -256,15 +256,13 @@ pub fn save_session(path: &Path, session: &SessionSnapshot) -> std::io::Result<(
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let data = serde_json::to_vec_pretty(session)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    let data = serde_json::to_vec_pretty(session).map_err(std::io::Error::other)?;
     std::fs::write(path, data)
 }
 
 pub fn load_session(path: &Path) -> std::io::Result<SessionSnapshot> {
     let data = std::fs::read(path)?;
-    let session = serde_json::from_slice(&data)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    let session = serde_json::from_slice(&data).map_err(std::io::Error::other)?;
     Ok(session)
 }
 

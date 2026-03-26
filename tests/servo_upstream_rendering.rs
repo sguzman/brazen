@@ -96,10 +96,10 @@ mod tests {
                     },
                     false,
                 );
-                if let Some(stats) = probe_frame_stats(&pixels, frame.width, frame.height, 128) {
-                    if stats.non_white_ratio > 0.01 {
-                        return;
-                    }
+                if let Some(stats) = probe_frame_stats(&pixels, frame.width, frame.height, 128)
+                    && stats.non_white_ratio > 0.01
+                {
+                    return;
                 }
             }
         }

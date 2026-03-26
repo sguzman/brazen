@@ -270,11 +270,13 @@ impl ServoUpstreamRuntime {
             "servo network configuration"
         );
         libservo::resources::set(Box::new(ServoResourceReader::new(path.clone())));
-        let mut opts = Opts::default();
-        opts.ignore_certificate_errors = config.ignore_certificate_errors;
-        if let Some(cert_path) = &resolved_certificate_path {
-            opts.certificate_path = Some(cert_path.display().to_string());
-        }
+        let opts = Opts {
+            ignore_certificate_errors: config.ignore_certificate_errors,
+            certificate_path: resolved_certificate_path
+                .as_ref()
+                .map(|path| path.display().to_string()),
+            ..Opts::default()
+        };
         let frame_ready = Arc::new(AtomicBool::new(true));
         let rendering_context = Rc::new(
             SoftwareRenderingContext::new(PhysicalSize::new(width, height))
@@ -407,10 +409,10 @@ impl ServoUpstreamRuntime {
         );
         let image = self.rendering_context.read_to_image(rect)?;
         self.rendering_context.present();
-        if let Some(probe) = &mut self.pixel_probe {
-            if probe.pending {
-                Self::apply_pixel_probe(&self.pixel_format, probe, &image);
-            }
+        if let Some(probe) = &mut self.pixel_probe
+            && probe.pending
+        {
+            Self::apply_pixel_probe(&self.pixel_format, probe, &image);
         }
         let pixels = image.into_raw();
         let stride_bytes = size.width as usize * 4;

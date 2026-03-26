@@ -1,4 +1,5 @@
 use std::fmt;
+use std::str::FromStr;
 
 use crate::config::BrazenConfig;
 use crate::platform_paths::RuntimePaths;
@@ -133,11 +134,8 @@ pub enum PixelFormat {
 }
 
 impl PixelFormat {
-    pub fn from_str(value: &str) -> Self {
-        match value {
-            "bgra8" => Self::Bgra8,
-            _ => Self::Rgba8,
-        }
+    pub fn from_value(value: &str) -> Self {
+        value.parse().unwrap_or(Self::Rgba8)
     }
 
     pub fn as_str(&self) -> &'static str {
@@ -148,6 +146,17 @@ impl PixelFormat {
     }
 }
 
+impl FromStr for PixelFormat {
+    type Err = ();
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(match value {
+            "bgra8" => Self::Bgra8,
+            _ => Self::Rgba8,
+        })
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AlphaMode {
     Straight,
@@ -155,11 +164,8 @@ pub enum AlphaMode {
 }
 
 impl AlphaMode {
-    pub fn from_str(value: &str) -> Self {
-        match value {
-            "premultiplied" => Self::Premultiplied,
-            _ => Self::Straight,
-        }
+    pub fn from_value(value: &str) -> Self {
+        value.parse().unwrap_or(Self::Straight)
     }
 
     pub fn as_str(&self) -> &'static str {
@@ -170,6 +176,17 @@ impl AlphaMode {
     }
 }
 
+impl FromStr for AlphaMode {
+    type Err = ();
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(match value {
+            "premultiplied" => Self::Premultiplied,
+            _ => Self::Straight,
+        })
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ColorSpace {
     Srgb,
@@ -177,11 +194,8 @@ pub enum ColorSpace {
 }
 
 impl ColorSpace {
-    pub fn from_str(value: &str) -> Self {
-        match value {
-            "linear" => Self::Linear,
-            _ => Self::Srgb,
-        }
+    pub fn from_value(value: &str) -> Self {
+        value.parse().unwrap_or(Self::Srgb)
     }
 
     pub fn as_str(&self) -> &'static str {
@@ -189,6 +203,17 @@ impl ColorSpace {
             Self::Srgb => "srgb",
             Self::Linear => "linear",
         }
+    }
+}
+
+impl FromStr for ColorSpace {
+    type Err = ();
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(match value {
+            "linear" => Self::Linear,
+            _ => Self::Srgb,
+        })
     }
 }
 
@@ -809,14 +834,14 @@ impl BrowserEngine for ServoEngine {
             if let Some(endpoint) = self.embedder.take_devtools_endpoint() {
                 self.events.push(EngineEvent::DevtoolsReady { endpoint });
             }
-            if let Some(error) = self.embedder.upstream_error() {
-                if !self.upstream_error_reported {
-                    self.upstream_error_reported = true;
-                    self.status = EngineStatus::Error(error.clone());
-                    self.events
-                        .push(EngineEvent::StatusChanged(self.status.clone()));
-                    self.events.push(EngineEvent::Crashed { reason: error });
-                }
+            if let Some(error) = self.embedder.upstream_error()
+                && !self.upstream_error_reported
+            {
+                self.upstream_error_reported = true;
+                self.status = EngineStatus::Error(error.clone());
+                self.events
+                    .push(EngineEvent::StatusChanged(self.status.clone()));
+                self.events.push(EngineEvent::Crashed { reason: error });
             }
             if let Some(snapshot) = self.embedder.upstream_snapshot() {
                 let should_update = self

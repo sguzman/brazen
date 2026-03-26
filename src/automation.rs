@@ -455,10 +455,10 @@ async fn handle_socket(
                 }
                 if let Message::Text(text) = message {
                     let response = handle_request(&state, &text, &mut subscribed_topics).await;
-                    if let Some(response) = response {
-                        if socket.send(Message::Text(response.into())).await.is_err() {
-                            break;
-                        }
+                    if let Some(response) = response
+                        && socket.send(Message::Text(response.into())).await.is_err()
+                    {
+                        break;
                     }
                 }
             }
@@ -604,40 +604,37 @@ async fn handle_request(
             let limit = limit.unwrap_or(100).min(500);
             let mut entries: Vec<AutomationAssetSummary> = snapshot.cache_entries.clone();
             if let Some(query) = query {
-                entries = entries
-                    .into_iter()
-                    .filter(|entry| {
-                        query
-                            .url
+                entries.retain(|entry| {
+                    query
+                        .url
+                        .as_ref()
+                        .map(|q| entry.url.contains(q))
+                        .unwrap_or(true)
+                        && query
+                            .mime
                             .as_ref()
-                            .map(|q| entry.url.contains(q))
+                            .map(|q| entry.mime.contains(q))
                             .unwrap_or(true)
-                            && query
-                                .mime
-                                .as_ref()
-                                .map(|q| entry.mime.contains(q))
-                                .unwrap_or(true)
-                            && query
-                                .hash
-                                .as_ref()
-                                .map(|q| entry.hash.as_deref() == Some(q))
-                                .unwrap_or(true)
-                            && query
-                                .session_id
-                                .as_ref()
-                                .map(|q| entry.session_id.as_deref() == Some(q))
-                                .unwrap_or(true)
-                            && query
-                                .tab_id
-                                .as_ref()
-                                .map(|q| entry.tab_id.as_deref() == Some(q))
-                                .unwrap_or(true)
-                            && query
-                                .status_code
-                                .map(|q| entry.status_code == Some(q))
-                                .unwrap_or(true)
-                    })
-                    .collect();
+                        && query
+                            .hash
+                            .as_ref()
+                            .map(|q| entry.hash.as_deref() == Some(q))
+                            .unwrap_or(true)
+                        && query
+                            .session_id
+                            .as_ref()
+                            .map(|q| entry.session_id.as_deref() == Some(q))
+                            .unwrap_or(true)
+                        && query
+                            .tab_id
+                            .as_ref()
+                            .map(|q| entry.tab_id.as_deref() == Some(q))
+                            .unwrap_or(true)
+                        && query
+                            .status_code
+                            .map(|q| entry.status_code == Some(q))
+                            .unwrap_or(true)
+                });
             }
             entries.truncate(limit);
             let response = AutomationResponse {
@@ -766,10 +763,10 @@ fn resolve_tab_index(
             return Err("tab index out of range".to_string());
         }
     }
-    if let Some(tab_id) = tab_id {
-        if let Some(tab) = snapshot.tabs.iter().find(|tab| tab.tab_id == tab_id) {
-            return Ok(tab.index);
-        }
+    if let Some(tab_id) = tab_id
+        && let Some(tab) = snapshot.tabs.iter().find(|tab| tab.tab_id == tab_id)
+    {
+        return Ok(tab.index);
     }
     Err("tab not found".to_string())
 }

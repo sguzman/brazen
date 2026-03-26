@@ -219,10 +219,9 @@ impl AssetStore {
             };
         }
 
-        if (host_policy
+        if !(host_policy
             .and_then(|policy| policy.capture_body)
             .unwrap_or(true))
-            == false
         {
             return CaptureDecision {
                 mode: CaptureMode::MetadataOnly,
@@ -270,14 +269,10 @@ impl AssetStore {
             truncated = true;
         }
 
-        let mode = if capture_mode == CaptureModeSetting::Archive {
-            CaptureMode::Archive
-        } else if capture_mode == CaptureModeSetting::All {
-            CaptureMode::Selective
-        } else if capture_mode == CaptureModeSetting::Selective {
-            CaptureMode::Selective
-        } else {
-            CaptureMode::MetadataOnly
+        let mode = match capture_mode {
+            CaptureModeSetting::Archive => CaptureMode::Archive,
+            CaptureModeSetting::All | CaptureModeSetting::Selective => CaptureMode::Selective,
+            CaptureModeSetting::MetadataOnly => CaptureMode::MetadataOnly,
         };
 
         CaptureDecision {
@@ -288,6 +283,7 @@ impl AssetStore {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn record_asset(
         &mut self,
         url: &str,
@@ -321,6 +317,7 @@ impl AssetStore {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn record_asset_with_timing(
         &mut self,
         url: &str,
@@ -466,8 +463,7 @@ impl AssetStore {
     }
 
     pub fn export_json(&self, path: &Path) -> std::io::Result<()> {
-        let data = serde_json::to_vec_pretty(&self.entries)
-            .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+        let data = serde_json::to_vec_pretty(&self.entries).map_err(std::io::Error::other)?;
         std::fs::write(path, data)
     }
 
@@ -477,8 +473,7 @@ impl AssetStore {
         }
         let mut file = std::fs::File::create(path)?;
         for entry in &self.entries {
-            let mut line = serde_json::to_string(entry)
-                .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+            let mut line = serde_json::to_string(entry).map_err(std::io::Error::other)?;
             line.push('\n');
             file.write_all(line.as_bytes())?;
         }
@@ -500,8 +495,8 @@ impl AssetStore {
 
     pub fn import_json(&mut self, path: &Path) -> std::io::Result<()> {
         let data = std::fs::read(path)?;
-        let entries: Vec<AssetMetadata> = serde_json::from_slice(&data)
-            .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+        let entries: Vec<AssetMetadata> =
+            serde_json::from_slice(&data).map_err(std::io::Error::other)?;
         for entry in entries {
             append_metadata(&self.index_path, &entry)?;
             self.entries.push(entry);
@@ -512,14 +507,12 @@ impl AssetStore {
     pub fn import_json_merge(&mut self, path: &Path) -> std::io::Result<usize> {
         let data = std::fs::read_to_string(path)?;
         let entries: Vec<AssetMetadata> = if data.trim_start().starts_with('[') {
-            serde_json::from_str(&data)
-                .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?
+            serde_json::from_str(&data).map_err(std::io::Error::other)?
         } else {
             data.lines()
                 .filter(|line| !line.trim().is_empty())
                 .map(|line| {
-                    serde_json::from_str::<AssetMetadata>(line)
-                        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))
+                    serde_json::from_str::<AssetMetadata>(line).map_err(std::io::Error::other)
                 })
                 .collect::<Result<Vec<_>, _>>()?
         };
@@ -552,8 +545,7 @@ impl AssetStore {
                 })
             })
             .collect::<Vec<_>>();
-        let data = serde_json::to_vec_pretty(&manifest)
-            .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+        let data = serde_json::to_vec_pretty(&manifest).map_err(std::io::Error::other)?;
         std::fs::write(path, data)
     }
 
@@ -615,17 +607,14 @@ impl AssetStore {
     }
 
     fn gc_if_needed(&mut self) -> std::io::Result<()> {
-        if self.config.gc_max_entries == 0 {
-            if self.config.max_total_bytes == 0 {
-                return Ok(());
-            }
+        if self.config.gc_max_entries == 0 && self.config.max_total_bytes == 0 {
+            return Ok(());
         }
         if self.config.gc_max_entries > 0
             && self.entries.len() <= self.config.gc_max_entries as usize
+            && self.config.max_total_bytes == 0
         {
-            if self.config.max_total_bytes == 0 {
-                return Ok(());
-            }
+            return Ok(());
         }
         let mut removed = false;
         if self.config.gc_max_entries > 0 {
@@ -707,12 +696,12 @@ impl AssetStore {
             .iter()
             .position(|entry| entry.asset_id == asset_id)
         {
-            if let Some(body_key) = self.entries[index].body_key.clone() {
-                if let Some(count) = ref_counts.get_mut(&body_key) {
-                    *count = count.saturating_sub(1);
-                    if *count == 0 {
-                        let _ = std::fs::remove_file(self.blobs_dir.join(&body_key));
-                    }
+            if let Some(body_key) = self.entries[index].body_key.clone()
+                && let Some(count) = ref_counts.get_mut(&body_key)
+            {
+                *count = count.saturating_sub(1);
+                if *count == 0 {
+                    let _ = std::fs::remove_file(self.blobs_dir.join(&body_key));
                 }
             }
             self.entries.remove(index);
@@ -743,12 +732,11 @@ impl AssetStore {
         let mut seen = HashSet::new();
         let mut total: u64 = 0;
         for entry in &self.entries {
-            if let Some(body_key) = &entry.body_key {
-                if seen.insert(body_key.clone()) {
-                    if let Ok(meta) = std::fs::metadata(self.blobs_dir.join(body_key)) {
-                        total = total.saturating_add(meta.len());
-                    }
-                }
+            if let Some(body_key) = &entry.body_key
+                && seen.insert(body_key.clone())
+                && let Ok(meta) = std::fs::metadata(self.blobs_dir.join(body_key))
+            {
+                total = total.saturating_add(meta.len());
             }
         }
         total
@@ -774,26 +762,25 @@ impl AssetStore {
     }
 
     fn should_capture_body(&self, mime: &str) -> bool {
-        if self.config.capture_html_json_css_js {
-            if matches!(
+        if self.config.capture_html_json_css_js
+            && matches!(
                 mime,
                 "text/html"
                     | "application/json"
                     | "text/css"
                     | "application/javascript"
                     | "text/javascript"
-            ) {
-                return true;
-            }
+            )
+        {
+            return true;
         }
-        if self.config.capture_media {
-            if mime.starts_with("image/")
+        if self.config.capture_media
+            && (mime.starts_with("image/")
                 || mime.starts_with("font/")
                 || mime.starts_with("audio/")
-                || mime.starts_with("video/")
-            {
-                return true;
-            }
+                || mime.starts_with("video/"))
+        {
+            return true;
         }
         false
     }
@@ -889,8 +876,7 @@ fn append_metadata(path: &Path, metadata: &AssetMetadata) -> std::io::Result<()>
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let mut line = serde_json::to_string(metadata)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    let mut line = serde_json::to_string(metadata).map_err(std::io::Error::other)?;
     line.push('\n');
     std::fs::OpenOptions::new()
         .create(true)
@@ -912,8 +898,7 @@ fn append_headers(path: &Path, metadata: &AssetMetadata) -> std::io::Result<()> 
         "body_key": metadata.body_key,
         "headers": metadata.response_headers,
     });
-    let mut line = serde_json::to_string(&entry)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    let mut line = serde_json::to_string(&entry).map_err(std::io::Error::other)?;
     line.push('\n');
     std::fs::OpenOptions::new()
         .create(true)
@@ -925,9 +910,9 @@ fn append_headers(path: &Path, metadata: &AssetMetadata) -> std::io::Result<()> 
 fn overwrite_index(path: &Path, entries: &[AssetMetadata]) -> std::io::Result<()> {
     let data = entries
         .iter()
-        .map(|entry| serde_json::to_string(entry))
+        .map(serde_json::to_string)
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?
+        .map_err(std::io::Error::other)?
         .join("\n");
     std::fs::write(path, data)
 }
@@ -939,8 +924,7 @@ fn read_index(path: &Path) -> std::io::Result<Vec<AssetMetadata>> {
     let data = std::fs::read_to_string(path)?;
     let mut entries = Vec::new();
     for line in data.lines() {
-        let entry: AssetMetadata = serde_json::from_str(line)
-            .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+        let entry: AssetMetadata = serde_json::from_str(line).map_err(std::io::Error::other)?;
         entries.push(entry);
     }
     Ok(entries)
@@ -951,8 +935,8 @@ fn read_pins(path: &Path) -> std::io::Result<BTreeMap<String, bool>> {
         return Ok(BTreeMap::new());
     }
     let data = std::fs::read_to_string(path)?;
-    let pins: BTreeMap<String, bool> = serde_json::from_str(&data)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    let pins: BTreeMap<String, bool> =
+        serde_json::from_str(&data).map_err(std::io::Error::other)?;
     Ok(pins)
 }
 
@@ -960,8 +944,7 @@ fn write_pins(path: &Path, pins: &BTreeMap<String, bool>) -> std::io::Result<()>
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let data = serde_json::to_vec_pretty(pins)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::Other, error))?;
+    let data = serde_json::to_vec_pretty(pins).map_err(std::io::Error::other)?;
     std::fs::write(path, data)
 }
 
@@ -1030,9 +1013,11 @@ mod tests {
     #[test]
     fn mime_policy_honors_glob_allowlist_and_denylist() {
         let dir = tempdir().unwrap();
-        let mut config = CacheConfig::default();
-        config.mime_allowlist = vec!["text/*".to_string(), "image/*".to_string()];
-        config.mime_denylist = vec!["image/svg+xml".to_string()];
+        let config = CacheConfig {
+            mime_allowlist: vec!["text/*".to_string(), "image/*".to_string()],
+            mime_denylist: vec!["image/svg+xml".to_string()],
+            ..CacheConfig::default()
+        };
         let paths = RuntimePaths {
             config_path: dir.path().join("brazen.toml"),
             data_dir: dir.path().join("data"),
@@ -1055,8 +1040,10 @@ mod tests {
     #[test]
     fn no_dedupe_mode_stores_distinct_bodies() {
         let dir = tempdir().unwrap();
-        let mut config = CacheConfig::default();
-        config.dedupe_bodies = false;
+        let config = CacheConfig {
+            dedupe_bodies: false,
+            ..CacheConfig::default()
+        };
         let paths = RuntimePaths {
             config_path: dir.path().join("brazen.toml"),
             data_dir: dir.path().join("data"),

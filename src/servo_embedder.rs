@@ -88,9 +88,9 @@ impl ServoEmbedderConfig {
                 .map(PathBuf::from),
             ignore_certificate_errors: config.ignore_certificate_errors,
             verbose_logging: config.verbose_logging,
-            pixel_format: PixelFormat::from_str(&config.pixel_format),
-            alpha_mode: AlphaMode::from_str(&config.alpha_mode),
-            color_space: ColorSpace::from_str(&config.color_space),
+            pixel_format: PixelFormat::from_value(&config.pixel_format),
+            alpha_mode: AlphaMode::from_value(&config.alpha_mode),
+            color_space: ColorSpace::from_value(&config.color_space),
             enable_pixel_probe: config.debug_pixel_probe,
             runtime: ServoRuntimeConfig::from_engine_config(config),
         }
@@ -182,6 +182,12 @@ impl ServoBrowserState {
 
     pub fn stop(&mut self) {
         self.title = format!("Stopped {}", self.last_committed_url);
+    }
+}
+
+impl Default for ServoBrowserState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -620,23 +626,23 @@ impl ServoEmbedder {
             return None;
         }
         let transport = transport.to_string();
-        if transport == "tcp" {
-            if let Ok(listener) = TcpListener::bind("127.0.0.1:0") {
-                let addr = listener.local_addr().ok();
-                let endpoint = addr.map(|addr| format!("tcp://{addr}"));
-                self.devtools = Some(DevtoolsState {
-                    enabled,
-                    transport,
-                    endpoint: endpoint.clone(),
-                    listener: Some(listener),
-                });
-                tracing::info!(
-                    target: "brazen::servo",
-                    endpoint = ?endpoint,
-                    "devtools tcp listener ready"
-                );
-                return endpoint;
-            }
+        if transport == "tcp"
+            && let Ok(listener) = TcpListener::bind("127.0.0.1:0")
+        {
+            let addr = listener.local_addr().ok();
+            let endpoint = addr.map(|addr| format!("tcp://{addr}"));
+            self.devtools = Some(DevtoolsState {
+                enabled,
+                transport,
+                endpoint: endpoint.clone(),
+                listener: Some(listener),
+            });
+            tracing::info!(
+                target: "brazen::servo",
+                endpoint = ?endpoint,
+                "devtools tcp listener ready"
+            );
+            return endpoint;
         }
 
         let endpoint = Some("local-socket://brazen-devtools".to_string());
@@ -688,17 +694,16 @@ impl ServoEmbedder {
                 self.resource_reader_path = Some(runtime.resources_dir().to_path_buf());
                 self.upstream = Some(runtime);
                 self.upstream_active = true;
-                if let Some(url) = self.pending_navigation.take() {
-                    if let Some(upstream) = &self.upstream {
-                        if let Err(error) = upstream.navigate(&url) {
-                            self.upstream_error = Some(error.clone());
-                            tracing::error!(
-                                target: "brazen::servo",
-                                %error,
-                                "pending navigation failed"
-                            );
-                        }
-                    }
+                if let Some(url) = self.pending_navigation.take()
+                    && let Some(upstream) = &self.upstream
+                    && let Err(error) = upstream.navigate(&url)
+                {
+                    self.upstream_error = Some(error.clone());
+                    tracing::error!(
+                        target: "brazen::servo",
+                        %error,
+                        "pending navigation failed"
+                    );
                 }
             }
             Err(error) => {

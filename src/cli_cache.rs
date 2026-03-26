@@ -476,7 +476,7 @@ pub fn fetch_and_store(
         url,
         Some(final_url),
         Some("GET".to_string()),
-        Some(status as u16),
+        Some(status),
         &mime,
         Some(&body),
         headers,
@@ -537,12 +537,11 @@ fn build_insecure_tls_config() -> Result<rustls::ClientConfig, Box<dyn std::erro
             rustls::crypto::ring::default_provider()
                 .signature_verification_algorithms
                 .supported_schemes()
-                .into()
         }
     }
 
     let root_store = rustls::RootCertStore {
-        roots: webpki_roots::TLS_SERVER_ROOTS.iter().cloned().collect(),
+        roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
     };
     let tls_config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)

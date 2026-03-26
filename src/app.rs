@@ -481,14 +481,15 @@ impl BrazenApp {
                 if self.load_status_started_at.is_none() {
                     self.load_status_started_at = Some(Instant::now());
                 }
-                if let Some(started_at) = self.load_status_started_at {
-                    if started_at.elapsed() >= Duration::from_secs(10) && !self.load_status_warned {
-                        self.load_status_warned = true;
-                        let warning = "load status stuck at Started for 10s".to_string();
-                        tracing::warn!(target: "brazen::render", "{warning}");
-                        self.shell_state.record_event(warning.clone());
-                        self.shell_state.render_warning = Some(warning);
-                    }
+                if let Some(started_at) = self.load_status_started_at
+                    && started_at.elapsed() >= Duration::from_secs(10)
+                    && !self.load_status_warned
+                {
+                    self.load_status_warned = true;
+                    let warning = "load status stuck at Started for 10s".to_string();
+                    tracing::warn!(target: "brazen::render", "{warning}");
+                    self.shell_state.record_event(warning.clone());
+                    self.shell_state.render_warning = Some(warning);
                 }
             }
             Some(_) | None => {
@@ -670,12 +671,11 @@ impl BrazenApp {
                 });
             });
 
-        if ctx.input(|input| input.pointer.any_pressed()) {
-            if let Some(pos) = ctx.input(|input| input.pointer.latest_pos()) {
-                if !response.response.rect.contains(pos) {
-                    close_menu = true;
-                }
-            }
+        if ctx.input(|input| input.pointer.any_pressed())
+            && let Some(pos) = ctx.input(|input| input.pointer.latest_pos())
+            && !response.response.rect.contains(pos)
+        {
+            close_menu = true;
         }
 
         if close_menu {
@@ -794,17 +794,17 @@ impl BrazenApp {
             return;
         };
         self.render_frame_format = Some((frame.pixel_format, frame.alpha_mode, frame.color_space));
-        if let Some(surface) = &self.last_surface {
-            if surface.viewport_width != frame.width || surface.viewport_height != frame.height {
-                tracing::warn!(
-                    target: "brazen::render",
-                    expected_width = surface.viewport_width,
-                    expected_height = surface.viewport_height,
-                    frame_width = frame.width,
-                    frame_height = frame.height,
-                    "frame size differs from render surface"
-                );
-            }
+        if let Some(surface) = &self.last_surface
+            && (surface.viewport_width != frame.width || surface.viewport_height != frame.height)
+        {
+            tracing::warn!(
+                target: "brazen::render",
+                expected_width = surface.viewport_width,
+                expected_height = surface.viewport_height,
+                frame_width = frame.width,
+                frame_height = frame.height,
+                "frame size differs from render surface"
+            );
         }
         let pixels = normalize_pixels(&frame, self.config.engine.debug_bypass_swizzle);
         if pixels.is_empty() {
@@ -1181,16 +1181,15 @@ impl BrazenApp {
                     }
                 }
                 eframe::egui::Event::MouseWheel { delta, unit, .. } => {
-                    if let Some(pos) = input.pointer.latest_pos().or(self.last_pointer_pos) {
-                        if let Some(local) =
+                    if let Some(pos) = input.pointer.latest_pos().or(self.last_pointer_pos)
+                        && let Some(local) =
                             self.map_pointer_to_viewport(ctx, pos, self.pointer_captured)
-                        {
-                            self.last_pointer_local = Some(local);
-                            self.engine.handle_input(InputEvent::PointerMove {
-                                x: local.x,
-                                y: local.y,
-                            });
-                        }
+                    {
+                        self.last_pointer_local = Some(local);
+                        self.engine.handle_input(InputEvent::PointerMove {
+                            x: local.x,
+                            y: local.y,
+                        });
                     }
                     let modifiers = input.modifiers;
                     let axis = if delta.y.abs() >= delta.x.abs() {
@@ -1538,13 +1537,13 @@ impl BrazenApp {
         if self.shell_state.last_crash.is_some() {
             self.schedule_restart();
         }
-        if let Some(scheduled) = self.pending_restart_at {
-            if Utc::now() >= scheduled {
-                self.restart_engine();
-                self.shell_state.last_crash = None;
-                self.shell_state.session.crash_recovery_pending = false;
-                self.pending_restart_at = None;
-            }
+        if let Some(scheduled) = self.pending_restart_at
+            && Utc::now() >= scheduled
+        {
+            self.restart_engine();
+            self.shell_state.last_crash = None;
+            self.shell_state.session.crash_recovery_pending = false;
+            self.pending_restart_at = None;
         }
     }
 
@@ -1585,32 +1584,29 @@ impl BrazenApp {
                 );
                 self.shell_state.record_event("cache capture simulated");
             }
-            if ui.button("Export").clicked() {
-                if self
+            if ui.button("Export").clicked()
+                && self
                     .cache_store
                     .export_json(self.cache_export_path.as_ref())
                     .is_ok()
-                {
-                    self.shell_state.record_event("cache export complete");
-                }
+            {
+                self.shell_state.record_event("cache export complete");
             }
-            if ui.button("Import").clicked() {
-                if self
+            if ui.button("Import").clicked()
+                && self
                     .cache_store
                     .import_json(self.cache_import_path.as_ref())
                     .is_ok()
-                {
-                    self.shell_state.record_event("cache import complete");
-                }
+            {
+                self.shell_state.record_event("cache import complete");
             }
-            if ui.button("Manifest").clicked() {
-                if self
+            if ui.button("Manifest").clicked()
+                && self
                     .cache_store
                     .build_replay_manifest(self.cache_manifest_path.as_ref())
                     .is_ok()
-                {
-                    self.shell_state.record_event("cache manifest written");
-                }
+            {
+                self.shell_state.record_event("cache manifest written");
             }
         });
         ui.horizontal(|ui| {
@@ -1687,43 +1683,43 @@ impl BrazenApp {
                 }
             });
         }
-        if let Some(selected) = self.cache_selected_asset.clone() {
-            if let Some(entry) = self.cache_store.find_by_id_or_hash(&selected) {
-                ui.separator();
-                ui.label(format!("Asset: {}", entry.asset_id));
-                ui.label(format!("URL: {}", entry.url));
-                if let Some(final_url) = &entry.final_url {
-                    ui.label(format!("Final URL: {}", final_url));
-                }
+        if let Some(selected) = self.cache_selected_asset.clone()
+            && let Some(entry) = self.cache_store.find_by_id_or_hash(&selected)
+        {
+            ui.separator();
+            ui.label(format!("Asset: {}", entry.asset_id));
+            ui.label(format!("URL: {}", entry.url));
+            if let Some(final_url) = &entry.final_url {
+                ui.label(format!("Final URL: {}", final_url));
+            }
+            ui.label(format!(
+                "Method/Status: {} {}",
+                entry.method.as_deref().unwrap_or("-"),
+                entry
+                    .status_code
+                    .map(|value| value.to_string())
+                    .unwrap_or_else(|| "-".to_string())
+            ));
+            ui.label(format!("MIME: {}", entry.mime));
+            ui.label(format!(
+                "Hash: {}",
+                entry.hash.clone().unwrap_or_else(|| "-".to_string())
+            ));
+            if let Some(body_key) = &entry.body_key {
                 ui.label(format!(
-                    "Method/Status: {} {}",
-                    entry.method.as_deref().unwrap_or("-"),
-                    entry
-                        .status_code
-                        .map(|value| value.to_string())
-                        .unwrap_or_else(|| "-".to_string())
+                    "Body key: {} ({})",
+                    body_key,
+                    self.cache_store.blob_path(body_key).display()
                 ));
-                ui.label(format!("MIME: {}", entry.mime));
-                ui.label(format!(
-                    "Hash: {}",
-                    entry.hash.clone().unwrap_or_else(|| "-".to_string())
-                ));
-                if let Some(body_key) = &entry.body_key {
-                    ui.label(format!(
-                        "Body key: {} ({})",
-                        body_key,
-                        self.cache_store.blob_path(body_key).display()
-                    ));
-                }
-                ui.label(format!(
-                    "Timing: start={:?} finish={:?} duration_ms={:?}",
-                    entry.request_started_at, entry.response_finished_at, entry.duration_ms
-                ));
-                ui.label(format!("Storage: {:?}", entry.storage_mode));
-                ui.label(format!("Headers: {}", entry.response_headers.len()));
-                if ui.button("Clear Details").clicked() {
-                    self.cache_selected_asset = None;
-                }
+            }
+            ui.label(format!(
+                "Timing: start={:?} finish={:?} duration_ms={:?}",
+                entry.request_started_at, entry.response_finished_at, entry.duration_ms
+            ));
+            ui.label(format!("Storage: {:?}", entry.storage_mode));
+            ui.label(format!("Headers: {}", entry.response_headers.len()));
+            if ui.button("Clear Details").clicked() {
+                self.cache_selected_asset = None;
             }
         }
     }
@@ -1748,10 +1744,10 @@ impl eframe::App for BrazenApp {
         self.update_render_health();
         self.apply_cursor_icon(ctx);
         self.apply_new_window_policy();
-        if let Some(reason) = self.shell_state.last_crash.clone() {
-            if self.shell_state.last_crash_dump.is_none() {
-                self.write_crash_dump(&reason);
-            }
+        if let Some(reason) = self.shell_state.last_crash.clone()
+            && self.shell_state.last_crash_dump.is_none()
+        {
+            self.write_crash_dump(&reason);
         }
         self.handle_crash_recovery();
 
@@ -1891,25 +1887,23 @@ impl eframe::App for BrazenApp {
                     }
                 });
                 ui.horizontal(|ui| {
-                    if ui.button("Save Session").clicked() {
-                        if save_session(
+                    if ui.button("Save Session").clicked()
+                        && save_session(
                             &self.shell_state.runtime_paths.session_path,
                             &self.shell_state.session,
                         )
                         .is_ok()
-                        {
-                            self.shell_state.record_event("session saved");
-                        }
+                    {
+                        self.shell_state.record_event("session saved");
                     }
-                    if ui.button("Load Session").clicked() {
-                        if let Ok(session) =
+                    if ui.button("Load Session").clicked()
+                        && let Ok(session) =
                             load_session(&self.shell_state.runtime_paths.session_path)
-                        {
-                            self.shell_state.session = session;
-                            let tab = self.shell_state.session.active_tab_mut().clone();
-                            self.shell_state.address_bar_input = tab.url.clone();
-                            self.shell_state.record_event("session loaded");
-                        }
+                    {
+                        self.shell_state.session = session;
+                        let tab = self.shell_state.session.active_tab_mut().clone();
+                        self.shell_state.address_bar_input = tab.url.clone();
+                        self.shell_state.record_event("session loaded");
                     }
                 });
                 ui.label(format!(
@@ -2136,18 +2130,17 @@ impl eframe::App for BrazenApp {
                 let response =
                     ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
                 self.render_viewport_rect = Some(response.rect);
-                if self.config.engine.debug_pointer_overlay {
-                    if let Some(pos) = self.last_pointer_pos {
-                        if response.rect.contains(pos) {
-                            let painter = ui.painter().with_clip_rect(response.rect);
-                            let stroke =
-                                eframe::egui::Stroke::new(1.0, eframe::egui::Color32::YELLOW);
-                            let offset = eframe::egui::vec2(8.0, 0.0);
-                            painter.line_segment([pos - offset, pos + offset], stroke);
-                            let offset = eframe::egui::vec2(0.0, 8.0);
-                            painter.line_segment([pos - offset, pos + offset], stroke);
-                        }
-                    }
+                if self.config.engine.debug_pointer_overlay
+                    && let Some(pos) = self.last_pointer_pos
+                    && response.rect.contains(pos)
+                {
+                    let painter = ui.painter().with_clip_rect(response.rect);
+                    let stroke =
+                        eframe::egui::Stroke::new(1.0, eframe::egui::Color32::YELLOW);
+                    let offset = eframe::egui::vec2(8.0, 0.0);
+                    painter.line_segment([pos - offset, pos + offset], stroke);
+                    let offset = eframe::egui::vec2(0.0, 8.0);
+                    painter.line_segment([pos - offset, pos + offset], stroke);
                 }
             } else {
                 self.render_viewport_rect = None;
