@@ -46,8 +46,10 @@ Brazen creates a default config on first launch if one is missing in the platfor
 Fetch and cache a URL directly from the command line:
 
 ```bash
-cargo run -- cache https://example.com --stats
+cargo run -- cache https://example.com --stats --insecure
 ```
+
+`--insecure` disables TLS verification for local testing only.
 
 ### Configuration
 

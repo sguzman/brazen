@@ -15,6 +15,7 @@ pub struct CacheCliOptions {
     pub profile: Option<String>,
     pub timeout_secs: u64,
     pub stats: bool,
+    pub insecure: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -32,6 +33,8 @@ pub fn parse_cache_args(args: &[String]) -> Result<CacheCliOptions, String> {
     let mut profile = None;
     let mut timeout_secs = 30u64;
     let mut stats = false;
+    let mut insecure = false;
+    let mut seen_url = false;
 
     let mut i = 1;
     while i < args.len() {
@@ -52,8 +55,12 @@ pub fn parse_cache_args(args: &[String]) -> Result<CacheCliOptions, String> {
             "--stats" => {
                 stats = true;
             }
-            value if url.is_none() => {
+            "--insecure" => {
+                insecure = true;
+            }
+            value if !value.starts_with("--") && !seen_url => {
                 url = Some(value.to_string());
+                seen_url = true;
             }
             value => {
                 return Err(format!("unrecognized argument `{value}`"));
@@ -68,11 +75,13 @@ pub fn parse_cache_args(args: &[String]) -> Result<CacheCliOptions, String> {
         profile,
         timeout_secs,
         stats,
+        insecure,
     })
 }
 
 pub fn run_cache_cli(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
     let options = parse_cache_args(args).map_err(|error| format!("cache args error: {error}"))?;
+    install_crypto_provider();
     let platform = PlatformPaths::detect()?;
     let config_path = platform.default_config_path();
     let mut config = BrazenConfig::load_with_defaults(&config_path)?;
@@ -125,10 +134,15 @@ pub fn fetch_and_store(
     runtime: &RuntimePaths,
     options: &CacheCliOptions,
 ) -> Result<CacheFetchResult, Box<dyn std::error::Error>> {
-    let agent = ureq::AgentBuilder::new()
+    install_crypto_provider();
+    let mut agent_builder = ureq::AgentBuilder::new()
         .timeout(Duration::from_secs(options.timeout_secs))
-        .redirects(10)
-        .build();
+        .redirects(10);
+    if options.insecure {
+        let tls_config = build_insecure_tls_config()?;
+        agent_builder = agent_builder.tls_config(std::sync::Arc::new(tls_config));
+    }
+    let agent = agent_builder.build();
 
     let started_at = Utc::now();
     let response = agent
@@ -186,6 +200,68 @@ pub fn fetch_and_store(
     })
 }
 
+fn install_crypto_provider() {
+    let _ = rustls::crypto::ring::default_provider().install_default();
+}
+
+fn build_insecure_tls_config() -> Result<rustls::ClientConfig, Box<dyn std::error::Error>> {
+    use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
+    use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
+
+    #[derive(Debug)]
+    struct InsecureVerifier;
+
+    impl ServerCertVerifier for InsecureVerifier {
+        fn verify_server_cert(
+            &self,
+            _end_entity: &CertificateDer<'_>,
+            _intermediates: &[CertificateDer<'_>],
+            _server_name: &ServerName<'_>,
+            _ocsp: &[u8],
+            _now: UnixTime,
+        ) -> Result<ServerCertVerified, rustls::Error> {
+            Ok(ServerCertVerified::assertion())
+        }
+
+        fn verify_tls12_signature(
+            &self,
+            _message: &[u8],
+            _cert: &CertificateDer<'_>,
+            _dss: &rustls::DigitallySignedStruct,
+        ) -> Result<HandshakeSignatureValid, rustls::Error> {
+            Ok(HandshakeSignatureValid::assertion())
+        }
+
+        fn verify_tls13_signature(
+            &self,
+            _message: &[u8],
+            _cert: &CertificateDer<'_>,
+            _dss: &rustls::DigitallySignedStruct,
+        ) -> Result<HandshakeSignatureValid, rustls::Error> {
+            Ok(HandshakeSignatureValid::assertion())
+        }
+
+        fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+            rustls::crypto::ring::default_provider()
+                .signature_verification_algorithms
+                .supported_schemes()
+                .into()
+        }
+    }
+
+    let root_store = rustls::RootCertStore {
+        roots: webpki_roots::TLS_SERVER_ROOTS.iter().cloned().collect(),
+    };
+    let tls_config = rustls::ClientConfig::builder()
+        .with_root_certificates(root_store)
+        .with_no_client_auth();
+    let mut tls_config = tls_config;
+    tls_config
+        .dangerous()
+        .set_certificate_verifier(std::sync::Arc::new(InsecureVerifier));
+    Ok(tls_config)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -200,11 +276,13 @@ mod tests {
             "--timeout".to_string(),
             "12".to_string(),
             "--stats".to_string(),
+            "--insecure".to_string(),
         ];
         let options = parse_cache_args(&args).unwrap();
         assert_eq!(options.url, "https://example.com");
         assert_eq!(options.profile.as_deref(), Some("dev"));
         assert_eq!(options.timeout_secs, 12);
         assert!(options.stats);
+        assert!(options.insecure);
     }
 }

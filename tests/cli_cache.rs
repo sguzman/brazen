@@ -7,10 +7,7 @@ use tiny_http::{Header, Response, Server};
 #[test]
 fn cache_cli_fetch_records_asset() {
     let server = Server::http("127.0.0.1:0").unwrap();
-    let addr = server
-        .server_addr()
-        .to_ip()
-        .expect("expected ip address");
+    let addr = server.server_addr().to_ip().expect("expected ip address");
     let url = format!("http://{addr}/example");
 
     std::thread::spawn(move || {
@@ -40,6 +37,7 @@ fn cache_cli_fetch_records_asset() {
         profile: None,
         timeout_secs: 10,
         stats: true,
+        insecure: false,
     };
     let result = fetch_and_store(&config, &runtime, &options).unwrap();
     assert_eq!(result.metadata.mime, "text/plain");
