@@ -15,6 +15,7 @@ pub mod servo_runtime;
 #[cfg(feature = "servo-upstream")]
 pub mod servo_upstream;
 pub mod session;
+pub mod tls;
 
 use std::path::{Path, PathBuf};
 
@@ -64,6 +65,7 @@ pub fn bootstrap(
     options: BootstrapOptions,
     engine_factory: &dyn EngineFactory,
 ) -> Result<BootstrapResult, BootstrapError> {
+    tls::install_crypto_provider();
     let platform_paths = PlatformPaths::detect()?;
     let config_path = options
         .config_path

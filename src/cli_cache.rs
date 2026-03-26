@@ -8,6 +8,7 @@ use crate::cache::{AssetMetadata, AssetStore, StorageMode};
 use crate::config::BrazenConfig;
 use crate::logging::init_tracing;
 use crate::platform_paths::{PlatformPaths, RuntimePaths};
+use crate::tls::install_crypto_provider;
 
 #[derive(Debug, Clone)]
 pub struct CacheCliOptions {
@@ -198,10 +199,6 @@ pub fn fetch_and_store(
         entry_count: store.entries().len(),
         storage_mode: store.storage_mode(),
     })
-}
-
-fn install_crypto_provider() {
-    let _ = rustls::crypto::ring::default_provider().install_default();
 }
 
 fn build_insecure_tls_config() -> Result<rustls::ClientConfig, Box<dyn std::error::Error>> {
