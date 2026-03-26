@@ -205,6 +205,28 @@ impl BrazenConfig {
                 ));
             }
         }
+        if self.engine.zoom_step <= 0.0 {
+            return Err(ConfigError::Validation(
+                "engine.zoom_step must be greater than zero".to_string(),
+            ));
+        }
+        if self.engine.zoom_min <= 0.0 || self.engine.zoom_max <= 0.0 {
+            return Err(ConfigError::Validation(
+                "engine.zoom_min and zoom_max must be greater than zero".to_string(),
+            ));
+        }
+        if self.engine.zoom_min >= self.engine.zoom_max {
+            return Err(ConfigError::Validation(
+                "engine.zoom_min must be less than zoom_max".to_string(),
+            ));
+        }
+        if self.engine.zoom_default < self.engine.zoom_min
+            || self.engine.zoom_default > self.engine.zoom_max
+        {
+            return Err(ConfigError::Validation(
+                "engine.zoom_default must be within zoom_min and zoom_max".to_string(),
+            ));
+        }
         if self.automation.enabled {
             let url = Url::parse(&self.automation.bind).map_err(|error| {
                 ConfigError::Validation(format!("automation.bind must be a valid URL: {error}"))
@@ -420,6 +442,11 @@ pub struct EngineConfig {
     pub debug_pointer_overlay: bool,
     pub devtools_enabled: bool,
     pub devtools_transport: String,
+    pub zoom_default: f32,
+    pub zoom_min: f32,
+    pub zoom_max: f32,
+    pub zoom_step: f32,
+    pub input_logging: bool,
     pub resource_limits: ResourceLimits,
     pub security_warnings: bool,
     pub profile_isolation: bool,
@@ -456,6 +483,11 @@ impl Default for EngineConfig {
             debug_pointer_overlay: false,
             devtools_enabled: false,
             devtools_transport: "none".to_string(),
+            zoom_default: 1.0,
+            zoom_min: 0.5,
+            zoom_max: 3.0,
+            zoom_step: 0.1,
+            input_logging: false,
             resource_limits: ResourceLimits::default(),
             security_warnings: true,
             profile_isolation: false,

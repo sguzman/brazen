@@ -315,6 +315,8 @@ pub trait BrowserEngine {
     fn handle_input(&mut self, event: InputEvent);
     fn handle_ime(&mut self, event: ImeEvent);
     fn handle_clipboard(&mut self, request: ClipboardRequest);
+    fn set_page_zoom(&mut self, zoom: f32);
+    fn page_zoom(&self) -> f32;
     fn set_verbose_logging(&mut self, enabled: bool);
     fn configure_devtools(&mut self, enabled: bool, transport: &str);
     fn suspend(&mut self);
@@ -337,6 +339,7 @@ pub struct NullEngine {
     navigation_state: NavigationState,
     focus: FocusState,
     verbose_logging: bool,
+    page_zoom: f32,
 }
 
 impl NullEngine {
@@ -366,6 +369,7 @@ impl NullEngine {
             navigation_state,
             focus: FocusState::Unfocused,
             verbose_logging: false,
+            page_zoom: 1.0,
         }
     }
 }
@@ -496,6 +500,14 @@ impl BrowserEngine for NullEngine {
 
     fn handle_clipboard(&mut self, request: ClipboardRequest) {
         self.events.push(EngineEvent::ClipboardRequested(request));
+    }
+
+    fn set_page_zoom(&mut self, zoom: f32) {
+        self.page_zoom = zoom;
+    }
+
+    fn page_zoom(&self) -> f32 {
+        self.page_zoom
     }
 
     fn set_verbose_logging(&mut self, enabled: bool) {
@@ -888,6 +900,14 @@ impl BrowserEngine for ServoEngine {
         self.events
             .push(EngineEvent::ClipboardRequested(request_clone));
         self.embedder.handle_clipboard(&request);
+    }
+
+    fn set_page_zoom(&mut self, zoom: f32) {
+        self.embedder.set_page_zoom(zoom);
+    }
+
+    fn page_zoom(&self) -> f32 {
+        self.embedder.page_zoom()
     }
 
     fn set_verbose_logging(&mut self, enabled: bool) {

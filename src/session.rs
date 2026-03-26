@@ -37,6 +37,7 @@ pub struct TabState {
     pub id: TabId,
     pub title: String,
     pub url: String,
+    pub zoom_level: f32,
     pub pending: Option<PendingNavigation>,
     pub back_stack: Vec<NavigationEntry>,
     pub forward_stack: Vec<NavigationEntry>,
@@ -76,6 +77,7 @@ impl SessionSnapshot {
             id: tab_id,
             title: "New Tab".to_string(),
             url: "about:blank".to_string(),
+            zoom_level: 1.0,
             pending: None,
             back_stack: Vec::new(),
             forward_stack: Vec::new(),
@@ -113,6 +115,12 @@ impl SessionSnapshot {
         &mut self.windows[self.active_window]
     }
 
+    pub fn active_tab(&self) -> Option<&TabState> {
+        self.windows
+            .get(self.active_window)
+            .and_then(|window| window.tabs.get(window.active_tab))
+    }
+
     pub fn active_tab_mut(&mut self) -> &mut TabState {
         let window = &mut self.windows[self.active_window];
         &mut window.tabs[window.active_tab]
@@ -135,6 +143,7 @@ impl SessionSnapshot {
             id: TabId(Uuid::new_v4()),
             title: title.to_string(),
             url: url.to_string(),
+            zoom_level: 1.0,
             pending: None,
             back_stack: Vec::new(),
             forward_stack: Vec::new(),

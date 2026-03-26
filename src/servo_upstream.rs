@@ -493,6 +493,19 @@ impl ServoUpstreamRuntime {
         )));
     }
 
+    pub fn handle_pinch_zoom(&self, magnification: f32, x: f32, y: f32) {
+        self.webview
+            .pinch_zoom(magnification, DevicePoint::new(x, y));
+    }
+
+    pub fn set_page_zoom(&self, zoom: f32) {
+        self.webview.set_page_zoom(zoom);
+    }
+
+    pub fn page_zoom(&self) -> f32 {
+        self.webview.page_zoom()
+    }
+
     pub fn handle_keyboard(&self, key: &str, pressed: bool, modifiers: KeyModifiers) {
         let state = if pressed {
             KeyState::Down
@@ -502,7 +515,33 @@ impl ServoUpstreamRuntime {
         let key_value = if key.len() == 1 {
             Key::Character(key.to_string())
         } else {
-            Key::Named(NamedKey::Unidentified)
+            let named = match key {
+                "Enter" => NamedKey::Enter,
+                "Tab" => NamedKey::Tab,
+                "Escape" => NamedKey::Escape,
+                "Backspace" => NamedKey::Backspace,
+                "Delete" => NamedKey::Delete,
+                "ArrowLeft" => NamedKey::ArrowLeft,
+                "ArrowRight" => NamedKey::ArrowRight,
+                "ArrowUp" => NamedKey::ArrowUp,
+                "ArrowDown" => NamedKey::ArrowDown,
+                "Home" => NamedKey::Home,
+                "End" => NamedKey::End,
+                "PageUp" => NamedKey::PageUp,
+                "PageDown" => NamedKey::PageDown,
+                "Insert" => NamedKey::Insert,
+                "CapsLock" => NamedKey::CapsLock,
+                "Shift" => NamedKey::Shift,
+                "Control" => NamedKey::Control,
+                "Alt" => NamedKey::Alt,
+                "Meta" => NamedKey::Meta,
+                _ => NamedKey::Unidentified,
+            };
+            if key == "Space" {
+                Key::Character(" ".to_string())
+            } else {
+                Key::Named(named)
+            }
         };
         let mut servo_modifiers = Modifiers::empty();
         if modifiers.alt {

@@ -16,6 +16,8 @@ use crate::platform_paths::RuntimePaths;
 use crate::rendering::{normalize_pixels, probe_frame_stats};
 use crate::session::{NavigationEntry, SessionSnapshot, load_session, save_session};
 
+const INPUT_TEST_URL: &str = "data:text/html;charset=utf-8,<html><body%20style=\"font-family:sans-serif;background:%23f8f8f8;\"><h1>Input%20Test</h1><p>Click%20buttons,%20type%20in%20the%20field,%20and%20use%20right-click.</p><input%20placeholder=\"type%20here\"><button%20onclick=\"document.body.style.background='%23dff'\">Change%20Color</button></body></html>";
+
 #[derive(Debug, Clone)]
 pub struct ShellState {
     pub app_name: String,
@@ -34,6 +36,7 @@ pub struct ShellState {
     pub metadata_summary: Option<String>,
     pub history: Vec<String>,
     pub last_committed_url: Option<String>,
+    pub active_tab_zoom: f32,
     pub was_minimized: bool,
     pub pending_popup: Option<(String, WindowDisposition)>,
     pub pending_dialog: Option<(DialogKind, String)>,
@@ -248,6 +251,10 @@ pub fn build_shell_state(
         metadata_summary: None,
         history: Vec::new(),
         last_committed_url: None,
+        active_tab_zoom: session
+            .active_tab()
+            .map(|tab| tab.zoom_level)
+            .unwrap_or(config.engine.zoom_default),
         was_minimized: false,
         pending_popup: None,
         pending_dialog: None,
@@ -312,6 +319,7 @@ pub struct BrazenApp {
         AlphaMode,
         crate::engine::ColorSpace,
     )>,
+    render_viewport_rect: Option<eframe::egui::Rect>,
     frame_probe: Option<crate::rendering::FrameProbeStats>,
     blank_frame_streak: u32,
     blank_frame_warned: bool,
@@ -325,6 +333,8 @@ pub struct BrazenApp {
     upload_times: VecDeque<f32>,
     last_upload_ms: Option<f32>,
     last_pointer_pos: Option<eframe::egui::Pos2>,
+    last_pointer_local: Option<eframe::egui::Pos2>,
+    pointer_captured: bool,
     capture_next_frame: bool,
     pending_restart_at: Option<chrono::DateTime<Utc>>,
     crash_count: u32,
@@ -376,6 +386,7 @@ impl BrazenApp {
             render_frame_number: None,
             render_frame_size: None,
             render_frame_format: None,
+            render_viewport_rect: None,
             frame_probe: None,
             blank_frame_streak: 0,
             blank_frame_warned: false,
@@ -389,6 +400,8 @@ impl BrazenApp {
             upload_times: VecDeque::with_capacity(120),
             last_upload_ms: None,
             last_pointer_pos: None,
+            last_pointer_local: None,
+            pointer_captured: false,
             capture_next_frame,
             pending_restart_at: None,
             crash_count: 0,
@@ -460,6 +473,142 @@ impl BrazenApp {
             AppCommand::NavigateTo(input),
         );
         self.shell_state.sync_from_engine(self.engine.as_mut());
+    }
+
+    fn open_input_test_page(&mut self) {
+        self.shell_state.address_bar_input = INPUT_TEST_URL.to_string();
+        let _ = dispatch_command(
+            &mut self.shell_state,
+            self.engine.as_mut(),
+            AppCommand::NavigateTo(INPUT_TEST_URL.to_string()),
+        );
+        self.shell_state.record_event("navigation: input test page");
+    }
+
+    fn render_context_menu(&mut self, ctx: &eframe::egui::Context) {
+        let Some((x, y)) = self.shell_state.pending_context_menu else {
+            return;
+        };
+        let mut close_menu = false;
+        let screen = ctx.viewport_rect();
+        let mut pos = eframe::egui::pos2(x, y);
+        let max_x = (screen.right() - 200.0).max(screen.left());
+        let max_y = (screen.bottom() - 200.0).max(screen.top());
+        pos.x = pos.x.clamp(screen.left(), max_x);
+        pos.y = pos.y.clamp(screen.top(), max_y);
+
+        let response = eframe::egui::Area::new(eframe::egui::Id::new("context_menu"))
+            .order(eframe::egui::Order::Foreground)
+            .fixed_pos(pos)
+            .show(ctx, |ui| {
+                let frame = eframe::egui::Frame::popup(ui.style());
+                frame.show(ui, |ui| {
+                    ui.set_min_width(180.0);
+                    let current_url = self.shell_state.active_tab.current_url.clone();
+                    if ui.button("Copy URL").clicked() {
+                        ctx.copy_text(current_url.clone());
+                        self.shell_state.record_event("context menu: copy url");
+                        close_menu = true;
+                    }
+                    if ui.button("Open In New Tab").clicked() {
+                        self.shell_state
+                            .session
+                            .open_new_tab(&current_url, "New Tab");
+                        self.shell_state.session.active_tab_mut().zoom_level =
+                            self.config.engine.zoom_default;
+                        self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
+                        self.shell_state.address_bar_input = current_url.clone();
+                        let _ = dispatch_command(
+                            &mut self.shell_state,
+                            self.engine.as_mut(),
+                            AppCommand::NavigateTo(current_url),
+                        );
+                        self.shell_state
+                            .record_event("context menu: open in new tab");
+                        close_menu = true;
+                    }
+                    if ui.button("Reload").clicked() {
+                        let _ = dispatch_command(
+                            &mut self.shell_state,
+                            self.engine.as_mut(),
+                            AppCommand::ReloadActiveTab,
+                        );
+                        close_menu = true;
+                    }
+                    ui.separator();
+                    if ui.button("Zoom In").clicked() {
+                        self.apply_zoom_steps(1, "context menu");
+                        close_menu = true;
+                    }
+                    if ui.button("Zoom Out").clicked() {
+                        self.apply_zoom_steps(-1, "context menu");
+                        close_menu = true;
+                    }
+                    if ui.button("Reset Zoom").clicked() {
+                        self.set_active_tab_zoom(self.config.engine.zoom_default, "reset");
+                        close_menu = true;
+                    }
+                });
+            });
+
+        if ctx.input(|input| input.pointer.any_pressed()) {
+            if let Some(pos) = ctx.input(|input| input.pointer.latest_pos()) {
+                if !response.response.rect.contains(pos) {
+                    close_menu = true;
+                }
+            }
+        }
+
+        if close_menu {
+            self.shell_state.pending_context_menu = None;
+        }
+    }
+
+    fn map_pointer_to_viewport(
+        &self,
+        ctx: &eframe::egui::Context,
+        pos: eframe::egui::Pos2,
+        allow_outside: bool,
+    ) -> Option<eframe::egui::Pos2> {
+        let rect = self.render_viewport_rect?;
+        if !allow_outside && !rect.contains(pos) {
+            return None;
+        }
+        let mut local = pos - rect.min;
+        if let Some(surface) = &self.last_surface {
+            let pixels_per_point = ctx.pixels_per_point();
+            let max_x = surface.viewport_width as f32 / pixels_per_point;
+            let max_y = surface.viewport_height as f32 / pixels_per_point;
+            local.x = local.x.clamp(0.0, max_x);
+            local.y = local.y.clamp(0.0, max_y);
+        }
+        Some(eframe::egui::pos2(local.x, local.y))
+    }
+
+    fn clamp_zoom(&self, zoom: f32) -> f32 {
+        zoom.clamp(self.config.engine.zoom_min, self.config.engine.zoom_max)
+    }
+
+    fn set_active_tab_zoom(&mut self, zoom: f32, reason: &str) {
+        let clamped = self.clamp_zoom(zoom);
+        let tab = self.shell_state.session.active_tab_mut();
+        tab.zoom_level = clamped;
+        self.shell_state.active_tab_zoom = clamped;
+        self.engine.set_page_zoom(clamped);
+        self.shell_state
+            .record_event(format!("zoom {reason}: {clamped:.2}x"));
+    }
+
+    fn apply_zoom_steps(&mut self, steps: i32, reason: &str) {
+        let current = self.shell_state.active_tab_zoom;
+        let step = self.config.engine.zoom_step;
+        let next = current + step * steps as f32;
+        self.set_active_tab_zoom(next, reason);
+    }
+
+    fn apply_zoom_factor(&mut self, factor: f32, reason: &str) {
+        let current = self.shell_state.active_tab_zoom;
+        self.set_active_tab_zoom(current * factor, reason);
     }
 
     fn update_render_surface(&mut self, ctx: &eframe::egui::Context) {
@@ -726,6 +875,7 @@ impl BrazenApp {
             FocusState::Unfocused
         };
         self.engine.set_focus(focused);
+        let input_logging = self.config.engine.input_logging;
 
         if let Some(minimized) = input.raw.viewport().minimized {
             if minimized && !self.shell_state.was_minimized {
@@ -741,8 +891,25 @@ impl BrazenApp {
             match event {
                 eframe::egui::Event::PointerMoved(pos) => {
                     self.last_pointer_pos = Some(pos);
-                    self.engine
-                        .handle_input(InputEvent::PointerMove { x: pos.x, y: pos.y });
+                    if let Some(local) =
+                        self.map_pointer_to_viewport(ctx, pos, self.pointer_captured)
+                    {
+                        self.last_pointer_local = Some(local);
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                x = local.x,
+                                y = local.y,
+                                "pointer moved"
+                            );
+                        }
+                        self.engine.handle_input(InputEvent::PointerMove {
+                            x: local.x,
+                            y: local.y,
+                        });
+                    } else {
+                        self.last_pointer_local = None;
+                    }
                 }
                 eframe::egui::Event::PointerButton {
                     pos,
@@ -758,30 +925,166 @@ impl BrazenApp {
                         eframe::egui::PointerButton::Extra1 => 3,
                         eframe::egui::PointerButton::Extra2 => 4,
                     };
-                    if pressed {
-                        self.engine
-                            .handle_input(InputEvent::PointerDown { button: button_id });
-                    } else {
-                        self.engine
-                            .handle_input(InputEvent::PointerUp { button: button_id });
+                    let allow_outside = self.pointer_captured || pressed;
+                    if let Some(local) = self.map_pointer_to_viewport(ctx, pos, allow_outside) {
+                        self.last_pointer_local = Some(local);
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                button = button_id,
+                                pressed,
+                                x = local.x,
+                                y = local.y,
+                                "pointer button"
+                            );
+                        }
+                        if pressed {
+                            if button == eframe::egui::PointerButton::Secondary {
+                                self.shell_state.pending_context_menu = Some((pos.x, pos.y));
+                                self.shell_state.record_event(format!(
+                                    "context menu requested: {:.0},{:.0}",
+                                    pos.x, pos.y
+                                ));
+                            } else {
+                                self.shell_state.pending_context_menu = None;
+                            }
+                            self.pointer_captured = matches!(
+                                button,
+                                eframe::egui::PointerButton::Primary
+                                    | eframe::egui::PointerButton::Middle
+                            );
+                            self.engine
+                                .handle_input(InputEvent::PointerDown { button: button_id });
+                        } else {
+                            self.pointer_captured = false;
+                            self.engine
+                                .handle_input(InputEvent::PointerUp { button: button_id });
+                        }
+                    } else if !pressed {
+                        self.pointer_captured = false;
                     }
                 }
-                eframe::egui::Event::MouseWheel { delta, .. } => {
-                    self.engine.handle_input(InputEvent::Scroll {
-                        delta_x: delta.x,
-                        delta_y: delta.y,
-                    });
+                eframe::egui::Event::MouseWheel { delta, unit, .. } => {
+                    if let Some(pos) = input.pointer.latest_pos().or(self.last_pointer_pos) {
+                        if let Some(local) =
+                            self.map_pointer_to_viewport(ctx, pos, self.pointer_captured)
+                        {
+                            self.last_pointer_local = Some(local);
+                            self.engine.handle_input(InputEvent::PointerMove {
+                                x: local.x,
+                                y: local.y,
+                            });
+                        }
+                    }
+                    let modifiers = input.modifiers;
+                    let axis = if delta.y.abs() >= delta.x.abs() {
+                        delta.y
+                    } else {
+                        delta.x
+                    };
+                    if modifiers.ctrl || modifiers.command {
+                        let steps = if axis.abs() < 0.1 {
+                            0
+                        } else {
+                            axis.signum() as i32
+                        };
+                        if steps != 0 {
+                            self.apply_zoom_steps(steps, "wheel");
+                        }
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                axis,
+                                steps,
+                                "ctrl wheel zoom"
+                            );
+                        }
+                        continue;
+                    }
+                    let mut delta_x = delta.x;
+                    let mut delta_y = delta.y;
+                    if modifiers.shift {
+                        delta_x = if delta.x.abs() > 0.0 {
+                            delta.x
+                        } else {
+                            delta.y
+                        };
+                        delta_y = 0.0;
+                    }
+                    let scale = match unit {
+                        eframe::egui::MouseWheelUnit::Line => 24.0,
+                        eframe::egui::MouseWheelUnit::Point => 1.0,
+                        eframe::egui::MouseWheelUnit::Page => 240.0,
+                    };
+                    delta_x *= scale;
+                    delta_y *= scale;
+                    if input_logging {
+                        tracing::trace!(
+                            target: "brazen::input",
+                            delta_x,
+                            delta_y,
+                            unit = ?unit,
+                            "scroll wheel"
+                        );
+                    }
+                    self.engine
+                        .handle_input(InputEvent::Scroll { delta_x, delta_y });
                 }
                 eframe::egui::Event::Zoom(delta) => {
-                    self.engine.handle_input(InputEvent::Zoom { delta });
+                    if (delta - 1.0).abs() > f32::EPSILON {
+                        self.apply_zoom_factor(delta, "pinch");
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                delta,
+                                "pinch zoom"
+                            );
+                        }
+                    }
                 }
-                eframe::egui::Event::Key { key, pressed, .. } => {
+                eframe::egui::Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                    ..
+                } => {
+                    let zoom_shortcut = pressed
+                        && (modifiers.ctrl || modifiers.command)
+                        && matches!(
+                            key,
+                            eframe::egui::Key::Plus
+                                | eframe::egui::Key::Equals
+                                | eframe::egui::Key::Minus
+                                | eframe::egui::Key::Num0
+                        );
+                    if zoom_shortcut {
+                        match key {
+                            eframe::egui::Key::Plus | eframe::egui::Key::Equals => {
+                                self.apply_zoom_steps(1, "shortcut");
+                            }
+                            eframe::egui::Key::Minus => {
+                                self.apply_zoom_steps(-1, "shortcut");
+                            }
+                            eframe::egui::Key::Num0 => {
+                                self.set_active_tab_zoom(self.config.engine.zoom_default, "reset");
+                            }
+                            _ => {}
+                        }
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                key = ?key,
+                                "zoom shortcut"
+                            );
+                        }
+                        continue;
+                    }
                     let key_name = format!("{key:?}");
                     let modifiers = crate::engine::KeyModifiers {
-                        alt: input.modifiers.alt,
-                        ctrl: input.modifiers.ctrl,
-                        shift: input.modifiers.shift,
-                        command: input.modifiers.command,
+                        alt: modifiers.alt,
+                        ctrl: modifiers.ctrl,
+                        shift: modifiers.shift,
+                        command: modifiers.command,
                     };
                     if pressed {
                         self.engine.handle_input(InputEvent::KeyDown {
@@ -796,22 +1099,49 @@ impl BrazenApp {
                     }
                 }
                 eframe::egui::Event::Text(text) => {
+                    if input_logging {
+                        tracing::trace!(
+                            target: "brazen::input",
+                            text = %text,
+                            "text input"
+                        );
+                    }
                     self.engine.handle_input(InputEvent::TextInput { text });
                 }
                 eframe::egui::Event::Ime(ime) => match ime {
                     eframe::egui::ImeEvent::Enabled => {
+                        if input_logging {
+                            tracing::trace!(target: "brazen::input", "ime enabled");
+                        }
                         self.engine
                             .handle_ime(crate::engine::ImeEvent::CompositionStart);
                     }
                     eframe::egui::ImeEvent::Preedit(text) => {
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                text = %text,
+                                "ime preedit"
+                            );
+                        }
                         self.engine
                             .handle_ime(crate::engine::ImeEvent::CompositionUpdate { text });
                     }
                     eframe::egui::ImeEvent::Commit(text) => {
+                        if input_logging {
+                            tracing::trace!(
+                                target: "brazen::input",
+                                text = %text,
+                                "ime commit"
+                            );
+                        }
                         self.engine
                             .handle_ime(crate::engine::ImeEvent::CompositionEnd { text });
                     }
                     eframe::egui::ImeEvent::Disabled => {
+                        if input_logging {
+                            tracing::trace!(target: "brazen::input", "ime disabled");
+                        }
                         self.engine
                             .handle_ime(crate::engine::ImeEvent::CompositionEnd {
                                 text: String::new(),
@@ -838,6 +1168,10 @@ impl BrazenApp {
         {
             self.shell_state.active_tab.title = tab.title;
             self.shell_state.active_tab.current_url = tab.url;
+        }
+        if (self.shell_state.active_tab_zoom - tab.zoom_level).abs() > f32::EPSILON {
+            self.shell_state.active_tab_zoom = tab.zoom_level;
+            self.engine.set_page_zoom(tab.zoom_level);
         }
     }
 
@@ -869,6 +1203,9 @@ impl BrazenApp {
                     self.shell_state
                         .session
                         .open_new_tab(&normalized, "New Tab");
+                    self.shell_state.session.active_tab_mut().zoom_level =
+                        self.config.engine.zoom_default;
+                    self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                     self.shell_state
                         .record_event(format!("new window opened as tab: {normalized}"));
                 } else {
@@ -1224,6 +1561,9 @@ impl eframe::App for BrazenApp {
                         AppCommand::StopLoading,
                     );
                 }
+                if ui.button("Input Test").clicked() {
+                    self.open_input_test_page();
+                }
                 if ui.button("Restart Engine").clicked() {
                     self.restart_engine();
                 }
@@ -1240,6 +1580,14 @@ impl eframe::App for BrazenApp {
                         self.engine.as_mut(),
                         AppCommand::OpenPermissionPanel,
                     );
+                }
+                ui.separator();
+                ui.label(format!(
+                    "Zoom: {:.0}%",
+                    self.shell_state.active_tab_zoom * 100.0
+                ));
+                if ui.button("Reset Zoom").clicked() {
+                    self.set_active_tab_zoom(self.config.engine.zoom_default, "reset");
                 }
             });
             ui.add(
@@ -1258,6 +1606,9 @@ impl eframe::App for BrazenApp {
                         self.shell_state
                             .session
                             .open_new_tab("about:blank", "New Tab");
+                        self.shell_state.session.active_tab_mut().zoom_level =
+                            self.config.engine.zoom_default;
+                        self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                     }
                     if ui.button("Duplicate").clicked() {
                         self.shell_state.session.duplicate_active_tab();
@@ -1519,6 +1870,7 @@ impl eframe::App for BrazenApp {
             if let Some(texture) = &self.render_texture {
                 let response =
                     ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
+                self.render_viewport_rect = Some(response.rect);
                 if self.config.engine.debug_pointer_overlay {
                     if let Some(pos) = self.last_pointer_pos {
                         if response.rect.contains(pos) {
@@ -1532,6 +1884,8 @@ impl eframe::App for BrazenApp {
                         }
                     }
                 }
+            } else {
+                self.render_viewport_rect = None;
             }
             ui.add_space(12.0);
             ui.group(|ui| {
@@ -1589,6 +1943,8 @@ impl eframe::App for BrazenApp {
                     });
                 });
         }
+
+        self.render_context_menu(ctx);
     }
 }
 
@@ -1611,10 +1967,33 @@ mod tests {
     use super::*;
     use crate::engine::{BrowserEngine, BrowserTab, EngineEvent, EngineFrame, EngineStatus};
 
+    fn test_paths() -> RuntimePaths {
+        RuntimePaths {
+            config_path: "brazen.toml".into(),
+            data_dir: "data".into(),
+            logs_dir: "logs".into(),
+            profiles_dir: "profiles".into(),
+            cache_dir: "cache".into(),
+            downloads_dir: "downloads".into(),
+            crash_dumps_dir: "crash-dumps".into(),
+            active_profile_dir: "profiles/default".into(),
+            session_path: "profiles/default/session.json".into(),
+        }
+    }
+
+    fn build_test_app() -> BrazenApp {
+        let config = BrazenConfig::default();
+        let paths = test_paths();
+        let engine_factory = crate::engine::ServoEngineFactory;
+        let shell_state = build_shell_state(&config, &paths, &engine_factory);
+        BrazenApp::new(config, shell_state)
+    }
+
     struct MockEngine {
         status: EngineStatus,
         tab: BrowserTab,
         events: Vec<EngineEvent>,
+        zoom: f32,
     }
 
     impl BrowserEngine for MockEngine {
@@ -1664,6 +2043,14 @@ mod tests {
 
         fn handle_clipboard(&mut self, _request: crate::engine::ClipboardRequest) {}
 
+        fn set_page_zoom(&mut self, zoom: f32) {
+            self.zoom = zoom;
+        }
+
+        fn page_zoom(&self) -> f32 {
+            self.zoom
+        }
+
         fn set_verbose_logging(&mut self, _enabled: bool) {}
 
         fn configure_devtools(&mut self, _enabled: bool, _transport: &str) {}
@@ -1685,17 +2072,7 @@ mod tests {
 
     #[test]
     fn shell_state_sync_handles_ready_and_error_statuses() {
-        let paths = RuntimePaths {
-            config_path: "brazen.toml".into(),
-            data_dir: "data".into(),
-            logs_dir: "logs".into(),
-            profiles_dir: "profiles".into(),
-            cache_dir: "cache".into(),
-            downloads_dir: "downloads".into(),
-            crash_dumps_dir: "crash-dumps".into(),
-            active_profile_dir: "profiles/default".into(),
-            session_path: "profiles/default/session.json".into(),
-        };
+        let paths = test_paths();
         let mut shell = ShellState {
             app_name: "Brazen".to_string(),
             backend_name: "mock".to_string(),
@@ -1717,6 +2094,7 @@ mod tests {
             metadata_summary: None,
             history: Vec::new(),
             last_committed_url: None,
+            active_tab_zoom: 1.0,
             was_minimized: false,
             pending_popup: None,
             pending_dialog: None,
@@ -1749,6 +2127,7 @@ mod tests {
                 current_url: "https://example.com".to_string(),
             },
             events: vec![EngineEvent::StatusChanged(EngineStatus::Ready)],
+            zoom: 1.0,
         };
         shell.sync_from_engine(&mut ready_engine);
         assert_eq!(shell.engine_status, EngineStatus::Ready);
@@ -1760,11 +2139,83 @@ mod tests {
             events: vec![EngineEvent::StatusChanged(EngineStatus::Error(
                 "boot failed".to_string(),
             ))],
+            zoom: 1.0,
         };
         shell.sync_from_engine(&mut failing_engine);
         assert_eq!(
             shell.engine_status,
             EngineStatus::Error("boot failed".to_string())
         );
+    }
+
+    #[test]
+    fn zoom_steps_clamp_to_config_bounds() {
+        let mut app = build_test_app();
+        app.apply_zoom_steps(10, "test");
+        assert!((app.shell_state.active_tab_zoom - 2.0).abs() < f32::EPSILON);
+        app.apply_zoom_steps(200, "test");
+        assert!((app.shell_state.active_tab_zoom - app.config.engine.zoom_max).abs() < 0.001);
+        app.apply_zoom_steps(-200, "test");
+        assert!((app.shell_state.active_tab_zoom - app.config.engine.zoom_min).abs() < 0.001);
+    }
+
+    #[test]
+    fn context_menu_event_sets_pending_state() {
+        let paths = test_paths();
+        let mut shell = ShellState {
+            app_name: "Brazen".to_string(),
+            backend_name: "mock".to_string(),
+            engine_instance_id: 1,
+            engine_status: EngineStatus::Initializing,
+            active_tab: BrowserTab {
+                id: 1,
+                title: "Loading".to_string(),
+                current_url: "about:blank".to_string(),
+            },
+            address_bar_input: "https://example.com".to_string(),
+            page_title: "Loading".to_string(),
+            load_progress: 0.0,
+            can_go_back: false,
+            can_go_forward: false,
+            document_ready: false,
+            load_status: None,
+            favicon_url: None,
+            metadata_summary: None,
+            history: Vec::new(),
+            last_committed_url: None,
+            active_tab_zoom: 1.0,
+            was_minimized: false,
+            pending_popup: None,
+            pending_dialog: None,
+            pending_context_menu: None,
+            pending_new_window: None,
+            last_download: None,
+            last_security_warning: None,
+            last_crash: None,
+            last_crash_dump: None,
+            devtools_endpoint: None,
+            engine_verbose_logging: false,
+            resource_reader_ready: None,
+            resource_reader_path: None,
+            upstream_active: false,
+            upstream_last_error: None,
+            render_warning: None,
+            session: SessionSnapshot::new("default".to_string(), "now".to_string()),
+            event_log: Vec::new(),
+            log_panel_open: true,
+            permission_panel_open: false,
+            capabilities_snapshot: Vec::new(),
+            runtime_paths: paths,
+        };
+
+        let mut engine = MockEngine {
+            status: EngineStatus::Ready,
+            tab: shell.active_tab.clone(),
+            events: vec![EngineEvent::ContextMenuRequested { x: 120.0, y: 88.0 }],
+            zoom: 1.0,
+        };
+
+        shell.sync_from_engine(&mut engine);
+        assert!(shell.pending_context_menu.is_some());
     }
 }

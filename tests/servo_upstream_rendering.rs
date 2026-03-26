@@ -11,6 +11,8 @@ mod tests {
             color_space: ColorSpace::Srgb,
             enable_pixel_probe: false,
             resources_dir: None,
+            certificate_path: None,
+            ignore_certificate_errors: false,
         };
         let mut runtime = ServoUpstreamRuntime::new(64, 64, config).expect("servo runtime");
         for _ in 0..40 {
@@ -70,6 +72,8 @@ mod tests {
             color_space: ColorSpace::Srgb,
             enable_pixel_probe: false,
             resources_dir: None,
+            certificate_path: None,
+            ignore_certificate_errors: false,
         };
         let mut runtime = ServoUpstreamRuntime::new(96, 96, config).expect("servo runtime");
         runtime

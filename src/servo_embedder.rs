@@ -214,6 +214,7 @@ pub struct ServoEmbedder {
     pub last_frame_checksum: Option<u64>,
     pub pending_navigation: Option<String>,
     pub logged_first_frame: bool,
+    pub page_zoom: f32,
 }
 
 impl ServoEmbedder {
@@ -246,6 +247,7 @@ impl ServoEmbedder {
             last_frame_checksum: None,
             pending_navigation: None,
             logged_first_frame: false,
+            page_zoom: 1.0,
         }
     }
 
@@ -496,8 +498,7 @@ impl ServoEmbedder {
             InputEvent::Zoom { delta } => {
                 #[cfg(feature = "servo-upstream")]
                 if let Some(upstream) = &self.upstream {
-                    let scaled = *delta * self.input_scale;
-                    upstream.handle_wheel(0.0, scaled, self.last_pointer.0, self.last_pointer.1);
+                    upstream.handle_pinch_zoom(*delta, self.last_pointer.0, self.last_pointer.1);
                 }
                 #[cfg(not(feature = "servo-upstream"))]
                 let _ = delta;
@@ -554,6 +555,20 @@ impl ServoEmbedder {
             tracing::trace!(target: "brazen::servo", ?request, "clipboard forwarded");
         }
         self.frame_scheduler.request_frame();
+    }
+
+    pub fn set_page_zoom(&mut self, zoom: f32) {
+        let clamped = zoom.clamp(0.1, 10.0);
+        self.page_zoom = clamped;
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            upstream.set_page_zoom(clamped);
+        }
+        self.frame_scheduler.request_frame();
+    }
+
+    pub fn page_zoom(&self) -> f32 {
+        self.page_zoom
     }
 
     pub fn set_focus(&mut self, focus: FocusState) {
@@ -646,6 +661,7 @@ impl ServoEmbedder {
                     height = surface.metadata.viewport_height,
                     "upstream runtime initialized"
                 );
+                runtime.set_page_zoom(self.page_zoom);
                 self.resource_reader_ready = Some(true);
                 self.resource_reader_path = Some(runtime.resources_dir().to_path_buf());
                 self.upstream = Some(runtime);
