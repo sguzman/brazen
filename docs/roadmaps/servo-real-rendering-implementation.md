@@ -99,3 +99,7 @@ Focuses on replacing the current stub renderer with actual Servo output. This is
 - [x] Add config for `engine.ignore_certificate_errors` and optional `engine.certificate_path`
 - [x] Wire TLS options into Servo `Opts` during upstream initialization
 - [x] Default ignore-certificate-errors to dev mode when not explicitly set
+
+## Tranche 5: System CA Auto-Detection (1 item)
+
+- [x] Auto-detect a system CA bundle path when none is configured

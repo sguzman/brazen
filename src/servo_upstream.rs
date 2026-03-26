@@ -235,6 +235,8 @@ impl std::fmt::Debug for ServoUpstreamRuntime {
 impl ServoUpstreamRuntime {
     pub fn new(width: u32, height: u32, config: ServoUpstreamConfig) -> Result<Self, String> {
         let _ = LogTracer::init();
+        let resolved_certificate_path =
+            resolve_system_certificate_path(config.certificate_path.as_deref());
         let env_source = std::env::var(SERVO_SOURCE_ENV).ok();
         let ResourceDirResolution { path, source } = resolve_resource_dir(
             config.resources_dir.as_ref().and_then(|dir| dir.to_str()),
@@ -257,13 +259,13 @@ impl ServoUpstreamRuntime {
         tracing::info!(
             target: "brazen::servo::network",
             ignore_certificate_errors = config.ignore_certificate_errors,
-            certificate_path = ?config.certificate_path,
+            certificate_path = ?resolved_certificate_path,
             "servo network configuration"
         );
         libservo::resources::set(Box::new(ServoResourceReader::new(path.clone())));
         let mut opts = Opts::default();
         opts.ignore_certificate_errors = config.ignore_certificate_errors;
-        if let Some(cert_path) = &config.certificate_path {
+        if let Some(cert_path) = &resolved_certificate_path {
             opts.certificate_path = Some(cert_path.display().to_string());
         }
         let frame_ready = Arc::new(AtomicBool::new(true));
@@ -533,4 +535,22 @@ impl ServoUpstreamRuntime {
             data: text,
         })));
     }
+}
+
+fn resolve_system_certificate_path(configured: Option<&Path>) -> Option<PathBuf> {
+    if let Some(path) = configured {
+        return Some(path.to_path_buf());
+    }
+    let candidates = [
+        "/etc/ssl/certs/ca-certificates.crt",
+        "/etc/ssl/cert.pem",
+        "/etc/pki/tls/certs/ca-bundle.crt",
+        "/etc/ssl/ca-bundle.pem",
+        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+    ];
+    candidates
+        .iter()
+        .map(Path::new)
+        .find(|path| path.exists())
+        .map(Path::to_path_buf)
 }
