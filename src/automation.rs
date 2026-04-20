@@ -154,6 +154,15 @@ pub enum AutomationRequest {
     TtsEnqueue {
         text: String,
     },
+    MountAdd {
+        name: String,
+        local_path: String,
+        read_only: Option<bool>,
+    },
+    MountRemove {
+        name: String,
+    },
+    MountList,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -181,6 +190,14 @@ pub enum AutomationCommand {
     Screenshot {
         response_tx: tokio::sync::oneshot::Sender<Result<Vec<u8>, String>>,
     },
+    AddMount {
+        name: String,
+        local_path: std::path::PathBuf,
+        read_only: bool,
+    },
+    RemoveMount {
+        name: String,
+    },
 }
 
 #[derive(Clone)]
@@ -194,6 +211,7 @@ pub struct AutomationHandle {
     permissions: PermissionPolicy,
     expose_tab_api: bool,
     expose_cache_api: bool,
+    pub mount_manager: crate::mounts::MountManager,
 }
 
 impl AutomationHandle {
@@ -250,6 +268,7 @@ pub struct AutomationRuntime {
 pub fn start_automation_runtime(
     config: &BrazenConfig,
     paths: &RuntimePaths,
+    mount_manager: crate::mounts::MountManager,
 ) -> Option<AutomationRuntime> {
     if !config.automation.enabled || !config.features.automation_server {
         return None;
@@ -267,6 +286,7 @@ pub fn start_automation_runtime(
         permissions: config.permissions.clone(),
         expose_tab_api: config.automation.expose_tab_api,
         expose_cache_api: config.automation.expose_cache_api,
+        mount_manager,
     };
     let server_state = AutomationServerState::new(config.automation.clone(), handle.clone());
     let bind = config.automation.bind.clone();
@@ -389,6 +409,18 @@ fn run_automation_server(bind: &str, state: AutomationServerState) -> Result<(),
         }
         Ok(())
     })
+}
+
+fn ensure_mount_api(state: &AutomationServerState) -> Result<(), String> {
+    if state
+        .handle
+        .permissions
+        .decision_for(&Capability::VirtualResourceMount)
+        == PermissionDecision::Deny
+    {
+        return Err("permission denied: virtual-resource-mount".to_string());
+    }
+    Ok(())
 }
 
 async fn ws_handler(
@@ -631,6 +663,37 @@ async fn handle_request(
             Some(error_response(id, "rendered text not implemented"))
         }
         AutomationRequest::ArticleText => Some(error_response(id, "article text not implemented")),
+        AutomationRequest::MountAdd { name, local_path, read_only } => {
+            if let Err(error) = ensure_mount_api(state) {
+                return Some(error_response(id, &error));
+            }
+            let _ = state.handle.command_tx.send(AutomationCommand::AddMount {
+                name,
+                local_path: std::path::PathBuf::from(local_path),
+                read_only: read_only.unwrap_or(true),
+            });
+            Some(ok_response(id))
+        }
+        AutomationRequest::MountRemove { name } => {
+            if let Err(error) = ensure_mount_api(state) {
+                return Some(error_response(id, &error));
+            }
+            let _ = state.handle.command_tx.send(AutomationCommand::RemoveMount { name });
+            Some(ok_response(id))
+        }
+        AutomationRequest::MountList => {
+            if let Err(error) = ensure_mount_api(state) {
+                return Some(error_response(id, &error));
+            }
+            let mounts = state.handle.mount_manager.list_mounts();
+            let response = AutomationResponse {
+                id,
+                ok: true,
+                result: Some(mounts),
+                error: None,
+            };
+            Some(serde_json::to_string(&response).unwrap())
+        }
         AutomationRequest::CacheStats => {
             if let Err(error) = ensure_cache_api(state) {
                 return Some(error_response(id, &error));
@@ -908,6 +971,18 @@ pub fn drain_automation_commands(
                     engine,
                     commands::AppCommand::ReloadActiveTab,
                 );
+            }
+            AutomationCommand::AddMount { name, local_path, read_only } => {
+                shell_state.mount_manager.add_mount(crate::mounts::Mount {
+                    name,
+                    mount_type: crate::mounts::MountType::FileSystem(local_path),
+                    read_only,
+                });
+                shell_state.record_event("automation add mount");
+            }
+            AutomationCommand::RemoveMount { name } => {
+                shell_state.mount_manager.remove_mount(&name);
+                shell_state.record_event("automation remove mount");
             }
             AutomationCommand::Stop => {
                 let _ = commands::dispatch_command(

@@ -33,7 +33,7 @@ Focuses on replacing the current stub renderer with actual Servo output. This is
 - [x] Translate keyboard + modifiers into Servo input
 - [x] Translate scroll/zoom events into Servo input
 - [x] Wire IME composition to Servo
-- [ ] Bridge clipboard read/write requests
+- [x] Bridge clipboard read/write requests
 
 ## Validation
 

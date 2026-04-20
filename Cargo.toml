@@ -18,6 +18,7 @@ directories = "6.0.0"
 eframe = { version = "0.33.3", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
 egui = "0.33.3"
 axum = { version = "0.8.8", features = ["ws"] }
+http = "1.1"
 base64 = "0.22.1"
 chrono = { version = "0.4.44", default-features = false, features = ["std", "clock"] }
 futures-util = "0.3.32"

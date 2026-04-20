@@ -23,7 +23,9 @@ use libservo::{
     JSValue,
 };
 use libservo::IpcSender;
+use libservo::{WebResourceLoad, WebResourceResponse, StatusCode, HeaderMap};
 use crate::engine::EngineEvent;
+use crate::mounts::MountManager;
 use tracing_log::LogTracer;
 use url::Url;
 
@@ -88,13 +90,19 @@ impl Default for UpstreamSnapshot {
 pub struct BrazenWebViewDelegate {
     snapshot: Rc<RefCell<UpstreamSnapshot>>,
     frame_ready: Arc<AtomicBool>,
+    mount_manager: MountManager,
 }
 
 impl BrazenWebViewDelegate {
-    pub fn new(snapshot: Rc<RefCell<UpstreamSnapshot>>, frame_ready: Arc<AtomicBool>) -> Self {
+    pub fn new(
+        snapshot: Rc<RefCell<UpstreamSnapshot>>,
+        frame_ready: Arc<AtomicBool>,
+        mount_manager: MountManager,
+    ) -> Self {
         Self {
             snapshot,
             frame_ready,
+            mount_manager,
         }
     }
 }
@@ -163,6 +171,47 @@ impl WebViewDelegate for BrazenWebViewDelegate {
             "navigation request observed"
         );
         request.allow();
+    }
+
+    fn load_web_resource(&self, _webview: WebView, load: WebResourceLoad) {
+        if let Some((path, _read_only)) = self.mount_manager.resolve_fs_request(&load.request.url) {
+            tracing::info!(target: "brazen::mounts", url = %load.request.url, path = ?path, "intercepting virtual resource");
+            
+            // Try to read the file
+            match std::fs::read(&path) {
+                Ok(data) => {
+                    let mut headers = HeaderMap::new();
+                    // Guess mime type
+                    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+                        let mime = match ext {
+                            "html" => "text/html",
+                            "js" => "application/javascript",
+                            "css" => "text/css",
+                            "json" => "application/json",
+                            "png" => "image/png",
+                            "jpg" | "jpeg" => "image/jpeg",
+                            "svg" => "image/svg+xml",
+                            _ => "application/octet-stream",
+                        };
+                        headers.insert(http::header::CONTENT_TYPE, http::HeaderValue::from_static(mime));
+                    }
+                    // Add CORS header to allow AI platforms to access it
+                    headers.insert(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, http::HeaderValue::from_static("*"));
+
+                    let response = WebResourceResponse {
+                        url: load.request.url.clone(),
+                        status: StatusCode::OK,
+                        headers,
+                    };
+                    let intercepted = load.intercept(response);
+                    intercepted.send_body_data(data);
+                    intercepted.finish();
+                }
+                Err(e) => {
+                    tracing::error!(target: "brazen::mounts", url = %load.request.url, error = ?e, "failed to read virtual resource");
+                }
+            }
+        }
     }
 }
 
@@ -260,6 +309,7 @@ pub struct ServoUpstreamRuntime {
     resource_source: ResourceDirSource,
     event_sender: std::sync::mpsc::Sender<EngineEvent>,
     pending_clipboard_request: Arc<std::sync::Mutex<Option<StringRequest>>>,
+    mount_manager: MountManager,
 }
 
 impl std::fmt::Debug for ServoUpstreamRuntime {
@@ -284,6 +334,7 @@ impl ServoUpstreamRuntime {
         height: u32,
         config: ServoUpstreamConfig,
         event_sender: std::sync::mpsc::Sender<EngineEvent>,
+        mount_manager: MountManager,
     ) -> Result<Self, String> {
         let _ = LogTracer::init();
         let resolved_certificate_path =
@@ -338,6 +389,7 @@ impl ServoUpstreamRuntime {
         let delegate = Rc::new(BrazenWebViewDelegate::new(
             snapshot.clone(),
             frame_ready.clone(),
+            mount_manager.clone(),
         ));
         let servo_delegate = Rc::new(BrazenServoDelegate::new(
             devtools_endpoint.clone(),
@@ -395,6 +447,7 @@ impl ServoUpstreamRuntime {
             resource_source: source,
             event_sender,
             pending_clipboard_request,
+            mount_manager,
         })
     }
 

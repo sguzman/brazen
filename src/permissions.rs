@@ -10,6 +10,7 @@ pub enum Capability {
     CacheRead,
     TabInspect,
     AiToolUse,
+    VirtualResourceMount,
 }
 
 impl Capability {
@@ -20,6 +21,7 @@ impl Capability {
             Self::CacheRead => "cache-read",
             Self::TabInspect => "tab-inspect",
             Self::AiToolUse => "ai-tool-use",
+            Self::VirtualResourceMount => "virtual-resource-mount",
         }
     }
 }
@@ -48,6 +50,7 @@ impl Default for PermissionPolicy {
         capabilities.insert(Capability::CacheRead, PermissionDecision::Ask);
         capabilities.insert(Capability::TabInspect, PermissionDecision::Ask);
         capabilities.insert(Capability::AiToolUse, PermissionDecision::Ask);
+        capabilities.insert(Capability::VirtualResourceMount, PermissionDecision::Deny);
 
         Self {
             default: PermissionDecision::Ask,

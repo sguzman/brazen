@@ -14,6 +14,7 @@ impl EngineFactory for TestFactory {
         &self,
         _config: &BrazenConfig,
         _paths: &brazen::RuntimePaths,
+        _mount_manager: brazen::mounts::MountManager,
     ) -> Box<dyn BrowserEngine> {
         Box::new(NullEngine::new())
     }
@@ -240,7 +241,7 @@ fn command_dispatch_routes_navigation_and_panel_state() {
         find_panel_open: false,
         find_query: String::new(),
         capabilities_snapshot: Vec::new(),
-        runtime_paths,
+        runtime_paths, mount_manager: brazen::mounts::MountManager::new(),
     };
     let mut engine = NullEngine::new();
 
@@ -328,7 +329,7 @@ fn command_dispatch_rejects_invalid_urls() {
         find_panel_open: false,
         find_query: String::new(),
         capabilities_snapshot: Vec::new(),
-        runtime_paths,
+        runtime_paths, mount_manager: brazen::mounts::MountManager::new(),
     };
     let mut engine = NullEngine::new();
 

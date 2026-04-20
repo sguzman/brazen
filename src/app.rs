@@ -67,6 +67,7 @@ pub struct ShellState {
     pub find_panel_open: bool,
     pub find_query: String,
     pub capabilities_snapshot: Vec<(String, String)>,
+    pub mount_manager: crate::mounts::MountManager,
     pub runtime_paths: RuntimePaths,
 }
 
@@ -189,7 +190,8 @@ pub fn build_shell_state(
     paths: &RuntimePaths,
     engine_factory: &dyn EngineFactory,
 ) -> ShellState {
-    let mut engine = engine_factory.create(config, paths);
+    let mount_manager = crate::mounts::MountManager::new();
+    let mut engine = engine_factory.create(config, paths, mount_manager.clone());
     engine.set_render_surface(RenderSurfaceMetadata {
         viewport_width: config.window.initial_width as u32,
         viewport_height: config.window.initial_height as u32,
@@ -312,6 +314,7 @@ pub fn build_shell_state(
         find_panel_open: false,
         find_query: String::new(),
         capabilities_snapshot,
+        mount_manager,
         runtime_paths: paths.clone(),
     };
 
@@ -476,7 +479,7 @@ impl BrazenApp {
         automation: Option<crate::automation::AutomationRuntime>,
     ) -> Self {
         let engine_factory = crate::engine::ServoEngineFactory;
-        let mut engine = engine_factory.create(&config, &shell_state.runtime_paths);
+        let mut engine = engine_factory.create(&config, &shell_state.runtime_paths, shell_state.mount_manager.clone());
         engine.set_verbose_logging(config.engine.verbose_logging);
         engine.configure_devtools(
             config.engine.devtools_enabled,
@@ -1655,7 +1658,7 @@ impl BrazenApp {
         self.engine.shutdown();
         self.engine = self
             .engine_factory
-            .create(&self.config, &self.shell_state.runtime_paths);
+            .create(&self.config, &self.shell_state.runtime_paths, self.shell_state.mount_manager.clone());
         self.engine
             .set_verbose_logging(self.shell_state.engine_verbose_logging);
         self.engine.configure_devtools(
@@ -3202,6 +3205,14 @@ mod tests {
         fn take_events(&mut self) -> Vec<EngineEvent> {
             std::mem::take(&mut self.events)
         }
+
+        fn evaluate_javascript(&mut self, _script: String, callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>) {
+            callback(Ok(serde_json::Value::Null));
+        }
+
+        fn take_screenshot(&mut self) -> Result<Vec<u8>, String> {
+            Err("MockEngine does not support screenshots".to_string())
+        }
     }
 
     #[test]
@@ -3253,7 +3264,7 @@ mod tests {
             find_panel_open: false,
             find_query: String::new(),
             capabilities_snapshot: Vec::new(),
-            runtime_paths: paths,
+            runtime_paths: paths, mount_manager: crate::mounts::MountManager::new(),
         };
 
         let mut ready_engine = MockEngine {
@@ -3345,7 +3356,7 @@ mod tests {
             find_panel_open: false,
             find_query: String::new(),
             capabilities_snapshot: Vec::new(),
-            runtime_paths: paths,
+            runtime_paths: paths, mount_manager: crate::mounts::MountManager::new(),
         };
 
         let mut engine = MockEngine {

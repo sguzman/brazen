@@ -15,6 +15,7 @@ pub mod servo_resources;
 pub mod servo_runtime;
 #[cfg(feature = "servo-upstream")]
 pub mod servo_upstream;
+pub mod mounts;
 pub mod session;
 pub mod tls;
 

@@ -226,6 +226,7 @@ pub struct ServoEmbedder {
     pub upstream_event_tx: Option<std::sync::mpsc::Sender<crate::engine::EngineEvent>>,
     #[cfg(feature = "servo-upstream")]
     pub upstream_event_rx: Option<std::sync::mpsc::Receiver<crate::engine::EngineEvent>>,
+    pub mount_manager: crate::mounts::MountManager,
 }
 
 impl std::fmt::Debug for ServoEmbedder {
@@ -239,7 +240,7 @@ impl std::fmt::Debug for ServoEmbedder {
 }
 
 impl ServoEmbedder {
-    pub fn new(config: ServoEmbedderConfig) -> Self {
+    pub fn new(config: ServoEmbedderConfig, mount_manager: crate::mounts::MountManager) -> Self {
         Self {
             state: ServoEmbedderState::Uninitialized,
             verbose_logging: config.verbose_logging,
@@ -273,6 +274,7 @@ impl ServoEmbedder {
             upstream_event_tx: None,
             #[cfg(feature = "servo-upstream")]
             upstream_event_rx: None,
+            mount_manager,
         }
     }
 
@@ -618,12 +620,12 @@ impl ServoEmbedder {
 
     pub fn evaluate_javascript(
         &mut self,
-        script: String,
+        _script: String,
         callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>,
     ) {
         #[cfg(feature = "servo-upstream")]
         if let Some(upstream) = &mut self.upstream {
-            upstream.evaluate_javascript(script, callback);
+            upstream.evaluate_javascript(_script, callback);
             return;
         }
         callback(Err("Embedder has no active upstream".to_string()));
@@ -730,6 +732,7 @@ impl ServoEmbedder {
             surface.metadata.viewport_height,
             upstream_config,
             tx,
+            self.mount_manager.clone(),
         ) {
             Ok(runtime) => {
                 tracing::info!(
