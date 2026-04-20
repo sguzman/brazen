@@ -354,6 +354,7 @@ impl ServoUpstreamRuntime {
         permissions: crate::permissions::PermissionPolicy,
     ) -> Result<Self, String> {
         let _ = LogTracer::init();
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let resolved_certificate_path =
             resolve_system_certificate_path(config.certificate_path.as_deref());
         let env_source = std::env::var(SERVO_SOURCE_ENV).ok();
@@ -369,12 +370,7 @@ impl ServoUpstreamRuntime {
             );
             format!("servo resources error: {error}")
         })?;
-        tracing::info!(
-            target: "brazen::servo::resources",
-            path = %path.display(),
-            source = ?source,
-            "servo resources resolved"
-        );
+        println!("Servo resources resolved from: {} (source: {:?})", path.display(), source);
         tracing::info!(
             target: "brazen::servo::network",
             ignore_certificate_errors = config.ignore_certificate_errors,

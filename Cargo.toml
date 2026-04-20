@@ -38,7 +38,7 @@ uuid = { version = "1.22.0", features = ["v4", "serde"] }
 dpi = { version = "0.1.2", optional = true }
 libservo = { path = "vendor/servo/components/servo", optional = true, package = "libservo" }
 tracing-log = { version = "0.2.0", optional = true }
-rustls = { version = "0.23.37", features = ["aws_lc_rs"] }
+rustls = { version = "0.23.37", features = ["ring"] }
 ureq = "2.12.1"
 webpki-roots = "1.0.6"
 
