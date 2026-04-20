@@ -18,15 +18,13 @@ use libservo::{
     Location, Modifiers, MouseButton, MouseButtonAction, MouseButtonEvent, MouseLeftViewportEvent,
     MouseMoveEvent, NamedKey, Opts, RenderingContext, Servo, ServoBuilder, ServoDelegate,
     SoftwareRenderingContext, WebView, WebViewBuilder, WebViewDelegate, WebViewPoint, WheelDelta,
-    WheelEvent, WheelMode,
-    clipboard_delegate::{ClipboardDelegate, StringRequest},
-    JSValue,
+    WheelEvent, WheelMode, WebResourceLoad, WebResourceResponse,
 };
-use libservo::IpcSender;
-use libservo::{WebResourceLoad, WebResourceResponse, StatusCode, HeaderMap};
+use libservo::clipboard_delegate::{ClipboardDelegate, StringRequest};
+use tracing_log::LogTracer;
+use http::HeaderMap;
 use crate::engine::EngineEvent;
 use crate::mounts::MountManager;
-use tracing_log::LogTracer;
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -91,6 +89,7 @@ pub struct BrazenWebViewDelegate {
     snapshot: Rc<RefCell<UpstreamSnapshot>>,
     frame_ready: Arc<AtomicBool>,
     mount_manager: MountManager,
+    permissions: crate::permissions::PermissionPolicy,
 }
 
 impl BrazenWebViewDelegate {
@@ -98,11 +97,13 @@ impl BrazenWebViewDelegate {
         snapshot: Rc<RefCell<UpstreamSnapshot>>,
         frame_ready: Arc<AtomicBool>,
         mount_manager: MountManager,
+        permissions: crate::permissions::PermissionPolicy,
     ) -> Self {
         Self {
             snapshot,
             frame_ready,
             mount_manager,
+            permissions,
         }
     }
 }
@@ -195,14 +196,31 @@ impl WebViewDelegate for BrazenWebViewDelegate {
                         };
                         headers.insert(http::header::CONTENT_TYPE, http::HeaderValue::from_static(mime));
                     }
-                    // Add CORS header to allow AI platforms to access it
-                    headers.insert(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, http::HeaderValue::from_static("*"));
-
-                    let response = WebResourceResponse {
-                        url: load.request.url.clone(),
-                        status: StatusCode::OK,
-                        headers,
+                    
+                    // Check permissions for CORS
+                    let origin = load.request.headers.get("Origin")
+                        .and_then(|h| h.to_str().ok())
+                        .unwrap_or("null");
+                    
+                    let decision = if origin == "null" {
+                        // Likely a direct navigation or same-origin (if we were brazen://)
+                        // For now, allow if it's a direct navigation
+                        crate::permissions::PermissionDecision::Allow
+                    } else {
+                        let origin_url = Url::parse(origin).ok();
+                        let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
+                        self.permissions.decision_for_domain(host, &crate::permissions::Capability::VirtualResourceMount)
                     };
+
+                    if decision == crate::permissions::PermissionDecision::Allow {
+                        headers.insert(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, http::HeaderValue::from_str(origin).unwrap_or(http::HeaderValue::from_static("*")));
+                    } else {
+                        tracing::warn!(target: "brazen::mounts", origin = %origin, "denying virtual resource access due to permissions");
+                        return;
+                    }
+
+                    let mut response = WebResourceResponse::new(load.request.url.clone());
+                    response.headers = headers;
                     let intercepted = load.intercept(response);
                     intercepted.send_body_data(data);
                     intercepted.finish();
@@ -307,9 +325,7 @@ pub struct ServoUpstreamRuntime {
     pixel_probe: Option<PixelProbeState>,
     resources_dir: PathBuf,
     resource_source: ResourceDirSource,
-    event_sender: std::sync::mpsc::Sender<EngineEvent>,
     pending_clipboard_request: Arc<std::sync::Mutex<Option<StringRequest>>>,
-    mount_manager: MountManager,
 }
 
 impl std::fmt::Debug for ServoUpstreamRuntime {
@@ -335,6 +351,7 @@ impl ServoUpstreamRuntime {
         config: ServoUpstreamConfig,
         event_sender: std::sync::mpsc::Sender<EngineEvent>,
         mount_manager: MountManager,
+        permissions: crate::permissions::PermissionPolicy,
     ) -> Result<Self, String> {
         let _ = LogTracer::init();
         let resolved_certificate_path =
@@ -390,6 +407,7 @@ impl ServoUpstreamRuntime {
             snapshot.clone(),
             frame_ready.clone(),
             mount_manager.clone(),
+            permissions,
         ));
         let servo_delegate = Rc::new(BrazenServoDelegate::new(
             devtools_endpoint.clone(),
@@ -402,10 +420,9 @@ impl ServoUpstreamRuntime {
             event_sender.clone(),
             pending_clipboard_request.clone(),
         ));
-        servo.set_clipboard_delegate(clipboard_delegate);
-
         let webview = WebViewBuilder::new(&servo, rendering_context.clone())
             .delegate(delegate)
+            .clipboard_delegate(clipboard_delegate)
             .build();
         webview.show();
 
@@ -445,9 +462,7 @@ impl ServoUpstreamRuntime {
             pixel_probe,
             resources_dir: path,
             resource_source: source,
-            event_sender,
             pending_clipboard_request,
-            mount_manager,
         })
     }
 

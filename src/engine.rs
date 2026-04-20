@@ -653,7 +653,7 @@ impl ServoEngine {
             metadata_summary: None,
         };
 
-        let embedder_config = ServoEmbedderConfig::from_engine_config(&config.engine);
+        let embedder_config = ServoEmbedderConfig::from_brazen_config(config);
         let mut embedder = ServoEmbedder::new(embedder_config, mount_manager);
         let verbose_logging = config.engine.verbose_logging;
         embedder.set_verbose_logging(verbose_logging);

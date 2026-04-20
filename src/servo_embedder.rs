@@ -1,7 +1,6 @@
 use std::net::TcpListener;
 use std::path::PathBuf;
 
-use crate::config::EngineConfig;
 use crate::engine::{
     AlphaMode, ColorSpace, EngineFrame, FocusState, InputEvent, PixelFormat, RenderSurfaceHandle,
     RenderSurfaceMetadata,
@@ -45,17 +44,19 @@ pub struct ServoEmbedderConfig {
     pub color_space: ColorSpace,
     pub enable_pixel_probe: bool,
     pub runtime: ServoRuntimeConfig,
+    pub permissions: crate::permissions::PermissionPolicy,
 }
 
 impl ServoEmbedderConfig {
-    pub fn from_engine_config(config: &EngineConfig) -> Self {
+    pub fn from_brazen_config(config: &crate::config::BrazenConfig) -> Self {
+        let engine = &config.engine;
         Self {
-            process_model: match config.process_model.as_str() {
+            process_model: match engine.process_model.as_str() {
                 "multi-process" => ServoProcessModel::MultiProcess,
                 _ => ServoProcessModel::SingleProcess,
             },
-            gfx_backend: config.gfx_backend.clone(),
-            source_path: config
+            gfx_backend: engine.gfx_backend.clone(),
+            source_path: engine
                 .servo_source
                 .as_ref()
                 .and_then(|value| {
@@ -66,7 +67,7 @@ impl ServoEmbedderConfig {
                     }
                 })
                 .map(PathBuf::from),
-            resources_dir: config
+            resources_dir: engine
                 .servo_resources_dir
                 .as_ref()
                 .and_then(|value| {
@@ -77,7 +78,7 @@ impl ServoEmbedderConfig {
                     }
                 })
                 .map(PathBuf::from),
-            certificate_path: config
+            certificate_path: engine
                 .certificate_path
                 .as_ref()
                 .and_then(|value| {
@@ -88,13 +89,14 @@ impl ServoEmbedderConfig {
                     }
                 })
                 .map(PathBuf::from),
-            ignore_certificate_errors: config.ignore_certificate_errors,
-            verbose_logging: config.verbose_logging,
-            pixel_format: PixelFormat::from_value(&config.pixel_format),
-            alpha_mode: AlphaMode::from_value(&config.alpha_mode),
-            color_space: ColorSpace::from_value(&config.color_space),
-            enable_pixel_probe: config.debug_pixel_probe,
-            runtime: ServoRuntimeConfig::from_engine_config(config),
+            ignore_certificate_errors: engine.ignore_certificate_errors,
+            verbose_logging: engine.verbose_logging,
+            pixel_format: PixelFormat::from_value(&engine.pixel_format),
+            alpha_mode: AlphaMode::from_value(&engine.alpha_mode),
+            color_space: ColorSpace::from_value(&engine.color_space),
+            enable_pixel_probe: engine.debug_pixel_probe,
+            runtime: ServoRuntimeConfig::from_engine_config(engine),
+            permissions: config.permissions.clone(),
         }
     }
 }
@@ -208,6 +210,8 @@ pub struct ServoEmbedder {
     pub compositor_ready: bool,
     pub browser_state: ServoBrowserState,
     pub last_focus: FocusState,
+    pub mount_manager: crate::mounts::MountManager,
+    pub permissions: crate::permissions::PermissionPolicy,
     #[cfg(feature = "servo-upstream")]
     pub upstream: Option<ServoUpstreamRuntime>,
     #[cfg(feature = "servo-upstream")]
@@ -226,7 +230,6 @@ pub struct ServoEmbedder {
     pub upstream_event_tx: Option<std::sync::mpsc::Sender<crate::engine::EngineEvent>>,
     #[cfg(feature = "servo-upstream")]
     pub upstream_event_rx: Option<std::sync::mpsc::Receiver<crate::engine::EngineEvent>>,
-    pub mount_manager: crate::mounts::MountManager,
 }
 
 impl std::fmt::Debug for ServoEmbedder {
@@ -248,7 +251,7 @@ impl ServoEmbedder {
             frame_pacing: config.runtime.frame_pacing,
             window: None,
             frame_scheduler: FrameScheduler::new(config.runtime.frame_pacing),
-            config,
+            config: config.clone(),
             surface: None,
             frame_counter: 0,
             devtools: None,
@@ -256,6 +259,8 @@ impl ServoEmbedder {
             compositor_ready: false,
             browser_state: ServoBrowserState::new(),
             last_focus: FocusState::Unfocused,
+            mount_manager: mount_manager.clone(),
+            permissions: config.permissions.clone(),
             #[cfg(feature = "servo-upstream")]
             upstream: None,
             #[cfg(feature = "servo-upstream")]
@@ -274,7 +279,6 @@ impl ServoEmbedder {
             upstream_event_tx: None,
             #[cfg(feature = "servo-upstream")]
             upstream_event_rx: None,
-            mount_manager,
         }
     }
 
@@ -733,6 +737,7 @@ impl ServoEmbedder {
             upstream_config,
             tx,
             self.mount_manager.clone(),
+            self.permissions.clone(),
         ) {
             Ok(runtime) => {
                 tracing::info!(

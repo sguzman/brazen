@@ -34,7 +34,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = bootstrap.config.clone();
     let shell_state = bootstrap.shell_state;
-    let automation = start_automation_runtime(&config, &bootstrap.paths, bootstrap.shell_state.mount_manager.clone());
+    let automation = start_automation_runtime(&config, &bootstrap.paths, shell_state.mount_manager.clone());
     let app_name = config.app.name.clone();
 
     eframe::run_native(

@@ -40,6 +40,7 @@ pub enum PermissionDecision {
 pub struct PermissionPolicy {
     pub default: PermissionDecision,
     pub capabilities: BTreeMap<Capability, PermissionDecision>,
+    pub domain_overrides: BTreeMap<String, BTreeMap<Capability, PermissionDecision>>,
 }
 
 impl Default for PermissionPolicy {
@@ -55,6 +56,7 @@ impl Default for PermissionPolicy {
         Self {
             default: PermissionDecision::Ask,
             capabilities,
+            domain_overrides: BTreeMap::new(),
         }
     }
 }
@@ -65,5 +67,18 @@ impl PermissionPolicy {
             .get(capability)
             .copied()
             .unwrap_or(self.default)
+    }
+
+    pub fn decision_for_domain(
+        &self,
+        domain: &str,
+        capability: &Capability,
+    ) -> PermissionDecision {
+        if let Some(overrides) = self.domain_overrides.get(domain) {
+            if let Some(decision) = overrides.get(capability) {
+                return *decision;
+            }
+        }
+        self.decision_for(capability)
     }
 }
