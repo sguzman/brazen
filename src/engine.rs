@@ -360,6 +360,8 @@ pub trait BrowserEngine {
     fn shutdown(&mut self);
     fn inject_event(&mut self, event: EngineEvent);
     fn take_events(&mut self) -> Vec<EngineEvent>;
+    fn evaluate_javascript(&mut self, script: String, callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>);
+    fn take_screenshot(&mut self) -> Result<Vec<u8>, String>;
 }
 
 pub trait EngineFactory {
@@ -573,6 +575,14 @@ impl BrowserEngine for NullEngine {
 
     fn take_events(&mut self) -> Vec<EngineEvent> {
         std::mem::take(&mut self.events)
+    }
+
+    fn evaluate_javascript(&mut self, _script: String, callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>) {
+        callback(Err("NullEngine does not support JavaScript".to_string()));
+    }
+
+    fn take_screenshot(&mut self) -> Result<Vec<u8>, String> {
+        Err("NullEngine does not support screenshots".to_string())
     }
 }
 
@@ -992,6 +1002,22 @@ impl BrowserEngine for ServoEngine {
     }
 
     fn take_events(&mut self) -> Vec<EngineEvent> {
+        #[cfg(feature = "servo-upstream")]
+        if let Some(rx) = &self.embedder.upstream_event_rx {
+            while let Ok(event) = rx.try_recv() {
+                self.events.push(event);
+            }
+        }
         std::mem::take(&mut self.events)
+    }
+
+    fn evaluate_javascript(&mut self, script: String, callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>) {
+        self.embedder.evaluate_javascript(script, callback);
+    }
+
+    fn take_screenshot(&mut self) -> Result<Vec<u8>, String> {
+        self.embedder.render_frame()
+            .map(|f| f.pixels)
+            .ok_or_else(|| "No frame available".to_string())
     }
 }

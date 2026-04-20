@@ -143,7 +143,7 @@ pub struct DevtoolsState {
     pub listener: Option<TcpListener>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ServoBrowserState {
     pub history: Vec<String>,
     pub history_index: usize,
@@ -193,7 +193,6 @@ impl Default for ServoBrowserState {
     }
 }
 
-#[derive(Debug)]
 pub struct ServoEmbedder {
     pub state: ServoEmbedderState,
     pub config: ServoEmbedderConfig,
@@ -223,6 +222,20 @@ pub struct ServoEmbedder {
     pub pending_navigation: Option<String>,
     pub logged_first_frame: bool,
     pub page_zoom: f32,
+    #[cfg(feature = "servo-upstream")]
+    pub upstream_event_tx: Option<std::sync::mpsc::Sender<crate::engine::EngineEvent>>,
+    #[cfg(feature = "servo-upstream")]
+    pub upstream_event_rx: Option<std::sync::mpsc::Receiver<crate::engine::EngineEvent>>,
+}
+
+impl std::fmt::Debug for ServoEmbedder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ServoEmbedder")
+            .field("state", &self.state)
+            .field("frame_counter", &self.frame_counter)
+            .field("upstream_active", &self.upstream_active)
+            .finish()
+    }
 }
 
 impl ServoEmbedder {
@@ -256,6 +269,10 @@ impl ServoEmbedder {
             pending_navigation: None,
             logged_first_frame: false,
             page_zoom: 1.0,
+            #[cfg(feature = "servo-upstream")]
+            upstream_event_tx: None,
+            #[cfg(feature = "servo-upstream")]
+            upstream_event_rx: None,
         }
     }
 
@@ -592,7 +609,24 @@ impl ServoEmbedder {
         if self.verbose_logging {
             tracing::trace!(target: "brazen::servo", ?request, "clipboard forwarded");
         }
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &self.upstream {
+            upstream.handle_clipboard(request);
+        }
         self.frame_scheduler.request_frame();
+    }
+
+    pub fn evaluate_javascript(
+        &mut self,
+        script: String,
+        callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>,
+    ) {
+        #[cfg(feature = "servo-upstream")]
+        if let Some(upstream) = &mut self.upstream {
+            upstream.evaluate_javascript(script, callback);
+            return;
+        }
+        callback(Err("Embedder has no active upstream".to_string()));
     }
 
     pub fn set_page_zoom(&mut self, zoom: f32) {
@@ -687,10 +721,15 @@ impl ServoEmbedder {
             certificate_path: self.config.certificate_path.clone(),
             ignore_certificate_errors: self.config.ignore_certificate_errors,
         };
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.upstream_event_tx = Some(tx.clone());
+        self.upstream_event_rx = Some(rx);
+
         match ServoUpstreamRuntime::new(
             surface.metadata.viewport_width,
             surface.metadata.viewport_height,
             upstream_config,
+            tx,
         ) {
             Ok(runtime) => {
                 tracing::info!(

@@ -19,7 +19,11 @@ use libservo::{
     MouseMoveEvent, NamedKey, Opts, RenderingContext, Servo, ServoBuilder, ServoDelegate,
     SoftwareRenderingContext, WebView, WebViewBuilder, WebViewDelegate, WebViewPoint, WheelDelta,
     WheelEvent, WheelMode,
+    clipboard_delegate::{ClipboardDelegate, StringRequest},
+    JSValue,
 };
+use libservo::IpcSender;
+use crate::engine::EngineEvent;
 use tracing_log::LogTracer;
 use url::Url;
 
@@ -191,6 +195,39 @@ impl ServoDelegate for BrazenServoDelegate {
     }
 }
 
+pub struct BrazenClipboardDelegate {
+    event_sender: std::sync::mpsc::Sender<EngineEvent>,
+    pending_request: Arc<std::sync::Mutex<Option<StringRequest>>>,
+}
+
+impl BrazenClipboardDelegate {
+    pub fn new(
+        event_sender: std::sync::mpsc::Sender<EngineEvent>,
+        pending_request: Arc<std::sync::Mutex<Option<StringRequest>>>,
+    ) -> Self {
+        Self {
+            event_sender,
+            pending_request,
+        }
+    }
+}
+
+impl ClipboardDelegate for BrazenClipboardDelegate {
+    fn get_text(&self, _webview: WebView, request: StringRequest) {
+        let mut pending = self.pending_request.lock().unwrap();
+        *pending = Some(request);
+        let _ = self.event_sender.send(EngineEvent::ClipboardRequested(
+            crate::engine::ClipboardRequest::Read,
+        ));
+    }
+
+    fn set_text(&self, _webview: WebView, new_contents: String) {
+        let _ = self.event_sender.send(EngineEvent::ClipboardRequested(
+            crate::engine::ClipboardRequest::Write(new_contents),
+        ));
+    }
+}
+
 struct BrazenEventLoopWaker {
     frame_ready: Arc<AtomicBool>,
 }
@@ -221,6 +258,8 @@ pub struct ServoUpstreamRuntime {
     pixel_probe: Option<PixelProbeState>,
     resources_dir: PathBuf,
     resource_source: ResourceDirSource,
+    event_sender: std::sync::mpsc::Sender<EngineEvent>,
+    pending_clipboard_request: Arc<std::sync::Mutex<Option<StringRequest>>>,
 }
 
 impl std::fmt::Debug for ServoUpstreamRuntime {
@@ -240,7 +279,12 @@ impl std::fmt::Debug for ServoUpstreamRuntime {
 }
 
 impl ServoUpstreamRuntime {
-    pub fn new(width: u32, height: u32, config: ServoUpstreamConfig) -> Result<Self, String> {
+    pub fn new(
+        width: u32,
+        height: u32,
+        config: ServoUpstreamConfig,
+        event_sender: std::sync::mpsc::Sender<EngineEvent>,
+    ) -> Result<Self, String> {
         let _ = LogTracer::init();
         let resolved_certificate_path =
             resolve_system_certificate_path(config.certificate_path.as_deref());
@@ -300,6 +344,14 @@ impl ServoUpstreamRuntime {
             last_error.clone(),
         ));
         servo.set_delegate(servo_delegate);
+
+        let pending_clipboard_request = Arc::new(std::sync::Mutex::new(None));
+        let clipboard_delegate = Rc::new(BrazenClipboardDelegate::new(
+            event_sender.clone(),
+            pending_clipboard_request.clone(),
+        ));
+        servo.set_clipboard_delegate(clipboard_delegate);
+
         let webview = WebViewBuilder::new(&servo, rendering_context.clone())
             .delegate(delegate)
             .build();
@@ -341,6 +393,8 @@ impl ServoUpstreamRuntime {
             pixel_probe,
             resources_dir: path,
             resource_source: source,
+            event_sender,
+            pending_clipboard_request,
         })
     }
 
@@ -593,6 +647,31 @@ impl ServoUpstreamRuntime {
     pub fn handle_ime_dismissed(&self) {
         self.handle_input(InputEvent::Ime(ImeEvent::Dismissed));
     }
+
+    pub fn handle_clipboard(&self, request: &crate::engine::ClipboardRequest) {
+        if let crate::engine::ClipboardRequest::Write(text) = request {
+            let mut pending = self.pending_clipboard_request.lock().unwrap();
+            if let Some(string_request) = pending.take() {
+                string_request.success(text.clone());
+            }
+        }
+    }
+
+    pub fn evaluate_javascript(
+        &mut self,
+        script: String,
+        callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>,
+    ) {
+        let webview_id = self.webview.id();
+        self.servo.javascript_evaluator_mut().evaluate(
+            webview_id,
+            script,
+            Box::new(move |result| match result {
+                Ok(val) => callback(Ok(js_value_to_json(val))),
+                Err(err) => callback(Err(format!("{:?}", err))),
+            }),
+        );
+    }
 }
 
 fn resolve_system_certificate_path(configured: Option<&Path>) -> Option<PathBuf> {
@@ -611,4 +690,30 @@ fn resolve_system_certificate_path(configured: Option<&Path>) -> Option<PathBuf>
         .map(Path::new)
         .find(|path| path.exists())
         .map(Path::to_path_buf)
+}
+
+fn js_value_to_json(val: libservo::JSValue) -> serde_json::Value {
+    match val {
+        libservo::JSValue::Undefined => serde_json::Value::Null,
+        libservo::JSValue::Null => serde_json::Value::Null,
+        libservo::JSValue::Boolean(b) => serde_json::Value::Bool(b),
+        libservo::JSValue::Number(n) => serde_json::Number::from_f64(n)
+            .map(serde_json::Value::Number)
+            .unwrap_or(serde_json::Value::Null),
+        libservo::JSValue::String(s) => serde_json::Value::String(s),
+        libservo::JSValue::Element(s) => serde_json::Value::String(s),
+        libservo::JSValue::ShadowRoot(s) => serde_json::Value::String(s),
+        libservo::JSValue::Frame(s) => serde_json::Value::String(s),
+        libservo::JSValue::Window(s) => serde_json::Value::String(s),
+        libservo::JSValue::Array(a) => {
+            serde_json::Value::Array(a.into_iter().map(js_value_to_json).collect())
+        }
+        libservo::JSValue::Object(o) => {
+            let mut map = serde_json::Map::new();
+            for (k, v) in o {
+                map.insert(k, js_value_to_json(v));
+            }
+            serde_json::Value::Object(map)
+        }
+    }
 }

@@ -134,6 +134,7 @@ pub enum AutomationRequest {
     DomQuery {
         selector: String,
     },
+    Screenshot,
     RenderedText,
     ArticleText,
     CacheStats,
@@ -163,7 +164,7 @@ pub struct AutomationResponse<T> {
     pub error: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum AutomationCommand {
     ActivateTab { index: usize },
     CloseTab { index: usize },
@@ -173,6 +174,13 @@ pub enum AutomationCommand {
     Stop,
     GoBack,
     GoForward,
+    DomQuery {
+        selector: String,
+        response_tx: tokio::sync::oneshot::Sender<Result<serde_json::Value, String>>,
+    },
+    Screenshot {
+        response_tx: tokio::sync::oneshot::Sender<Result<Vec<u8>, String>>,
+    },
 }
 
 #[derive(Clone)]
@@ -578,7 +586,47 @@ async fn handle_request(
             let _ = state.handle.command_tx.send(AutomationCommand::GoForward);
             Some(ok_response(id))
         }
-        AutomationRequest::DomQuery { .. } => Some(error_response(id, "dom query not implemented")),
+        AutomationRequest::DomQuery { selector } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state
+                .handle
+                .command_tx
+                .send(AutomationCommand::DomQuery { selector, response_tx: tx });
+            match rx.await {
+                Ok(Ok(result)) => {
+                    let response = AutomationResponse {
+                        id,
+                        ok: true,
+                        result: Some(result),
+                        error: None,
+                    };
+                    Some(serde_json::to_string(&response).unwrap())
+                }
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::Screenshot => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state
+                .handle
+                .command_tx
+                .send(AutomationCommand::Screenshot { response_tx: tx });
+            match rx.await {
+                Ok(Ok(pixels)) => {
+                    let encoded = base64::engine::general_purpose::STANDARD.encode(&pixels);
+                    let response = AutomationResponse {
+                        id,
+                        ok: true,
+                        result: Some(encoded),
+                        error: None,
+                    };
+                    Some(serde_json::to_string(&response).unwrap())
+                }
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
         AutomationRequest::RenderedText => {
             Some(error_response(id, "rendered text not implemented"))
         }
@@ -878,6 +926,23 @@ pub fn drain_automation_commands(
                     engine,
                     commands::AppCommand::GoForward,
                 );
+            }
+            AutomationCommand::DomQuery {
+                selector,
+                response_tx,
+            } => {
+                engine.evaluate_javascript(
+                    format!(
+                        "document.querySelector('{}') ? document.querySelector('{}').outerHTML : null",
+                        selector, selector
+                    ),
+                    Box::new(|result| {
+                        let _ = response_tx.send(result);
+                    }),
+                );
+            }
+            AutomationCommand::Screenshot { response_tx } => {
+                let _ = response_tx.send(engine.take_screenshot());
             }
         }
     }
