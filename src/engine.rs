@@ -362,6 +362,7 @@ pub trait BrowserEngine {
     fn take_events(&mut self) -> Vec<EngineEvent>;
     fn evaluate_javascript(&mut self, script: String, callback: Box<dyn FnOnce(Result<serde_json::Value, String>) + Send + 'static>);
     fn take_screenshot(&mut self) -> Result<Vec<u8>, String>;
+    fn health(&self) -> RenderHealth;
 }
 
 pub trait EngineFactory {
@@ -431,6 +432,15 @@ impl BrowserEngine for NullEngine {
 
     fn status(&self) -> EngineStatus {
         self.status.clone()
+    }
+
+    fn health(&self) -> RenderHealth {
+        RenderHealth {
+            resource_reader_ready: None,
+            resource_reader_path: None,
+            upstream_active: false,
+            last_error: None,
+        }
     }
 
     fn active_tab(&self) -> &BrowserTab {
@@ -708,6 +718,15 @@ impl BrowserEngine for ServoEngine {
 
     fn status(&self) -> EngineStatus {
         self.status.clone()
+    }
+
+    fn health(&self) -> RenderHealth {
+        RenderHealth {
+            resource_reader_ready: self.embedder.resource_reader_ready(),
+            resource_reader_path: self.embedder.resource_reader_path(),
+            upstream_active: self.embedder.upstream_active(),
+            last_error: self.embedder.upstream_error(),
+        }
     }
 
     fn active_tab(&self) -> &BrowserTab {

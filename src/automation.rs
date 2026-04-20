@@ -1,5 +1,7 @@
+use chrono::Local;
 use std::net::SocketAddr;
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use axum::Router;
@@ -10,6 +12,7 @@ use axum::response::IntoResponse;
 use axum::routing::get;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, broadcast, mpsc};
+use std::collections::VecDeque;
 use url::Url;
 
 use crate::cache::{AssetMetadata, AssetQuery, AssetStore, CacheStats};
@@ -32,6 +35,7 @@ pub struct AutomationSnapshot {
     pub engine_status: String,
     pub cache_stats: CacheStats,
     pub cache_entries: Vec<AutomationAssetSummary>,
+    pub activities: VecDeque<AutomationActivity>,
     pub last_event_log_len: usize,
 }
 
@@ -53,9 +57,27 @@ impl Default for AutomationSnapshot {
                 capture_ratio: 0.0,
             },
             cache_entries: Vec::new(),
+            activities: VecDeque::with_capacity(128),
             last_event_log_len: 0,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutomationActivity {
+    pub id: String,
+    pub command: String,
+    pub status: AutomationActivityStatus,
+    pub timestamp: String,
+    pub output: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum AutomationActivityStatus {
+    Pending,
+    Running,
+    Success,
+    Failed,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -212,9 +234,14 @@ pub struct AutomationHandle {
     expose_tab_api: bool,
     expose_cache_api: bool,
     pub mount_manager: crate::mounts::MountManager,
+    activity_counter: Arc<AtomicU64>,
 }
 
 impl AutomationHandle {
+    pub fn snapshot(&self) -> AutomationSnapshot {
+        self.snapshot.read().expect("automation snapshot lock").clone()
+    }
+
     pub fn update_snapshot(&self, shell_state: &ShellState, cache: &AssetStore) {
         let mut snapshot = self.snapshot.write().expect("automation snapshot lock");
         snapshot.tabs = build_tab_list(&shell_state.session);
@@ -255,6 +282,14 @@ impl AutomationHandle {
         let _ = self.event_tx.send(AutomationEvent::Capability(event));
     }
 
+    pub fn record_activity(&self, activity: AutomationActivity) {
+        let mut snapshot = self.snapshot.write().expect("automation snapshot lock");
+        if snapshot.activities.len() >= 128 {
+            snapshot.activities.pop_front();
+        }
+        snapshot.activities.push_back(activity);
+    }
+
     pub fn take_command_sender(&self) -> mpsc::UnboundedSender<AutomationCommand> {
         self.command_tx.clone()
     }
@@ -287,6 +322,7 @@ pub fn start_automation_runtime(
         expose_tab_api: config.automation.expose_tab_api,
         expose_cache_api: config.automation.expose_cache_api,
         mount_manager,
+        activity_counter: Arc::new(AtomicU64::new(0)),
     };
     let server_state = AutomationServerState::new(config.automation.clone(), handle.clone());
     let bind = config.automation.bind.clone();
@@ -524,7 +560,21 @@ async fn handle_request(
         );
     };
     let id = envelope.id.clone();
-    match envelope.payload {
+    let command_name = format!("{:?}", envelope.payload).split('(').next().unwrap_or("unknown").to_string();
+    let activity_id = id.clone().unwrap_or_else(|| {
+        let count = state.handle.activity_counter.fetch_add(1, Ordering::SeqCst);
+        format!("auto-{}", count)
+    });
+
+    state.handle.record_activity(AutomationActivity {
+        id: activity_id.clone(),
+        command: command_name,
+        status: AutomationActivityStatus::Running,
+        timestamp: Local::now().format("%H:%M:%S").to_string(),
+        output: None,
+    });
+
+    let response = match envelope.payload {
         AutomationRequest::TabList => {
             if let Err(error) = ensure_tab_api(state) {
                 return Some(error_response(id, &error));
@@ -792,7 +842,19 @@ async fn handle_request(
         AutomationRequest::TtsEnqueue { .. } => {
             Some(error_response(id, "tts enqueue not implemented"))
         }
+    };
+
+    if let Some(ref res_json) = response {
+        if let Ok(res_parsed) = serde_json::from_str::<AutomationResponse<serde_json::Value>>(res_json) {
+            let mut snapshot = state.handle.snapshot.write().expect("automation snapshot lock");
+            if let Some(activity) = snapshot.activities.iter_mut().find(|a| a.id == activity_id) {
+                activity.status = if res_parsed.ok { AutomationActivityStatus::Success } else { AutomationActivityStatus::Failed };
+                activity.output = res_parsed.error.clone();
+            }
+        }
     }
+
+    response
 }
 
 fn ok_response(id: Option<String>) -> String {

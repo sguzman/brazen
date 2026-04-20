@@ -327,7 +327,7 @@ pub fn build_shell_state(
         permission_panel_open: config.window.show_permission_panel_on_startup,
         find_panel_open: false,
         find_query: String::new(),
-        capabilities_snapshot,
+        capabilities_snapshot: initial_caps,
         automation_activities: Vec::new(),
         mount_manager,
         runtime_paths: paths.clone(),
@@ -1913,7 +1913,6 @@ impl BrazenApp {
                 bookmarks: true,
                 history: true,
                 downloads: true,
-                engine_health: false,
                 workspace_settings: true,
             },
         };
@@ -3155,7 +3154,6 @@ impl eframe::App for BrazenApp {
         self.render_cache_explorer_panel(ctx);
         self.render_capability_inspector_panel(ctx);
         self.render_automation_console_panel(ctx);
-        self.render_engine_health_panel(ctx);
         self.render_knowledge_graph_panel(ctx);
         self.render_reading_queue_panel(ctx);
         self.render_tts_controls_panel(ctx);
