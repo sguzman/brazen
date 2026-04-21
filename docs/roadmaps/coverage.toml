@@ -2643,8 +2643,8 @@ id = "persistence-and-profiles.md:26:12d14f4e29"
 file = "persistence-and-profiles.md"
 line = 26
 text = "Per-profile automation/API settings"
-status = "planned"
-tests = []
+status = "done"
+tests = ["profile_db::tests::db_round_trips_automation_settings", "lib::profile_override_tests::profile_db_overrides_automation_config"]
 planned_tests = ["todo::12d14f4e29"]
 
 [[item]]

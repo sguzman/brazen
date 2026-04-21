@@ -81,17 +81,7 @@ pub fn bootstrap(
     let mut config = BrazenConfig::load_with_defaults(&config_path)?;
     let runtime_paths = platform_paths.resolve_runtime_paths(&config, &config_path)?;
 
-    // Merge persisted permission grants (profile-scoped) into the effective config policy.
-    if let Ok(db) = profile_db::ProfileDb::open(runtime_paths.active_profile_dir.join("state.sqlite"))
-        && let Ok(grants) = db.load_permission_grants()
-    {
-        for (domain, overrides) in grants {
-            let entry = config.permissions.domain_overrides.entry(domain).or_default();
-            for (capability, decision) in overrides {
-                entry.insert(capability, decision);
-            }
-        }
-    }
+    apply_profile_overrides(&mut config, &runtime_paths);
 
     init_tracing(&config.logging, &runtime_paths.logs_dir)?;
 
@@ -106,4 +96,65 @@ pub fn bootstrap(
 
 pub fn write_default_config(path: &Path) -> Result<(), config::ConfigError> {
     config::write_default_config(path)
+}
+
+fn apply_profile_overrides(config: &mut BrazenConfig, runtime_paths: &RuntimePaths) {
+    let Ok(db) = profile_db::ProfileDb::open(runtime_paths.active_profile_dir.join("state.sqlite"))
+    else {
+        return;
+    };
+
+    if let Ok(grants) = db.load_permission_grants() {
+        for (domain, overrides) in grants {
+            let entry = config.permissions.domain_overrides.entry(domain).or_default();
+            for (capability, decision) in overrides {
+                entry.insert(capability, decision);
+            }
+        }
+    }
+
+    if let Ok(settings) = db.load_automation_settings() {
+        // Overlay profile-specific automation settings while preserving enabled flag from config.
+        let enabled = config.automation.enabled;
+        config.automation = settings;
+        config.automation.enabled = enabled;
+    }
+}
+
+#[cfg(test)]
+mod profile_override_tests {
+    use super::*;
+
+    #[test]
+    fn profile_db_overrides_automation_config() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut config = BrazenConfig::default();
+        config.automation.enabled = true;
+        let runtime_paths = RuntimePaths {
+            config_path: dir.path().join("brazen.toml"),
+            data_dir: dir.path().join("data"),
+            logs_dir: dir.path().join("logs"),
+            profiles_dir: dir.path().join("profiles"),
+            cache_dir: dir.path().join("cache"),
+            downloads_dir: dir.path().join("downloads"),
+            crash_dumps_dir: dir.path().join("crash"),
+            active_profile_dir: dir.path().join("profiles/default"),
+            session_path: dir.path().join("profiles/default/session.json"),
+            audit_log_path: dir.path().join("logs/audit.jsonl"),
+        };
+        std::fs::create_dir_all(&runtime_paths.active_profile_dir).unwrap();
+        let db = profile_db::ProfileDb::open(runtime_paths.active_profile_dir.join("state.sqlite"))
+            .unwrap();
+        let mut desired = config::AutomationConfig::default();
+        desired.bind = "ws://127.0.0.1:0/ws".to_string();
+        desired.require_auth = false;
+        desired.expose_cache_api = true;
+        db.save_automation_settings(&desired).unwrap();
+
+        apply_profile_overrides(&mut config, &runtime_paths);
+        assert_eq!(config.automation.bind, desired.bind);
+        assert_eq!(config.automation.require_auth, false);
+        assert!(config.automation.expose_cache_api);
+        assert!(config.automation.enabled);
+    }
 }

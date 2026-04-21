@@ -4,6 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 
 use crate::app::ReadingQueueItem;
 use crate::permissions::{Capability, PermissionDecision};
+use crate::config::AutomationConfig;
 
 #[derive(Debug, Clone)]
 pub struct ProfileDb {
@@ -85,9 +86,42 @@ impl ProfileDb {
               updated_at TEXT NOT NULL,
               PRIMARY KEY(domain, capability)
             );
+
+            CREATE TABLE IF NOT EXISTS automation_settings (
+              id INTEGER PRIMARY KEY CHECK(id=1),
+              bind TEXT NOT NULL,
+              require_auth INTEGER NOT NULL,
+              auth_token TEXT,
+              max_connections INTEGER NOT NULL,
+              max_messages_per_minute INTEGER NOT NULL,
+              max_subscriptions INTEGER NOT NULL,
+              expose_tab_api INTEGER NOT NULL,
+              expose_cache_api INTEGER NOT NULL
+            );
             "#,
         )
         .map_err(|e| format!("init schema failed: {e}"))?;
+        // Seed automation settings with defaults if not present.
+        let default_auto = AutomationConfig::default();
+        let _ = conn.execute(
+            r#"
+            INSERT OR IGNORE INTO automation_settings(
+              id, bind, require_auth, auth_token,
+              max_connections, max_messages_per_minute, max_subscriptions,
+              expose_tab_api, expose_cache_api
+            ) VALUES(1, ?, ?, ?, ?, ?, ?, ?, ?)
+            "#,
+            (
+                default_auto.bind,
+                if default_auto.require_auth { 1 } else { 0 },
+                default_auto.auth_token,
+                default_auto.max_connections as i64,
+                default_auto.max_messages_per_minute as i64,
+                default_auto.max_subscriptions as i64,
+                if default_auto.expose_tab_api { 1 } else { 0 },
+                if default_auto.expose_cache_api { 1 } else { 0 },
+            ),
+        );
         Ok(())
     }
 
@@ -335,6 +369,75 @@ impl ProfileDb {
         }
         Ok(out)
     }
+
+    pub fn save_automation_settings(&self, settings: &AutomationConfig) -> Result<(), String> {
+        let conn = self.connect()?;
+        conn.execute(
+            r#"
+            UPDATE automation_settings SET
+              bind=?,
+              require_auth=?,
+              auth_token=?,
+              max_connections=?,
+              max_messages_per_minute=?,
+              max_subscriptions=?,
+              expose_tab_api=?,
+              expose_cache_api=?
+            WHERE id=1
+            "#,
+            (
+                settings.bind.clone(),
+                if settings.require_auth { 1 } else { 0 },
+                settings.auth_token.clone(),
+                settings.max_connections as i64,
+                settings.max_messages_per_minute as i64,
+                settings.max_subscriptions as i64,
+                if settings.expose_tab_api { 1 } else { 0 },
+                if settings.expose_cache_api { 1 } else { 0 },
+            ),
+        )
+        .map_err(|e| format!("save automation settings failed: {e}"))?;
+        Ok(())
+    }
+
+    pub fn load_automation_settings(&self) -> Result<AutomationConfig, String> {
+        let conn = self.connect()?;
+        let row: (String, i64, Option<String>, i64, i64, i64, i64, i64) = conn
+            .query_row(
+                r#"
+                SELECT
+                  bind, require_auth, auth_token,
+                  max_connections, max_messages_per_minute, max_subscriptions,
+                  expose_tab_api, expose_cache_api
+                FROM automation_settings WHERE id=1
+                "#,
+                [],
+                |row| {
+                    Ok((
+                        row.get(0)?,
+                        row.get(1)?,
+                        row.get(2)?,
+                        row.get(3)?,
+                        row.get(4)?,
+                        row.get(5)?,
+                        row.get(6)?,
+                        row.get(7)?,
+                    ))
+                },
+            )
+            .map_err(|e| format!("load automation settings failed: {e}"))?;
+        Ok(AutomationConfig {
+            enabled: true,
+            bind: row.0,
+            require_auth: row.1 != 0,
+            auth_token: row.2,
+            max_connections: row.3.max(1) as u32,
+            max_messages_per_minute: row.4.max(1) as u32,
+            max_subscriptions: row.5.max(1) as u32,
+            expose_tab_api: row.6 != 0,
+            expose_cache_api: row.7 != 0,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -403,5 +506,30 @@ mod tests {
                 .copied(),
             Some(PermissionDecision::Allow)
         );
+    }
+
+    #[test]
+    fn db_round_trips_automation_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        let db_path = dir.path().join("state.sqlite");
+        let db = ProfileDb::open(&db_path).unwrap();
+        let settings = AutomationConfig {
+            enabled: true,
+            bind: "ws://127.0.0.1:0/ws".to_string(),
+            require_auth: false,
+            auth_token: Some("t".to_string()),
+            max_connections: 3,
+            max_messages_per_minute: 10,
+            max_subscriptions: 2,
+            expose_tab_api: false,
+            expose_cache_api: true,
+        };
+        db.save_automation_settings(&settings).unwrap();
+        let loaded = db.load_automation_settings().unwrap();
+        assert_eq!(loaded.bind, settings.bind);
+        assert_eq!(loaded.require_auth, settings.require_auth);
+        assert_eq!(loaded.auth_token, settings.auth_token);
+        assert_eq!(loaded.max_connections, settings.max_connections);
+        assert_eq!(loaded.expose_cache_api, settings.expose_cache_api);
     }
 }
