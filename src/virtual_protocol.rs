@@ -133,7 +133,29 @@ fn handle_fs(
         });
     }
 
-    let data = std::fs::read(&path).ok()?;
+    let mut data = std::fs::read(&path).ok()?;
+    // Streaming support via byte slicing: ?offset=<u64>&limit=<u64>
+    let mut offset: Option<u64> = None;
+    let mut limit: Option<u64> = None;
+    for (k, v) in url.query_pairs() {
+        if k == "offset" {
+            offset = v.parse::<u64>().ok();
+        } else if k == "limit" {
+            limit = v.parse::<u64>().ok();
+        }
+    }
+    if offset.is_some() || limit.is_some() {
+        let start = offset.unwrap_or(0) as usize;
+        let end = match limit {
+            Some(lim) => start.saturating_add(lim as usize).min(data.len()),
+            None => data.len(),
+        };
+        if start >= data.len() {
+            data.clear();
+        } else {
+            data = data[start..end].to_vec();
+        }
+    }
     let mut headers = BTreeMap::new();
     let mime = match path.extension().and_then(|e| e.to_str()) {
         Some("html") => "text/html",
@@ -300,5 +322,41 @@ mod tests {
         )
         .expect("response");
         assert!(String::from_utf8_lossy(&res.body).contains("a.txt"));
+    }
+
+    #[test]
+    fn fs_read_supports_offset_limit() {
+        let dir = tempdir().unwrap();
+        std::fs::write(dir.path().join("a.bin"), b"abcdef").unwrap();
+        let mount_manager = MountManager::new();
+        mount_manager.add_mount(crate::mounts::Mount {
+            name: "m".to_string(),
+            mount_type: crate::mounts::MountType::FileSystem(dir.path().to_path_buf()),
+            read_only: true,
+            allowed_domains: vec!["example.com".to_string()],
+        });
+        let permissions = PermissionPolicy {
+            capabilities: {
+                let mut map = PermissionPolicy::default().capabilities;
+                map.insert(Capability::FsRead, PermissionDecision::Allow);
+                map
+            },
+            ..PermissionPolicy::default()
+        };
+        let session = Arc::new(RwLock::new(SessionSnapshot::new(
+            "default".to_string(),
+            "now".to_string(),
+        )));
+        let url = Url::parse("brazen://fs/m/a.bin?offset=2&limit=3").unwrap();
+        let res = handle_sync(
+            &url,
+            &headers_with_origin("https://example.com"),
+            &mount_manager,
+            &permissions,
+            &session,
+            &TerminalConfig::default(),
+        )
+        .expect("response");
+        assert_eq!(res.body, b"cde");
     }
 }

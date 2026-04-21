@@ -20,6 +20,7 @@ pub mod mounts;
 pub mod session;
 pub mod terminal;
 pub mod virtual_protocol;
+pub mod virtual_router;
 pub mod tls;
 pub mod audit_log;
 

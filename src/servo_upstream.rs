@@ -91,25 +91,19 @@ impl Default for UpstreamSnapshot {
 pub struct BrazenWebViewDelegate {
     snapshot: Rc<RefCell<UpstreamSnapshot>>,
     frame_ready: Arc<AtomicBool>,
-    mount_manager: MountManager,
-    permissions: crate::permissions::PermissionPolicy,
-    session: Arc<RwLock<SessionSnapshot>>,
+    virtual_router: crate::virtual_router::VirtualRouter,
 }
 
 impl BrazenWebViewDelegate {
     pub fn new(
         snapshot: Rc<RefCell<UpstreamSnapshot>>,
         frame_ready: Arc<AtomicBool>,
-        mount_manager: MountManager,
-        permissions: crate::permissions::PermissionPolicy,
-        session: Arc<RwLock<SessionSnapshot>>,
+        virtual_router: crate::virtual_router::VirtualRouter,
     ) -> Self {
         Self {
             snapshot,
             frame_ready,
-            mount_manager,
-            permissions,
-            session,
+            virtual_router,
         }
     }
 }
@@ -182,14 +176,7 @@ impl WebViewDelegate for BrazenWebViewDelegate {
 
     fn load_web_resource(&self, _webview: WebView, load: WebResourceLoad) {
         let url = load.request.url.clone();
-        if let Some(response) = crate::virtual_protocol::handle_sync(
-            &url,
-            &load.request.headers,
-            &self.mount_manager,
-            &self.permissions,
-            &self.session,
-            &crate::config::TerminalConfig::default(),
-        ) {
+        if let Some(response) = self.virtual_router.handle(&url, &load.request.headers) {
             tracing::info!(target: "brazen::virtual", url = %url, "intercepting virtual protocol request");
             let mut headers = HeaderMap::new();
             for (k, v) in response.headers {
@@ -205,27 +192,6 @@ impl WebViewDelegate for BrazenWebViewDelegate {
     }
 
     fn send_intercepted_response(&self, load: WebResourceLoad, mut headers: HeaderMap, data: Vec<u8>) {
-        // Check permissions for CORS
-        let origin = load.request.headers.get("Origin")
-            .and_then(|h| h.to_str().ok())
-            .unwrap_or("null");
-        
-        let decision = if origin == "null" {
-            crate::permissions::PermissionDecision::Allow
-        } else {
-            let origin_url = Url::parse(origin).ok();
-            let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
-            self.permissions
-                .decision_for_domain(host, &crate::permissions::Capability::FsRead)
-        };
-
-        if decision == crate::permissions::PermissionDecision::Allow {
-            headers.insert(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, http::HeaderValue::from_str(origin).unwrap_or(http::HeaderValue::from_static("*")));
-        } else {
-            tracing::warn!(target: "brazen::mounts", origin = %origin, "denying virtual resource access due to permissions");
-            return;
-        }
-
         let mut response = WebResourceResponse::new(load.request.url.clone());
         response.headers = headers;
         let intercepted = load.intercept(response);
@@ -401,12 +367,16 @@ impl ServoUpstreamRuntime {
         let snapshot = Rc::new(RefCell::new(UpstreamSnapshot::default()));
         let devtools_endpoint = Rc::new(RefCell::new(None));
         let last_error = Rc::new(RefCell::new(None));
-        let delegate = Rc::new(BrazenWebViewDelegate::new(
-            snapshot.clone(),
-            frame_ready.clone(),
+        let virtual_router = crate::virtual_router::VirtualRouter::new(
             mount_manager.clone(),
             permissions,
             session,
+            crate::config::TerminalConfig::default(),
+        );
+        let delegate = Rc::new(BrazenWebViewDelegate::new(
+            snapshot.clone(),
+            frame_ready.clone(),
+            virtual_router,
         ));
         let servo_delegate = Rc::new(BrazenServoDelegate::new(
             devtools_endpoint.clone(),
