@@ -2714,8 +2714,8 @@ id = "resource-injection.md:15:35bc8e5684"
 file = "resource-injection.md"
 line = 15
 text = "Define the `brazen://` (or similar) internal URI scheme"
-status = "planned"
-tests = []
+status = "done"
+tests = ["virtual_protocol::tests::fs_list_returns_json"]
 planned_tests = ["todo::35bc8e5684"]
 
 [[item]]
@@ -2723,8 +2723,8 @@ id = "resource-injection.md:16:d37a59d06f"
 file = "resource-injection.md"
 line = 16
 text = "Implement a Virtual Protocol Handler in the engine abstraction"
-status = "planned"
-tests = []
+status = "done"
+tests = ["virtual_protocol::tests::fs_list_returns_json"]
 planned_tests = ["todo::d37a59d06f"]
 
 [[item]]
@@ -2732,8 +2732,8 @@ id = "resource-injection.md:17:36d9cb9f64"
 file = "resource-injection.md"
 line = 17
 text = "Support for directory-like mounting of filesystem paths"
-status = "planned"
-tests = []
+status = "done"
+tests = ["mounts::tests::resolve_fs_target_denies_traversal"]
 planned_tests = ["todo::36d9cb9f64"]
 
 [[item]]
@@ -2759,8 +2759,8 @@ id = "resource-injection.md:21:3b59142469"
 file = "resource-injection.md"
 line = 21
 text = "CORS and security boundary enforcement for virtual resources"
-status = "planned"
-tests = []
+status = "done"
+tests = ["virtual_protocol::tests::fs_sets_cors_header"]
 planned_tests = ["todo::3b59142469"]
 
 [[item]]
@@ -2768,8 +2768,8 @@ id = "resource-injection.md:25:6afc9598f3"
 file = "resource-injection.md"
 line = 25
 text = "Origin-specific mounting (only allow `chatgpt.com` to see certain mounts)"
-status = "planned"
-tests = []
+status = "done"
+tests = ["mounts::tests::resolve_fs_target_enforces_allowed_domains"]
 planned_tests = ["todo::6afc9598f3"]
 
 [[item]]
@@ -2777,8 +2777,8 @@ id = "resource-injection.md:26:ef72ff08f9"
 file = "resource-injection.md"
 line = 26
 text = "Read-only vs Read-Write mount modes"
-status = "planned"
-tests = []
+status = "done"
+tests = ["virtual_protocol::tests::fs_write_denied_on_read_only_mount"]
 planned_tests = ["todo::ef72ff08f9"]
 
 [[item]]
@@ -2786,8 +2786,8 @@ id = "resource-injection.md:27:9b18a70888"
 file = "resource-injection.md"
 line = 27
 text = "Streaming support for large files or terminal output"
-status = "planned"
-tests = []
+status = "done"
+tests = ["virtual_protocol::tests::fs_read_supports_offset_limit"]
 planned_tests = ["todo::9b18a70888"]
 
 [[item]]
@@ -2795,8 +2795,8 @@ id = "resource-injection.md:28:527f133f6c"
 file = "resource-injection.md"
 line = 28
 text = "Content-type sniffing for local resources mapped to web types"
-status = "planned"
-tests = []
+status = "done"
+tests = ["virtual_protocol::tests::fs_sniffs_content_type"]
 planned_tests = ["todo::527f133f6c"]
 
 [[item]]

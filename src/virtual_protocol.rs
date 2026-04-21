@@ -359,4 +359,124 @@ mod tests {
         .expect("response");
         assert_eq!(res.body, b"cde");
     }
+
+    #[test]
+    fn fs_sets_cors_header() {
+        let dir = tempdir().unwrap();
+        std::fs::write(dir.path().join("a.txt"), b"hello").unwrap();
+        let mount_manager = MountManager::new();
+        mount_manager.add_mount(crate::mounts::Mount {
+            name: "m".to_string(),
+            mount_type: crate::mounts::MountType::FileSystem(dir.path().to_path_buf()),
+            read_only: true,
+            allowed_domains: vec!["example.com".to_string()],
+        });
+        let permissions = PermissionPolicy {
+            capabilities: {
+                let mut map = PermissionPolicy::default().capabilities;
+                map.insert(Capability::FsRead, PermissionDecision::Allow);
+                map
+            },
+            ..PermissionPolicy::default()
+        };
+        let session = Arc::new(RwLock::new(SessionSnapshot::new(
+            "default".to_string(),
+            "now".to_string(),
+        )));
+        let url = Url::parse("brazen://fs/m/a.txt").unwrap();
+        let res = handle_sync(
+            &url,
+            &headers_with_origin("https://example.com"),
+            &mount_manager,
+            &permissions,
+            &session,
+            &TerminalConfig::default(),
+        )
+        .expect("response");
+        assert_eq!(
+            res.headers
+                .get(http::header::ACCESS_CONTROL_ALLOW_ORIGIN.as_str())
+                .map(|s| s.as_str()),
+            Some("https://example.com")
+        );
+    }
+
+    #[test]
+    fn fs_sniffs_content_type() {
+        let dir = tempdir().unwrap();
+        std::fs::write(dir.path().join("a.html"), b"<html></html>").unwrap();
+        let mount_manager = MountManager::new();
+        mount_manager.add_mount(crate::mounts::Mount {
+            name: "m".to_string(),
+            mount_type: crate::mounts::MountType::FileSystem(dir.path().to_path_buf()),
+            read_only: true,
+            allowed_domains: vec!["example.com".to_string()],
+        });
+        let permissions = PermissionPolicy {
+            capabilities: {
+                let mut map = PermissionPolicy::default().capabilities;
+                map.insert(Capability::FsRead, PermissionDecision::Allow);
+                map
+            },
+            ..PermissionPolicy::default()
+        };
+        let session = Arc::new(RwLock::new(SessionSnapshot::new(
+            "default".to_string(),
+            "now".to_string(),
+        )));
+        let url = Url::parse("brazen://fs/m/a.html").unwrap();
+        let res = handle_sync(
+            &url,
+            &headers_with_origin("https://example.com"),
+            &mount_manager,
+            &permissions,
+            &session,
+            &TerminalConfig::default(),
+        )
+        .expect("response");
+        assert_eq!(
+            res.headers
+                .get(http::header::CONTENT_TYPE.as_str())
+                .map(|s| s.as_str()),
+            Some("text/html")
+        );
+    }
+
+    #[test]
+    fn fs_write_denied_on_read_only_mount() {
+        let dir = tempdir().unwrap();
+        let mount_manager = MountManager::new();
+        mount_manager.add_mount(crate::mounts::Mount {
+            name: "m".to_string(),
+            mount_type: crate::mounts::MountType::FileSystem(dir.path().to_path_buf()),
+            read_only: true,
+            allowed_domains: vec!["example.com".to_string()],
+        });
+        let permissions = PermissionPolicy {
+            capabilities: {
+                let mut map = PermissionPolicy::default().capabilities;
+                map.insert(Capability::FsRead, PermissionDecision::Allow);
+                map.insert(Capability::FsWrite, PermissionDecision::Allow);
+                map
+            },
+            ..PermissionPolicy::default()
+        };
+        let session = Arc::new(RwLock::new(SessionSnapshot::new(
+            "default".to_string(),
+            "now".to_string(),
+        )));
+        let payload = base64::engine::general_purpose::STANDARD.encode(b"hello");
+        let url = Url::parse(&format!("brazen://fs/m/a.txt?write_base64={payload}")).unwrap();
+        assert!(
+            handle_sync(
+                &url,
+                &headers_with_origin("https://example.com"),
+                &mount_manager,
+                &permissions,
+                &session,
+                &TerminalConfig::default(),
+            )
+            .is_none()
+        );
+    }
 }

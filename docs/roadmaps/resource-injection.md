@@ -12,20 +12,20 @@ browser-resident AI agents.
 
 ## Protocol & Mounting
 
-- [ ] Define the `brazen://` (or similar) internal URI scheme
-- [ ] Implement a Virtual Protocol Handler in the engine abstraction
-- [ ] Support for directory-like mounting of filesystem paths
+- [x] Define the `brazen://` (or similar) internal URI scheme
+- [x] Implement a Virtual Protocol Handler in the engine abstraction
+- [x] Support for directory-like mounting of filesystem paths
 - [ ] Support for dynamic mounting of terminal sessions as streamable
       resources
 - [ ] Support for mounting MCP tool definitions as discoverable JSON resources
-- [ ] CORS and security boundary enforcement for virtual resources
+- [x] CORS and security boundary enforcement for virtual resources
 
 ## Injection Mechanism
 
-- [ ] Origin-specific mounting (only allow `chatgpt.com` to see certain mounts)
-- [ ] Read-only vs Read-Write mount modes
-- [ ] Streaming support for large files or terminal output
-- [ ] Content-type sniffing for local resources mapped to web types
+- [x] Origin-specific mounting (only allow `chatgpt.com` to see certain mounts)
+- [x] Read-only vs Read-Write mount modes
+- [x] Streaming support for large files or terminal output
+- [x] Content-type sniffing for local resources mapped to web types
 - [ ] Support for injecting resources into the DOM via virtual script tags or state objects
 
 ## Integration Workflows
