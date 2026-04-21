@@ -31,6 +31,11 @@ fn default_config_contains_capability_sections() {
     assert!(config.contains("terminal-output-read"));
     assert!(config.contains("fs-read"));
     assert!(config.contains("fs-write"));
+    assert!(config.contains("[extraction]"));
+    assert!(config.contains("article_processing_enabled"));
+    assert!(config.contains("[media]"));
+    assert!(config.contains("default_tts_provider"));
+    assert!(config.contains("auto_queue_reader_mode"));
 }
 
 #[test]

@@ -1148,8 +1148,8 @@ id = "extraction-pipeline.md:7:682ae7f11d"
 file = "extraction-pipeline.md"
 line = 7
 text = "Extraction feature flags exist in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::682ae7f11d"]
 
 [[item]]
@@ -1571,8 +1571,8 @@ id = "knowledge-plane.md:7:5f98f78ddc"
 file = "knowledge-plane.md"
 line = 7
 text = "Ontology and article-related feature flags exist in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::5f98f78ddc"]
 
 [[item]]
@@ -1751,8 +1751,8 @@ id = "local-connectors.md:7:1766f63557"
 file = "local-connectors.md"
 line = 7
 text = "Connector-facing capability placeholders exist in config and permissions"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::1766f63557"]
 
 [[item]]
@@ -1940,8 +1940,8 @@ id = "media-reading-and-tts.md:7:a41a024077"
 file = "media-reading-and-tts.md"
 line = 7
 text = "TTS provider config exists"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::a41a024077"]
 
 [[item]]
@@ -1949,8 +1949,8 @@ id = "media-reading-and-tts.md:8:fbb15cbbb2"
 file = "media-reading-and-tts.md"
 line = 8
 text = "Reader-mode autoplay toggle exists in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::fbb15cbbb2"]
 
 [[item]]
@@ -2525,8 +2525,8 @@ id = "persistence-and-profiles.md:7:9779fa000b"
 file = "persistence-and-profiles.md"
 line = 7
 text = "Platform config path resolution exists"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::runtime_paths_resolve_relative_to_config_directory"]
 planned_tests = ["todo::9779fa000b"]
 
 [[item]]
@@ -2534,8 +2534,8 @@ id = "persistence-and-profiles.md:8:389e2f189b"
 file = "persistence-and-profiles.md"
 line = 8
 text = "Platform data/log/cache/profile roots are resolved"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::runtime_paths_resolve_relative_to_config_directory"]
 planned_tests = ["todo::389e2f189b"]
 
 [[item]]
@@ -2543,8 +2543,8 @@ id = "persistence-and-profiles.md:9:1ea3f20a46"
 file = "persistence-and-profiles.md"
 line = 9
 text = "Default config generation exists"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::bootstrap_starts_with_default_config_and_custom_path"]
 planned_tests = ["todo::1ea3f20a46"]
 
 [[item]]
@@ -2552,8 +2552,8 @@ id = "persistence-and-profiles.md:10:b2c90282a9"
 file = "persistence-and-profiles.md"
 line = 10
 text = "File-based persistence is the current baseline"
-status = "planned"
-tests = []
+status = "done"
+tests = ["session::tests::session_json_persistence_round_trip"]
 planned_tests = ["todo::b2c90282a9"]
 
 [[item]]

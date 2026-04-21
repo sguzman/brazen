@@ -4,7 +4,7 @@ Tracks the higher-level data model built on top of extracted pages, cached asset
 
 ## Current State
 
-- [ ] Ontology and article-related feature flags exist in config
+- [x] Ontology and article-related feature flags exist in config
 - [ ] No knowledge-plane storage or workflows are implemented yet
 
 ## Core Entities

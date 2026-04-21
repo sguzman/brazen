@@ -4,8 +4,8 @@ Tracks save-for-later, reader workflows, reading stats, and text-to-speech.
 
 ## Current State
 
-- [ ] TTS provider config exists
-- [ ] Reader-mode autoplay toggle exists in config
+- [x] TTS provider config exists
+- [x] Reader-mode autoplay toggle exists in config
 - [ ] No reading or TTS pipeline is implemented yet
 
 ## Reading Workflows

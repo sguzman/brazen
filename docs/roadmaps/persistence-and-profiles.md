@@ -4,10 +4,10 @@ Tracks config, data directories, structured local state, and multi-profile isola
 
 ## Current State
 
-- [ ] Platform config path resolution exists
-- [ ] Platform data/log/cache/profile roots are resolved
-- [ ] Default config generation exists
-- [ ] File-based persistence is the current baseline
+- [x] Platform config path resolution exists
+- [x] Platform data/log/cache/profile roots are resolved
+- [x] Default config generation exists
+- [x] File-based persistence is the current baseline
 
 ## Persistence Layers
 
