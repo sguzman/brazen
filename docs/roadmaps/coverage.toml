@@ -131,8 +131,8 @@ id = "automation-and-external-apis.md:27:535bda9413"
 file = "automation-and-external-apis.md"
 line = 27
 text = "Localhost WebSocket server"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::535bda9413"]
 
 [[item]]
@@ -140,8 +140,8 @@ id = "automation-and-external-apis.md:28:76314a86ac"
 file = "automation-and-external-apis.md"
 line = 28
 text = "Unix-domain / named-pipe option"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::automation_config_validation_accepts_ws_unix_and_requires_token"]
 planned_tests = ["todo::76314a86ac"]
 
 [[item]]
@@ -149,8 +149,8 @@ id = "automation-and-external-apis.md:29:b5d546dd46"
 file = "automation-and-external-apis.md"
 line = 29
 text = "Client authentication model"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::automation_config_validation_accepts_ws_unix_and_requires_token"]
 planned_tests = ["todo::b5d546dd46"]
 
 [[item]]
@@ -158,8 +158,8 @@ id = "automation-and-external-apis.md:30:c0faa28810"
 file = "automation-and-external-apis.md"
 line = 30
 text = "Capability checks for API callers"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::terminal_exec_requires_approval_when_ask"]
 planned_tests = ["todo::c0faa28810"]
 
 [[item]]
@@ -167,8 +167,8 @@ id = "automation-and-external-apis.md:31:c527351e60"
 file = "automation-and-external-apis.md"
 line = 31
 text = "Rate limiting and subscription backpressure"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::rate_limit_blocks_excess_terminal_exec"]
 planned_tests = ["todo::c527351e60"]
 
 [[item]]

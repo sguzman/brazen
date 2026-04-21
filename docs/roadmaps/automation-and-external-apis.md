@@ -24,11 +24,11 @@ Tracks local sockets, WebSocket APIs, subscriptions, and browser-state access fo
 
 ## Transport And Trust
 
-- [ ] Localhost WebSocket server
-- [ ] Unix-domain / named-pipe option
-- [ ] Client authentication model
-- [ ] Capability checks for API callers
-- [ ] Rate limiting and subscription backpressure
+- [x] Localhost WebSocket server
+- [x] Unix-domain / named-pipe option
+- [x] Client authentication model
+- [x] Capability checks for API callers
+- [x] Rate limiting and subscription backpressure
 
 ## Developer Experience
 

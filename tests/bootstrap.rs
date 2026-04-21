@@ -126,6 +126,46 @@ mode = "dev"
 }
 
 #[test]
+fn automation_config_validation_accepts_ws_unix_and_requires_token() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("brazen.toml");
+    std::fs::write(
+        &path,
+        r#"
+[features]
+automation_server = true
+
+[automation]
+enabled = true
+bind = "ws+unix:///tmp/brazen.sock"
+require_auth = true
+"#,
+    )
+    .unwrap();
+
+    let error = BrazenConfig::load_with_defaults(&path).unwrap_err();
+    assert!(error.to_string().contains("automation.auth_token"));
+
+    std::fs::write(
+        &path,
+        r#"
+[features]
+automation_server = true
+
+[automation]
+enabled = true
+bind = "ws+unix:///tmp/brazen.sock"
+require_auth = true
+auth_token = "t"
+"#,
+    )
+    .unwrap();
+    let config = BrazenConfig::load_with_defaults(&path).unwrap();
+    assert!(config.automation.enabled);
+    assert!(config.automation.bind.starts_with("ws+unix://"));
+}
+
+#[test]
 fn runtime_paths_resolve_relative_to_config_directory() {
     let roots = PlatformPaths::from_roots(
         "/tmp/brazen-config",
