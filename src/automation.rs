@@ -306,6 +306,12 @@ pub enum AutomationRequest {
         value: Option<String>,
     },
     ScreenshotWindow,
+    ProfileCreate {
+        profile_id: String,
+    },
+    ProfileSwitch {
+        profile_id: String,
+    },
     Shutdown,
 }
 
@@ -2175,6 +2181,78 @@ async fn handle_request(
                 Err(_) => Some(error_response(id, "internal error")),
             }
         }
+        AutomationRequest::ProfileCreate { profile_id } => {
+            let profile_id = profile_id.trim().to_string();
+            if profile_id.is_empty() {
+                return Some(error_response(id, "profile id required"));
+            }
+            if profile_id.contains("..") || profile_id.contains('/') || profile_id.contains('\\') {
+                return Some(error_response(id, "invalid profile id"));
+            }
+            let dir = state.handle.runtime_paths.profiles_dir.join(&profile_id);
+            if let Err(error) = std::fs::create_dir_all(&dir) {
+                return Some(error_response(id, &format!("create profile dir failed: {error}")));
+            }
+            // Ensure state db exists.
+            let _ = crate::profile_db::ProfileDb::open(dir.join("state.sqlite"));
+            let response = AutomationResponse {
+                id,
+                ok: true,
+                result: Some(serde_json::json!({
+                    "profile_id": profile_id,
+                    "path": dir.display().to_string()
+                })),
+                error: None,
+            };
+            Some(serde_json::to_string(&response).unwrap())
+        }
+        AutomationRequest::ProfileSwitch { profile_id } => {
+            let profile_id = profile_id.trim().to_string();
+            if profile_id.is_empty() {
+                return Some(error_response(id, "profile id required"));
+            }
+            if profile_id.contains("..") || profile_id.contains('/') || profile_id.contains('\\') {
+                return Some(error_response(id, "invalid profile id"));
+            }
+            let dir = state.handle.runtime_paths.profiles_dir.join(&profile_id);
+            if !dir.exists() {
+                return Some(error_response(id, "profile does not exist"));
+            }
+
+            // Persist to config TOML by editing only profiles.active_profile.
+            let config_path = state.handle.runtime_paths.config_path.clone();
+            let text = std::fs::read_to_string(&config_path)
+                .map_err(|e| format!("read config failed: {e}"))
+                .unwrap_or_default();
+            let mut value: toml::Value = text.parse().unwrap_or(toml::Value::Table(toml::map::Map::new()));
+            let table = value.as_table_mut().unwrap();
+            let profiles = table
+                .entry("profiles")
+                .or_insert_with(|| toml::Value::Table(toml::map::Map::new()));
+            let profiles_table = profiles.as_table_mut().unwrap();
+            profiles_table.insert(
+                "active_profile".to_string(),
+                toml::Value::String(profile_id.clone()),
+            );
+            let out = toml::to_string_pretty(&value).unwrap_or_else(|_| text.clone());
+            if let Err(error) = std::fs::write(&config_path, out) {
+                return Some(error_response(id, &format!("write config failed: {error}")));
+            }
+
+            // Request restart so the running instance re-bootstrap with the new profile.
+            let _ = state.handle.request_shutdown();
+
+            let response = AutomationResponse {
+                id,
+                ok: true,
+                result: Some(serde_json::json!({
+                    "active_profile": profile_id,
+                    "note": "profile switched; instance shutting down to restart with new profile"
+                })),
+                error: None,
+            };
+            Some(serde_json::to_string(&response).unwrap())
+        }
         AutomationRequest::Shutdown => {
             let result = state.handle.request_shutdown();
             match result {
@@ -3537,4 +3615,113 @@ mod tests {
             .expect("decode b64");
         assert_eq!(bytes, payload);
     }
+
+    #[tokio::test]
+    async fn profile_create_creates_profile_dir_and_state_db() {
+        let dir = tempdir().unwrap();
+        let config = BrazenConfig {
+            automation: AutomationConfig {
+                enabled: true,
+                require_auth: false,
+                ..AutomationConfig::default()
+            },
+            features: crate::config::FeatureFlags {
+                automation_server: true,
+                ..crate::config::FeatureFlags::default()
+            },
+            ..BrazenConfig::default()
+        };
+
+        let paths = RuntimePaths {
+            config_path: dir.path().join("brazen.toml"),
+            data_dir: dir.path().join("data"),
+            logs_dir: dir.path().join("logs"),
+            profiles_dir: dir.path().join("profiles"),
+            cache_dir: dir.path().join("cache"),
+            downloads_dir: dir.path().join("downloads"),
+            crash_dumps_dir: dir.path().join("crash"),
+            active_profile_dir: dir.path().join("profiles/default"),
+            session_path: dir.path().join("profiles/default/session.json"),
+            audit_log_path: dir.path().join("logs/audit.jsonl"),
+        };
+
+        let runtime = start_automation_runtime(&config, &paths, crate::mounts::MountManager::new())
+            .expect("runtime");
+        let audit_logger = Arc::new(AuditLogger::new(paths.audit_log_path.clone()));
+        let state = AutomationServerState::new(config.automation.clone(), runtime.handle, audit_logger);
+
+        let response = handle_request(
+            &state,
+            r#"{"id":"1","type":"profile-create","profile_id":"p2"}"#,
+            &mut Vec::new(),
+            None,
+            None,
+        )
+        .await
+        .expect("response");
+        let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        assert!(parsed.ok);
+        assert!(paths.profiles_dir.join("p2").exists());
+        assert!(paths.profiles_dir.join("p2/state.sqlite").exists());
+    }
+
+    #[tokio::test]
+    async fn profile_switch_updates_config_active_profile() {
+        let dir = tempdir().unwrap();
+        let config = BrazenConfig {
+            automation: AutomationConfig {
+                enabled: true,
+                require_auth: false,
+                ..AutomationConfig::default()
+            },
+            features: crate::config::FeatureFlags {
+                automation_server: true,
+                ..crate::config::FeatureFlags::default()
+            },
+            ..BrazenConfig::default()
+        };
+
+        let config_path = dir.path().join("brazen.toml");
+        std::fs::write(&config_path, " \n").unwrap();
+
+        let paths = RuntimePaths {
+            config_path: config_path.clone(),
+            data_dir: dir.path().join("data"),
+            logs_dir: dir.path().join("logs"),
+            profiles_dir: dir.path().join("profiles"),
+            cache_dir: dir.path().join("cache"),
+            downloads_dir: dir.path().join("downloads"),
+            crash_dumps_dir: dir.path().join("crash"),
+            active_profile_dir: dir.path().join("profiles/default"),
+            session_path: dir.path().join("profiles/default/session.json"),
+            audit_log_path: dir.path().join("logs/audit.jsonl"),
+        };
+
+        std::fs::create_dir_all(paths.profiles_dir.join("p2")).unwrap();
+
+        let runtime = start_automation_runtime(&config, &paths, crate::mounts::MountManager::new())
+            .expect("runtime");
+        let audit_logger = Arc::new(AuditLogger::new(paths.audit_log_path.clone()));
+        let state = AutomationServerState::new(config.automation.clone(), runtime.handle, audit_logger);
+
+        let response = handle_request(
+            &state,
+            r#"{"id":"1","type":"profile-switch","profile_id":"p2"}"#,
+            &mut Vec::new(),
+            None,
+            None,
+        )
+        .await
+        .expect("response");
+        let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        assert!(parsed.ok);
+
+        let updated = std::fs::read_to_string(&config_path).unwrap();
+        assert!(
+            updated.contains("active_profile") && updated.contains("p2"),
+            "expected config to include active_profile=p2: {updated}"
+        );
+    }
 }
+
+// (no additional helpers)

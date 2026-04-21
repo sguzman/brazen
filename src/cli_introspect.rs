@@ -56,6 +56,16 @@ pub enum IntrospectCommand {
     },
     /// Request the running instance to shut down
     Shutdown,
+    /// Create a new profile (directory + state db)
+    ProfileCreate {
+        /// Profile id/name
+        id: String,
+    },
+    /// Switch to a profile id/name (persisted to config file)
+    ProfileSwitch {
+        /// Profile id/name
+        id: String,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,6 +86,8 @@ enum AutomationRequest {
     Screenshot,
     EvaluateJavascript { script: String },
     Shutdown,
+    ProfileCreate { profile_id: String },
+    ProfileSwitch { profile_id: String },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -257,6 +269,36 @@ pub async fn run_introspect_cli(args: &[String]) -> Result<(), Box<dyn std::erro
                 let response: AutomationResponse<serde_json::Value> = serde_json::from_str(&text)?;
                 if response.ok {
                     println!("Shutdown requested");
+                } else {
+                    eprintln!("Error: {}", response.error.unwrap_or_default());
+                }
+            }
+        }
+        IntrospectCommand::ProfileCreate { id } => {
+            let request = AutomationEnvelope {
+                id: Some("cli-profile-create".to_string()),
+                payload: AutomationRequest::ProfileCreate { profile_id: id },
+            };
+            write.send(Message::Text(serde_json::to_string(&request)?.into())).await?;
+            if let Some(Ok(Message::Text(text))) = read.next().await {
+                let response: AutomationResponse<serde_json::Value> = serde_json::from_str(&text)?;
+                if response.ok {
+                    println!("{}", serde_json::to_string_pretty(&response.result)?);
+                } else {
+                    eprintln!("Error: {}", response.error.unwrap_or_default());
+                }
+            }
+        }
+        IntrospectCommand::ProfileSwitch { id } => {
+            let request = AutomationEnvelope {
+                id: Some("cli-profile-switch".to_string()),
+                payload: AutomationRequest::ProfileSwitch { profile_id: id },
+            };
+            write.send(Message::Text(serde_json::to_string(&request)?.into())).await?;
+            if let Some(Ok(Message::Text(text))) = read.next().await {
+                let response: AutomationResponse<serde_json::Value> = serde_json::from_str(&text)?;
+                if response.ok {
+                    println!("{}", serde_json::to_string_pretty(&response.result)?);
                 } else {
                     eprintln!("Error: {}", response.error.unwrap_or_default());
                 }

@@ -2616,8 +2616,8 @@ id = "persistence-and-profiles.md:23:37aaa2e138"
 file = "persistence-and-profiles.md"
 line = 23
 text = "Profile creation and switching"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::profile_create_creates_profile_dir_and_state_db", "automation::tests::profile_switch_updates_config_active_profile"]
 planned_tests = ["todo::37aaa2e138"]
 
 [[item]]

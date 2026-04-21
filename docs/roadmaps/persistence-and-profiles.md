@@ -20,7 +20,7 @@ Tracks config, data directories, structured local state, and multi-profile isola
 
 ## Profiles
 
-- [ ] Profile creation and switching
+- [x] Profile creation and switching
 - [x] Per-profile cache roots
 - [ ] Per-profile connector policies
 - [ ] Per-profile automation/API settings
