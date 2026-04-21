@@ -36,9 +36,21 @@ pub struct AutomationSnapshot {
     pub active_tab_index: usize,
     pub active_tab_id: Option<String>,
     pub address_bar: String,
+    pub page_title: String,
+    pub last_committed_url: Option<String>,
     pub load_status: Option<String>,
     pub load_progress: f32,
+    pub document_ready: bool,
+    pub can_go_back: bool,
+    pub can_go_forward: bool,
     pub engine_status: String,
+    pub upstream_active: bool,
+    pub upstream_last_error: Option<String>,
+    pub last_security_warning: Option<String>,
+    pub last_crash: Option<String>,
+    pub log_panel_open: bool,
+    pub permission_panel_open: bool,
+    pub find_panel_open: bool,
     pub cache_stats: CacheStats,
     pub cache_entries: Vec<AutomationAssetSummary>,
     pub activities: VecDeque<AutomationActivity>,
@@ -52,9 +64,21 @@ impl Default for AutomationSnapshot {
             active_tab_index: 0,
             active_tab_id: None,
             address_bar: String::new(),
+            page_title: String::new(),
+            last_committed_url: None,
             load_status: None,
             load_progress: 0.0,
+            document_ready: false,
+            can_go_back: false,
+            can_go_forward: false,
             engine_status: "unknown".to_string(),
+            upstream_active: false,
+            upstream_last_error: None,
+            last_security_warning: None,
+            last_crash: None,
+            log_panel_open: false,
+            permission_panel_open: false,
+            find_panel_open: false,
             cache_stats: CacheStats {
                 entries: 0,
                 total_bytes: 0,
@@ -166,6 +190,7 @@ pub enum AutomationRequest {
         selector: String,
     },
     Screenshot,
+    ScreenshotMeta,
     RenderedText,
     ArticleText,
     CacheStats,
@@ -321,11 +346,26 @@ impl AutomationHandle {
             .active_tab()
             .map(|tab| tab.id.0.to_string());
         snapshot.address_bar = shell_state.address_bar_input.clone();
+        snapshot.page_title = shell_state.page_title.clone();
+        snapshot.last_committed_url = shell_state.last_committed_url.clone();
         snapshot.load_status = shell_state
             .load_status
             .map(|status| status.as_str().to_string());
         snapshot.load_progress = shell_state.load_progress;
+        snapshot.document_ready = shell_state.document_ready;
+        snapshot.can_go_back = shell_state.can_go_back;
+        snapshot.can_go_forward = shell_state.can_go_forward;
         snapshot.engine_status = shell_state.engine_status.to_string();
+        snapshot.upstream_active = shell_state.upstream_active;
+        snapshot.upstream_last_error = shell_state.upstream_last_error.clone();
+        snapshot.last_security_warning = shell_state
+            .last_security_warning
+            .as_ref()
+            .map(|(kind, message)| format!("{kind:?}: {message}"));
+        snapshot.last_crash = shell_state.last_crash.clone();
+        snapshot.log_panel_open = shell_state.log_panel_open;
+        snapshot.permission_panel_open = shell_state.permission_panel_open;
+        snapshot.find_panel_open = shell_state.find_panel_open;
         snapshot.cache_stats = cache.stats();
         snapshot.cache_entries = cache
             .entries()
@@ -869,10 +909,15 @@ async fn handle_request(
                 .send(AutomationCommand::DomQuery { selector, response_tx: tx });
             match rx.await {
                 Ok(Ok(result)) => {
+                    let stable = match result {
+                        serde_json::Value::Null => serde_json::Value::String(String::new()),
+                        serde_json::Value::String(s) => serde_json::Value::String(s),
+                        other => serde_json::Value::String(other.to_string()),
+                    };
                     let response = AutomationResponse {
                         id,
                         ok: true,
-                        result: Some(result),
+                        result: Some(stable),
                         error: None,
                     };
                     Some(serde_json::to_string(&response).unwrap())
@@ -931,6 +976,77 @@ async fn handle_request(
                                 id,
                                 ok: true,
                                 result: Some(encoded),
+                                error: None,
+                            };
+                            Some(serde_json::to_string(&response).unwrap())
+                        }
+                        Err(error) => Some(error_response(id, &error)),
+                    }
+                }
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::ScreenshotMeta => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state
+                .handle
+                .command_tx
+                .send(AutomationCommand::Screenshot { response_tx: tx });
+            match rx.await {
+                Ok(Ok(frame)) => {
+                    let mut png_data = Vec::new();
+                    let mut cursor = Cursor::new(&mut png_data);
+
+                    let result: Result<(), String> = match frame.pixel_format {
+                        PixelFormat::Rgba8 => {
+                            let img_opt = image::RgbaImage::from_raw(
+                                frame.width,
+                                frame.height,
+                                frame.pixels,
+                            );
+                            if let Some(img) = img_opt {
+                                img.write_to(&mut cursor, ImageFormat::Png)
+                                    .map_err(|e| e.to_string())
+                            } else {
+                                Err("Failed to create image from raw pixels".to_string())
+                            }
+                        }
+                        PixelFormat::Bgra8 => {
+                            let mut rgba_pixels = Vec::with_capacity(frame.pixels.len());
+                            for chunk in frame.pixels.chunks_exact(4) {
+                                rgba_pixels.push(chunk[2]); // R
+                                rgba_pixels.push(chunk[1]); // G
+                                rgba_pixels.push(chunk[0]); // B
+                                rgba_pixels.push(chunk[3]); // A
+                            }
+                            let img_opt = image::RgbaImage::from_raw(
+                                frame.width,
+                                frame.height,
+                                rgba_pixels,
+                            );
+                            if let Some(img) = img_opt {
+                                img.write_to(&mut cursor, ImageFormat::Png)
+                                    .map_err(|e| e.to_string())
+                            } else {
+                                Err("Failed to create image from raw pixels".to_string())
+                            }
+                        }
+                    };
+
+                    match result {
+                        Ok(_) => {
+                            let encoded =
+                                base64::engine::general_purpose::STANDARD.encode(&png_data);
+                            let response = AutomationResponse {
+                                id,
+                                ok: true,
+                                result: Some(serde_json::json!({
+                                    "png_base64": encoded,
+                                    "width": frame.width,
+                                    "height": frame.height,
+                                    "pixel_format": format!("{:?}", frame.pixel_format),
+                                })),
                                 error: None,
                             };
                             Some(serde_json::to_string(&response).unwrap())

@@ -39,6 +39,44 @@ fn spawn_brazen(config_path: &std::path::Path, endpoint_file: &std::path::Path) 
         .expect("spawn brazen")
 }
 
+fn spawn_brazen_with_display(
+    config_path: &std::path::Path,
+    endpoint_file: &std::path::Path,
+    display: &str,
+) -> Child {
+    let exe = env!("CARGO_BIN_EXE_brazen");
+    Command::new(exe)
+        .arg("--config")
+        .arg(config_path)
+        .env("BRAZEN_AUTOMATION_ENDPOINT_FILE", endpoint_file)
+        .env("DISPLAY", display)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("spawn brazen")
+}
+
+fn start_xvfb_or_skip() -> Option<(Child, String)> {
+    if std::env::var("DISPLAY").ok().is_some() || std::env::var("WAYLAND_DISPLAY").ok().is_some()
+    {
+        return None;
+    }
+    let Some(xvfb_path) = which::which("Xvfb").ok() else {
+        return None;
+    };
+    let display = ":99".to_string();
+    let child = Command::new(xvfb_path)
+        .arg(&display)
+        .arg("-screen")
+        .arg("0")
+        .arg("1280x720x24")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .ok()?;
+    Some((child, display))
+}
+
 async fn wait_for_endpoint_file(path: &std::path::Path) -> Url {
     let deadline = Instant::now() + Duration::from_secs(20);
     loop {
@@ -103,16 +141,17 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     if std::env::var("BRAZEN_E2E").ok().as_deref() != Some("1") {
         return;
     }
-    if std::env::var("DISPLAY").ok().is_none() && std::env::var("WAYLAND_DISPLAY").ok().is_none()
-    {
-        return;
-    }
     let tmp = tempfile::tempdir().expect("tempdir");
     let config_path = tmp.path().join("brazen.toml");
     let endpoint_file = tmp.path().join("endpoint.txt");
     write_test_config(&config_path);
 
-    let mut child = spawn_brazen(&config_path, &endpoint_file);
+    let mut xvfb = start_xvfb_or_skip();
+    let mut child = if let Some((_, ref display)) = xvfb {
+        spawn_brazen_with_display(&config_path, &endpoint_file, display)
+    } else {
+        spawn_brazen(&config_path, &endpoint_file)
+    };
     let url = wait_for_endpoint_file(&endpoint_file).await;
 
     // Subscribe to logs (smoke)
@@ -126,6 +165,10 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     // Snapshot + tab list should succeed.
     let response = snapshot(&url).await;
     assert!(response["ok"].as_bool().unwrap_or(false), "snapshot failed: {response}");
+    assert!(response["result"]["engine_status"].as_str().unwrap_or("") != "", "missing engine_status");
+    assert!(response["result"]["page_title"].is_string(), "expected page_title string");
+    assert!(response["result"]["can_go_back"].is_boolean(), "expected can_go_back bool");
+    assert!(response["result"]["log_panel_open"].is_boolean(), "expected log_panel_open bool");
     let response = ws_roundtrip(&url, json!({"id":"t2","type":"tab-list"})).await;
     assert!(response["ok"].as_bool().unwrap_or(false), "tab list failed: {response}");
 
@@ -141,14 +184,16 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     let dom = response["result"].as_str().unwrap_or("");
     assert!(!dom.trim().is_empty(), "expected non-empty dom");
 
-    // Screenshot returns base64 PNG which should decode to non-empty bytes.
-    let response = ws_roundtrip(&url, json!({"id":"t5","type":"screenshot"})).await;
+    // Screenshot-meta returns base64 PNG + dimensions.
+    let response = ws_roundtrip(&url, json!({"id":"t5","type":"screenshot-meta"})).await;
     assert!(response["ok"].as_bool().unwrap_or(false), "screenshot failed: {response}");
-    let b64 = response["result"].as_str().unwrap_or("");
+    let b64 = response["result"]["png_base64"].as_str().unwrap_or("");
     let bytes = base64::engine::general_purpose::STANDARD
         .decode(b64)
         .expect("base64 decode");
     assert!(bytes.len() > 32, "expected png bytes");
+    assert!(response["result"]["width"].as_u64().unwrap_or(0) > 0, "expected width");
+    assert!(response["result"]["height"].as_u64().unwrap_or(0) > 0, "expected height");
 
     // Request shutdown and ensure process exits.
     let response = ws_roundtrip(&url, json!({"id":"t6","type":"shutdown"})).await;
@@ -170,4 +215,9 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     .await
     .expect("join");
     assert!(status.success(), "brazen did not exit cleanly: {status}");
+
+    if let Some((mut xvfb_child, _)) = xvfb.take() {
+        let _ = xvfb_child.kill();
+        let _ = xvfb_child.wait();
+    }
 }
