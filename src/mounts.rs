@@ -28,6 +28,10 @@ pub struct Mount {
     pub mount_type: MountType,
     /// Whether the resource is read-only.
     pub read_only: bool,
+    /// Optional domain allowlist for visibility (e.g. ["chatgpt.com"]).
+    /// If set and non-empty, only matching origins may access this mount.
+    #[serde(default)]
+    pub allowed_domains: Vec<String>,
 }
 
 #[derive(Debug, Default)]
@@ -62,6 +66,10 @@ impl MountManager {
     /// Resolve a brazen:// URI to a local filesystem path if applicable.
     /// Returns (PathBuf, read_only) if successful.
     pub fn resolve_fs_request(&self, url: &Url) -> Option<(PathBuf, bool)> {
+        self.resolve_fs_request_with_origin(url, None)
+    }
+
+    pub fn resolve_fs_request_with_origin(&self, url: &Url, origin: Option<&str>) -> Option<(PathBuf, bool)> {
         if url.scheme() != "brazen" {
             return None;
         }
@@ -77,6 +85,14 @@ impl MountManager {
 
         let inner = self.inner.read().unwrap();
         let mount = inner.mounts.get(mount_name)?;
+        if !mount.allowed_domains.is_empty() {
+            let origin = origin?;
+            let origin_url = Url::parse(origin).ok();
+            let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
+            if !mount.allowed_domains.iter().any(|d| d == host) {
+                return None;
+            }
+        }
 
         match &mount.mount_type {
             MountType::FileSystem(base_path) => {
@@ -104,6 +120,10 @@ impl MountManager {
     /// Resolve a brazen://fs request to a mount plus a local path (without performing IO).
     /// Returns (mount, full_path, remaining_segments).
     pub fn resolve_fs_target(&self, url: &Url) -> Option<(Mount, PathBuf)> {
+        self.resolve_fs_target_with_origin(url, None)
+    }
+
+    pub fn resolve_fs_target_with_origin(&self, url: &Url, origin: Option<&str>) -> Option<(Mount, PathBuf)> {
         if url.scheme() != "brazen" {
             return None;
         }
@@ -114,6 +134,14 @@ impl MountManager {
         let mount_name = path_segments.next()?;
         let inner = self.inner.read().unwrap();
         let mount = inner.mounts.get(mount_name)?.clone();
+        if !mount.allowed_domains.is_empty() {
+            let origin = origin?;
+            let origin_url = Url::parse(origin).ok();
+            let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
+            if !mount.allowed_domains.iter().any(|d| d == host) {
+                return None;
+            }
+        }
 
         let MountType::FileSystem(base_path) = &mount.mount_type else {
             return None;
@@ -133,7 +161,15 @@ impl MountManager {
     }
 
     pub fn list_directory_json(&self, url: &Url) -> Option<(Vec<u8>, &'static str)> {
-        let (mount, path) = self.resolve_fs_target(url)?;
+        self.list_directory_json_with_origin(url, None)
+    }
+
+    pub fn list_directory_json_with_origin(
+        &self,
+        url: &Url,
+        origin: Option<&str>,
+    ) -> Option<(Vec<u8>, &'static str)> {
+        let (mount, path) = self.resolve_fs_target_with_origin(url, origin)?;
         let MountType::FileSystem(base_path) = &mount.mount_type else {
             return None;
         };
@@ -200,9 +236,31 @@ mod tests {
             name: "root".to_string(),
             mount_type: MountType::FileSystem(dir.path().to_path_buf()),
             read_only: true,
+            allowed_domains: Vec::new(),
         });
 
         let url = Url::parse("brazen://fs/root/../secret.txt").unwrap();
         assert!(manager.resolve_fs_target(&url).is_none());
+    }
+
+    #[test]
+    fn resolve_fs_target_enforces_allowed_domains() {
+        let dir = tempdir().unwrap();
+        let manager = MountManager::new();
+        manager.add_mount(Mount {
+            name: "root".to_string(),
+            mount_type: MountType::FileSystem(dir.path().to_path_buf()),
+            read_only: true,
+            allowed_domains: vec!["example.com".to_string()],
+        });
+
+        let url = Url::parse("brazen://fs/root/file.txt").unwrap();
+        assert!(manager
+            .resolve_fs_target_with_origin(&url, Some("https://example.com"))
+            .is_some());
+        assert!(manager
+            .resolve_fs_target_with_origin(&url, Some("https://evil.com"))
+            .is_none());
+        assert!(manager.resolve_fs_target_with_origin(&url, None).is_none());
     }
 }

@@ -189,6 +189,7 @@ pub enum AutomationRequest {
         name: String,
         local_path: String,
         read_only: Option<bool>,
+        allowed_domains: Option<Vec<String>>,
     },
     MountRemove {
         name: String,
@@ -252,6 +253,7 @@ pub enum AutomationCommand {
         name: String,
         local_path: std::path::PathBuf,
         read_only: bool,
+        allowed_domains: Vec<String>,
     },
     RemoveMount {
         name: String,
@@ -408,6 +410,7 @@ struct AutomationServerState {
     connection_semaphore: Arc<Semaphore>,
     audit_logger: Arc<AuditLogger>,
     pending_approvals: Arc<RwLock<HashMap<String, PendingApproval>>>,
+    rate_limit: Arc<RwLock<HashMap<String, (Instant, u32)>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -430,6 +433,7 @@ impl AutomationServerState {
             connection_semaphore: Arc::new(Semaphore::new(max_connections)),
             audit_logger,
             pending_approvals: Arc::new(RwLock::new(HashMap::new())),
+            rate_limit: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -439,6 +443,20 @@ impl AutomationServerState {
             PermissionDecision::Ask => Err("approval-required".to_string()),
             PermissionDecision::Deny => Err("capability denied".to_string()),
         }
+    }
+
+    fn check_rate_limit(&self, key: &str, max_per_minute: u32) -> Result<(), String> {
+        let mut map = self.rate_limit.write().expect("rate limit lock");
+        let now = Instant::now();
+        let entry = map.entry(key.to_string()).or_insert((now, 0));
+        if entry.0.elapsed() > Duration::from_secs(60) {
+            *entry = (now, 0);
+        }
+        entry.1 += 1;
+        if entry.1 > max_per_minute.max(1) {
+            return Err("rate-limit".to_string());
+        }
+        Ok(())
     }
 }
 
@@ -928,7 +946,7 @@ async fn handle_request(
             Some(error_response(id, "rendered text not implemented"))
         }
         AutomationRequest::ArticleText => Some(error_response(id, "article text not implemented")),
-        AutomationRequest::MountAdd { name, local_path, read_only } => {
+        AutomationRequest::MountAdd { name, local_path, read_only, allowed_domains } => {
             if let Err(error) = ensure_mount_api(state) {
                 return Some(error_response(id, &error));
             }
@@ -936,6 +954,7 @@ async fn handle_request(
                 name,
                 local_path: std::path::PathBuf::from(local_path),
                 read_only: read_only.unwrap_or(true),
+                allowed_domains: allowed_domains.unwrap_or_default(),
             });
             Some(ok_response(id))
         }
@@ -980,6 +999,9 @@ async fn handle_request(
             }
         }
         AutomationRequest::TerminalExec { cmd, args, cwd } => {
+            if let Err(error) = state.check_rate_limit("terminal-exec", 30) {
+                return Some(error_response(id, &error));
+            }
             if let Err(error) = state.check_permission(Capability::TerminalExec) {
                 if error == "approval-required" {
                     let approval_id = Uuid::new_v4().to_string();
@@ -1145,6 +1167,9 @@ async fn handle_request(
             )
         }
         AutomationRequest::FsWrite { url, body_base64 } => {
+            if let Err(error) = state.check_rate_limit("fs-write", 60) {
+                return Some(error_response(id, &error));
+            }
             if let Err(error) = state.check_permission(Capability::FsWrite) {
                 if error == "approval-required" {
                     let approval_id = Uuid::new_v4().to_string();
@@ -1638,11 +1663,12 @@ pub fn drain_automation_commands(
                     commands::AppCommand::ReloadActiveTab,
                 );
             }
-            AutomationCommand::AddMount { name, local_path, read_only } => {
+            AutomationCommand::AddMount { name, local_path, read_only, allowed_domains } => {
                 shell_state.mount_manager.add_mount(crate::mounts::Mount {
                     name,
                     mount_type: crate::mounts::MountType::FileSystem(local_path),
                     read_only,
+                    allowed_domains,
                 });
                 shell_state.record_event("automation add mount");
             }
@@ -1829,6 +1855,7 @@ mod tests {
             name: "m".to_string(),
             mount_type: crate::mounts::MountType::FileSystem(mount_dir.path().to_path_buf()),
             read_only: false,
+            allowed_domains: Vec::new(),
         });
         let runtime = start_automation_runtime(&config, &paths, mount_manager.clone()).expect("runtime");
         // Ensure the runtime handle uses the same mount manager.
@@ -1836,6 +1863,7 @@ mod tests {
             name: "m".to_string(),
             mount_type: crate::mounts::MountType::FileSystem(mount_dir.path().to_path_buf()),
             read_only: false,
+            allowed_domains: Vec::new(),
         });
 
         let audit_logger = Arc::new(AuditLogger::new(paths.audit_log_path.clone()));
@@ -1877,5 +1905,76 @@ mod tests {
         let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
         assert!(parsed.ok, "expected ok after approval: {parsed:?}");
         assert_eq!(std::fs::read(mount_dir.path().join("test.txt")).unwrap(), b"hello");
+    }
+
+    #[tokio::test]
+    async fn rate_limit_blocks_excess_terminal_exec() {
+        let dir = tempdir().unwrap();
+        let config = BrazenConfig {
+            automation: AutomationConfig {
+                enabled: true,
+                require_auth: false,
+                ..AutomationConfig::default()
+            },
+            features: crate::config::FeatureFlags {
+                automation_server: true,
+                ..crate::config::FeatureFlags::default()
+            },
+            permissions: PermissionPolicy {
+                capabilities: {
+                    let mut map = PermissionPolicy::default().capabilities;
+                    map.insert(Capability::TerminalExec, PermissionDecision::Allow);
+                    map
+                },
+                ..PermissionPolicy::default()
+            },
+            terminal: crate::config::TerminalConfig {
+                allowlist: vec!["echo".to_string()],
+                ..crate::config::TerminalConfig::default()
+            },
+            ..BrazenConfig::default()
+        };
+
+        let paths = RuntimePaths {
+            config_path: dir.path().join("brazen.toml"),
+            data_dir: dir.path().join("data"),
+            logs_dir: dir.path().join("logs"),
+            profiles_dir: dir.path().join("profiles"),
+            cache_dir: dir.path().join("cache"),
+            downloads_dir: dir.path().join("downloads"),
+            crash_dumps_dir: dir.path().join("crash"),
+            active_profile_dir: dir.path().join("profiles/default"),
+            session_path: dir.path().join("profiles/default/session.json"),
+            audit_log_path: dir.path().join("logs/audit.jsonl"),
+        };
+
+        let mount_manager = crate::mounts::MountManager::new();
+        let runtime = start_automation_runtime(&config, &paths, mount_manager).expect("runtime");
+        let audit_logger = Arc::new(AuditLogger::new(paths.audit_log_path.clone()));
+        let state = AutomationServerState::new(config.automation.clone(), runtime.handle, audit_logger);
+
+        let raw = serde_json::json!({
+            "id":"x",
+            "type":"terminal-exec",
+            "cmd":"echo",
+            "args":["hi"],
+            "cwd": null
+        })
+        .to_string();
+
+        // Allow 30/min; the 31st should fail.
+        for i in 0..30 {
+            let response = handle_request(&state, &raw, &mut Vec::new(), None, None)
+                .await
+                .expect("response");
+            let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+            assert!(parsed.ok, "expected ok on iteration {i}: {parsed:?}");
+        }
+        let response = handle_request(&state, &raw, &mut Vec::new(), None, None)
+            .await
+            .expect("response");
+        let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        assert!(!parsed.ok);
+        assert_eq!(parsed.error.as_deref(), Some("rate-limit"));
     }
 }
