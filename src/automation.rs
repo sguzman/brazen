@@ -1812,6 +1812,94 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn approval_required_contains_action_summary() {
+        let dir = tempdir().unwrap();
+        let config = BrazenConfig {
+            automation: AutomationConfig {
+                enabled: true,
+                require_auth: false,
+                ..AutomationConfig::default()
+            },
+            features: crate::config::FeatureFlags {
+                automation_server: true,
+                ..crate::config::FeatureFlags::default()
+            },
+            permissions: PermissionPolicy {
+                capabilities: {
+                    let mut map = PermissionPolicy::default().capabilities;
+                    map.insert(Capability::TerminalExec, PermissionDecision::Ask);
+                    map
+                },
+                ..PermissionPolicy::default()
+            },
+            terminal: crate::config::TerminalConfig {
+                allowlist: vec!["echo".to_string()],
+                ..crate::config::TerminalConfig::default()
+            },
+            ..BrazenConfig::default()
+        };
+
+        let paths = RuntimePaths {
+            config_path: dir.path().join("brazen.toml"),
+            data_dir: dir.path().join("data"),
+            logs_dir: dir.path().join("logs"),
+            profiles_dir: dir.path().join("profiles"),
+            cache_dir: dir.path().join("cache"),
+            downloads_dir: dir.path().join("downloads"),
+            crash_dumps_dir: dir.path().join("crash"),
+            active_profile_dir: dir.path().join("profiles/default"),
+            session_path: dir.path().join("profiles/default/session.json"),
+            audit_log_path: dir.path().join("logs/audit.jsonl"),
+        };
+
+        let mount_manager = crate::mounts::MountManager::new();
+        let runtime = start_automation_runtime(&config, &paths, mount_manager).expect("runtime");
+        let audit_logger = Arc::new(AuditLogger::new(paths.audit_log_path.clone()));
+        let state = AutomationServerState::new(config.automation.clone(), runtime.handle, audit_logger);
+
+        let raw = serde_json::json!({
+            "id":"1",
+            "type":"terminal-exec",
+            "cmd":"echo",
+            "args":["hi"],
+            "cwd": null
+        })
+        .to_string();
+        let response = handle_request(&state, &raw, &mut Vec::new(), Some("ua".to_string()), None)
+            .await
+            .expect("response");
+        let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        assert_eq!(parsed.error.as_deref(), Some("approval-required"));
+        let summary = parsed
+            .result
+            .as_ref()
+            .and_then(|v| v.get("summary"))
+            .cloned()
+            .unwrap_or(serde_json::Value::Null);
+        assert_eq!(summary["cmd"].as_str().unwrap_or(""), "echo");
+    }
+
+    #[test]
+    fn audit_logger_writes_jsonl_entries() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("audit.jsonl");
+        let logger = AuditLogger::new(path.clone());
+        logger
+            .log(AuditEntry {
+                timestamp: Utc::now(),
+                command: "test".to_string(),
+                user_agent: Some("ua".to_string()),
+                client_ip: None,
+                outcome: "ok".to_string(),
+            })
+            .unwrap();
+        let data = std::fs::read_to_string(&path).unwrap();
+        let line = data.lines().next().unwrap_or("");
+        let parsed: serde_json::Value = serde_json::from_str(line).unwrap();
+        assert_eq!(parsed["command"].as_str().unwrap_or(""), "test");
+    }
+
+    #[tokio::test]
     async fn fs_write_requires_approval_when_ask() {
         let dir = tempdir().unwrap();
         let mount_dir = tempdir().unwrap();

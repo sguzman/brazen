@@ -2876,8 +2876,8 @@ id = "security-policy-and-audit.md:7:e0553dda7e"
 file = "security-policy-and-audit.md"
 line = 7
 text = "Permissions are modeled as browser-mediated policy rather than raw OS access"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::config_defaults_merge_with_partial_overrides"]
 planned_tests = ["todo::e0553dda7e"]
 
 [[item]]
@@ -2885,8 +2885,8 @@ id = "security-policy-and-audit.md:8:5f46b45798"
 file = "security-policy-and-audit.md"
 line = 8
 text = "Logging hooks exist for startup and command activity"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::command_dispatch_routes_navigation_and_panel_state"]
 planned_tests = ["todo::5f46b45798"]
 
 [[item]]
@@ -2894,8 +2894,8 @@ id = "security-policy-and-audit.md:12:cfde75cf9e"
 file = "security-policy-and-audit.md"
 line = 12
 text = "Approval prompts with explicit action summaries"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::approval_required_contains_action_summary"]
 planned_tests = ["todo::cfde75cf9e"]
 
 [[item]]
@@ -2912,8 +2912,8 @@ id = "security-policy-and-audit.md:14:23152f479e"
 file = "security-policy-and-audit.md"
 line = 14
 text = "Origin binding rules"
-status = "planned"
-tests = []
+status = "done"
+tests = ["mounts::tests::resolve_fs_target_enforces_allowed_domains"]
 planned_tests = ["todo::23152f479e"]
 
 [[item]]
@@ -2930,8 +2930,8 @@ id = "security-policy-and-audit.md:16:5ffd26d641"
 file = "security-policy-and-audit.md"
 line = 16
 text = "Rate limiting and abuse controls"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::rate_limit_blocks_excess_terminal_exec"]
 planned_tests = ["todo::5ffd26d641"]
 
 [[item]]
@@ -2957,8 +2957,8 @@ id = "security-policy-and-audit.md:22:96aaa2b40e"
 file = "security-policy-and-audit.md"
 line = 22
 text = "Structured audit log for capability usage"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::audit_logger_writes_jsonl_entries"]
 planned_tests = ["todo::96aaa2b40e"]
 
 [[item]]
@@ -2966,8 +2966,8 @@ id = "security-policy-and-audit.md:23:a08333bca8"
 file = "security-policy-and-audit.md"
 line = 23
 text = "Tool invocation history"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::audit_logger_writes_jsonl_entries"]
 planned_tests = ["todo::a08333bca8"]
 
 [[item]]
@@ -2975,8 +2975,8 @@ id = "security-policy-and-audit.md:24:ad961da45c"
 file = "security-policy-and-audit.md"
 line = 24
 text = "Terminal command history with policy context"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::terminal_exec_requires_approval_when_ask"]
 planned_tests = ["todo::ad961da45c"]
 
 [[item]]
