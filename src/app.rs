@@ -71,9 +71,20 @@ pub struct ShellState {
     pub automation_activities: Vec<crate::automation::AutomationActivity>,
     pub tts_queue: VecDeque<String>,
     pub tts_playing: bool,
+    pub reading_queue: VecDeque<ReadingQueueItem>,
     pub mount_manager: crate::mounts::MountManager,
     pub runtime_paths: RuntimePaths,
     pub pending_window_screenshot: Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<Result<crate::engine::EngineFrame, String>>>>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadingQueueItem {
+    pub url: String,
+    pub title: Option<String>,
+    pub kind: String,
+    pub saved_at: String,
+    pub progress: f32,
+    pub article_text: Option<String>,
 }
 
 impl ShellState {
@@ -337,6 +348,7 @@ pub fn build_shell_state(
         automation_activities: Vec::new(),
         tts_queue: VecDeque::new(),
         tts_playing: false,
+        reading_queue: VecDeque::new(),
         mount_manager: crate::mounts::MountManager::new(),
         runtime_paths: paths.clone(),
         pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
@@ -2413,7 +2425,61 @@ impl BrazenApp {
         eframe::egui::Window::new("Reading Queue")
             .open(&mut open)
             .show(ctx, |ui| {
-                ui.label("Reading queue surface not wired.");
+                ui.horizontal(|ui| {
+                    ui.label(format!("Items: {}", self.shell_state.reading_queue.len()));
+                    if ui.button("Save Current Tab").clicked() {
+                        let url = self.shell_state.active_tab.current_url.clone();
+                        let title = if self.shell_state.page_title.trim().is_empty() {
+                            None
+                        } else {
+                            Some(self.shell_state.page_title.clone())
+                        };
+                        self.shell_state.reading_queue.push_back(ReadingQueueItem {
+                            url,
+                            title,
+                            kind: "link".to_string(),
+                            saved_at: Utc::now().to_rfc3339(),
+                            progress: 0.0,
+                            article_text: None,
+                        });
+                        self.shell_state.record_event("reading: enqueue link");
+                    }
+                    if ui.button("Clear").clicked() {
+                        self.shell_state.reading_queue.clear();
+                        self.shell_state.record_event("reading: clear");
+                    }
+                });
+                ui.separator();
+                eframe::egui::ScrollArea::vertical().show(ui, |ui| {
+                    let mut remove_index: Option<usize> = None;
+                    for (idx, item) in self.shell_state.reading_queue.iter_mut().enumerate() {
+                        ui.group(|ui| {
+                            ui.horizontal(|ui| {
+                                ui.label(item.kind.clone());
+                                ui.monospace(&item.url);
+                                if ui.button("Remove").clicked() {
+                                    remove_index = Some(idx);
+                                }
+                            });
+                            if let Some(title) = &item.title {
+                                if !title.trim().is_empty() {
+                                    ui.label(title);
+                                }
+                            }
+                            ui.add(
+                                eframe::egui::Slider::new(&mut item.progress, 0.0..=1.0)
+                                    .text("progress"),
+                            );
+                            if let Some(text) = &item.article_text {
+                                ui.label(format!("article chars: {}", text.len()));
+                            }
+                        });
+                    }
+                    if let Some(idx) = remove_index {
+                        let _ = self.shell_state.reading_queue.remove(idx);
+                        self.shell_state.record_event("reading: remove");
+                    }
+                });
             });
         if !open {
             self.panels.reading_queue = false;
@@ -3516,6 +3582,7 @@ mod tests {
             automation_activities: Vec::new(),
             tts_queue: VecDeque::new(),
             tts_playing: false,
+            reading_queue: VecDeque::new(),
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
@@ -3616,6 +3683,7 @@ mod tests {
             automation_activities: Vec::new(),
             tts_queue: VecDeque::new(),
             tts_playing: false,
+            reading_queue: VecDeque::new(),
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),

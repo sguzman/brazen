@@ -10,10 +10,10 @@ Tracks save-for-later, reader workflows, reading stats, and text-to-speech.
 
 ## Reading Workflows
 
-- [ ] Save-for-later queue for links
-- [ ] Save-for-later queue for extracted articles
+- [x] Save-for-later queue for links
+- [x] Save-for-later queue for extracted articles
 - [ ] Reader mode surface
-- [ ] Reading-progress tracking
+- [x] Reading-progress tracking
 - [ ] Reading stats and revisit metrics
 
 ## TTS

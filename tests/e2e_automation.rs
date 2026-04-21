@@ -245,6 +245,16 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     let response = snapshot(&url).await;
     assert!(!response["result"]["tts_playing"].as_bool().unwrap_or(true));
 
+    // Reading queue: enqueue link, set progress, then remove.
+    let response = ws_roundtrip(&url, json!({"id":"rq1","type":"reading-enqueue","url":"https://example.com/","title":"Example","kind":"link","article_text":null})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "reading enqueue failed: {response}");
+    let response = snapshot(&url).await;
+    assert!(response["result"]["reading_queue_len"].as_u64().unwrap_or(0) >= 1);
+    let response = ws_roundtrip(&url, json!({"id":"rq2","type":"reading-set-progress","url":"https://example.com/","progress":0.5})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "reading set progress failed: {response}");
+    let response = ws_roundtrip(&url, json!({"id":"rq3","type":"reading-remove","url":"https://example.com/"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "reading remove failed: {response}");
+
     // Screenshot-meta returns base64 PNG + dimensions.
     let response = ws_roundtrip(&url, json!({"id":"t5","type":"screenshot-meta"})).await;
     assert!(response["ok"].as_bool().unwrap_or(false), "screenshot failed: {response}");

@@ -58,6 +58,8 @@ pub struct AutomationSnapshot {
     pub last_event_log_len: usize,
     pub tts_queue_len: usize,
     pub tts_playing: bool,
+    pub reading_queue_len: usize,
+    pub reading_queue_urls: Vec<String>,
 }
 
 impl Default for AutomationSnapshot {
@@ -94,6 +96,8 @@ impl Default for AutomationSnapshot {
             last_event_log_len: 0,
             tts_queue_len: 0,
             tts_playing: false,
+            reading_queue_len: 0,
+            reading_queue_urls: Vec::new(),
         }
     }
 }
@@ -226,6 +230,20 @@ pub enum AutomationRequest {
     TtsEnqueue {
         text: String,
     },
+    ReadingEnqueue {
+        url: String,
+        title: Option<String>,
+        kind: Option<String>,
+        article_text: Option<String>,
+    },
+    ReadingSetProgress {
+        url: String,
+        progress: f32,
+    },
+    ReadingRemove {
+        url: String,
+    },
+    ReadingClear,
     MountAdd {
         name: String,
         local_path: String,
@@ -339,6 +357,25 @@ pub enum AutomationCommand {
         text: String,
         response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
     },
+    ReadingEnqueue {
+        url: String,
+        title: Option<String>,
+        kind: String,
+        article_text: Option<String>,
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
+    ReadingSetProgress {
+        url: String,
+        progress: f32,
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
+    ReadingRemove {
+        url: String,
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
+    ReadingClear {
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
     InteractDom {
         selector: String,
         event: String,
@@ -445,6 +482,13 @@ impl AutomationHandle {
         snapshot.last_event_log_len = shell_state.event_log.len();
         snapshot.tts_queue_len = shell_state.tts_queue.len();
         snapshot.tts_playing = shell_state.tts_playing;
+        snapshot.reading_queue_len = shell_state.reading_queue.len();
+        snapshot.reading_queue_urls = shell_state
+            .reading_queue
+            .iter()
+            .take(16)
+            .map(|item| item.url.clone())
+            .collect();
     }
 
     pub fn publish_navigation(&self, event: AutomationNavigationEvent) {
@@ -1231,6 +1275,59 @@ async fn handle_request(
         AutomationRequest::TtsEnqueue { text } => {
             let (tx, rx) = tokio::sync::oneshot::channel();
             let _ = state.handle.command_tx.send(AutomationCommand::TtsEnqueue { text, response_tx: tx });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::ReadingEnqueue { url, title, kind, article_text } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let kind = kind.unwrap_or_else(|| "link".to_string());
+            let _ = state.handle.command_tx.send(AutomationCommand::ReadingEnqueue {
+                url,
+                title,
+                kind,
+                article_text,
+                response_tx: tx,
+            });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::ReadingSetProgress { url, progress } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::ReadingSetProgress {
+                url,
+                progress,
+                response_tx: tx,
+            });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::ReadingRemove { url } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state
+                .handle
+                .command_tx
+                .send(AutomationCommand::ReadingRemove { url, response_tx: tx });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::ReadingClear => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state
+                .handle
+                .command_tx
+                .send(AutomationCommand::ReadingClear { response_tx: tx });
             match rx.await {
                 Ok(Ok(_)) => Some(ok_response(id)),
                 Ok(Err(error)) => Some(error_response(id, &error)),
@@ -2412,6 +2509,46 @@ pub fn drain_automation_commands(
             AutomationCommand::TtsEnqueue { text, response_tx } => {
                 shell_state.tts_queue.push_back(text);
                 shell_state.record_event("tts: enqueue");
+                let _ = response_tx.send(Ok(()));
+            }
+            AutomationCommand::ReadingEnqueue { url, title, kind, article_text, response_tx } => {
+                // Ensure uniqueness by URL (latest wins).
+                if let Some(pos) = shell_state.reading_queue.iter().position(|item| item.url == url) {
+                    let _ = shell_state.reading_queue.remove(pos);
+                }
+                shell_state.reading_queue.push_back(crate::app::ReadingQueueItem {
+                    url,
+                    title,
+                    kind,
+                    saved_at: Utc::now().to_rfc3339(),
+                    progress: 0.0,
+                    article_text,
+                });
+                shell_state.record_event("reading: enqueue");
+                let _ = response_tx.send(Ok(()));
+            }
+            AutomationCommand::ReadingSetProgress { url, progress, response_tx } => {
+                let progress = progress.clamp(0.0, 1.0);
+                if let Some(item) = shell_state.reading_queue.iter_mut().find(|item| item.url == url) {
+                    item.progress = progress;
+                    shell_state.record_event("reading: progress");
+                    let _ = response_tx.send(Ok(()));
+                } else {
+                    let _ = response_tx.send(Err("not found".to_string()));
+                }
+            }
+            AutomationCommand::ReadingRemove { url, response_tx } => {
+                if let Some(pos) = shell_state.reading_queue.iter().position(|item| item.url == url) {
+                    let _ = shell_state.reading_queue.remove(pos);
+                    shell_state.record_event("reading: remove");
+                    let _ = response_tx.send(Ok(()));
+                } else {
+                    let _ = response_tx.send(Err("not found".to_string()));
+                }
+            }
+            AutomationCommand::ReadingClear { response_tx } => {
+                shell_state.reading_queue.clear();
+                shell_state.record_event("reading: clear");
                 let _ = response_tx.send(Ok(()));
             }
             AutomationCommand::InteractDom { selector, event, value, response_tx } => {
