@@ -15,7 +15,7 @@ Focuses on transparent, per-asset caching from real browsing, with clear visibil
 - [ ] Respect cache policy controls for third-party and authenticated assets.
 - [ ] Enforce per-asset size caps with truncated flagging.
 - [ ] Record redirection chain metadata as separate assets.
-- [ ] Deduplicate bodies by hash while preserving per-asset entries.
+- [x] Deduplicate bodies by hash while preserving per-asset entries.
 - [ ] Persist request/response headers alongside metadata records.
 - [ ] Add explicit storage mode (memory/disk/archive) per asset record.
 - [ ] Emit structured tracing for capture decisions and outcomes.
@@ -40,16 +40,16 @@ Focuses on transparent, per-asset caching from real browsing, with clear visibil
 ## Policy + Config
 
 - [ ] Add config for capture-all vs selective modes.
-- [ ] Add explicit MIME allow/deny lists with glob support.
+- [x] Add explicit MIME allow/deny lists with glob support.
 - [ ] Add per-host capture policy overrides.
 - [ ] Add config for “store bodies always” vs “metadata-only”.
 - [ ] Add config for max total cache size with GC strategy.
-- [ ] Add config for “no-dedupe” mode for strict per-asset storage.
+- [x] Add config for “no-dedupe” mode for strict per-asset storage.
 
 ## Testing
 
-- [ ] Unit tests for MIME parsing and policy decisions.
-- [ ] Unit tests for body dedupe with distinct asset entries.
+- [x] Unit tests for MIME parsing and policy decisions.
+- [x] Unit tests for body dedupe with distinct asset entries.
 - [ ] Integration test: local server with HTML + CSS + JS + images; verify per-asset records.
 - [ ] Integration test: redirect chain produces multiple assets.
-- [ ] CLI tests for list/show/export commands.
+- [x] CLI tests for list/show/export commands.

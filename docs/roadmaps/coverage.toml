@@ -698,8 +698,8 @@ id = "cache-capture-and-query.md:18:8b51a90f88"
 file = "cache-capture-and-query.md"
 line = 18
 text = "Deduplicate bodies by hash while preserving per-asset entries."
-status = "planned"
-tests = []
+status = "done"
+tests = ["cache::tests::asset_store_deduplicates_body_hashes"]
 planned_tests = ["todo::8b51a90f88"]
 
 [[item]]
@@ -842,8 +842,8 @@ id = "cache-capture-and-query.md:43:435762b134"
 file = "cache-capture-and-query.md"
 line = 43
 text = "Add explicit MIME allow/deny lists with glob support."
-status = "planned"
-tests = []
+status = "done"
+tests = ["cache::tests::mime_policy_honors_glob_allowlist_and_denylist"]
 planned_tests = ["todo::435762b134"]
 
 [[item]]
@@ -878,8 +878,8 @@ id = "cache-capture-and-query.md:47:8b07be8067"
 file = "cache-capture-and-query.md"
 line = 47
 text = "Add config for “no-dedupe” mode for strict per-asset storage."
-status = "planned"
-tests = []
+status = "done"
+tests = ["cache::tests::no_dedupe_mode_stores_distinct_bodies"]
 planned_tests = ["todo::8b07be8067"]
 
 [[item]]
@@ -887,8 +887,8 @@ id = "cache-capture-and-query.md:51:a434f86258"
 file = "cache-capture-and-query.md"
 line = 51
 text = "Unit tests for MIME parsing and policy decisions."
-status = "planned"
-tests = []
+status = "done"
+tests = ["cache::tests::mime_policy_honors_glob_allowlist_and_denylist"]
 planned_tests = ["todo::a434f86258"]
 
 [[item]]
@@ -896,8 +896,8 @@ id = "cache-capture-and-query.md:52:1f8c4c05e8"
 file = "cache-capture-and-query.md"
 line = 52
 text = "Unit tests for body dedupe with distinct asset entries."
-status = "planned"
-tests = []
+status = "done"
+tests = ["cache::tests::asset_store_deduplicates_body_hashes"]
 planned_tests = ["todo::1f8c4c05e8"]
 
 [[item]]
@@ -923,8 +923,8 @@ id = "cache-capture-and-query.md:55:e07f8282fb"
 file = "cache-capture-and-query.md"
 line = 55
 text = "CLI tests for list/show/export commands."
-status = "planned"
-tests = []
+status = "done"
+tests = ["cli_cache::cache_cli_fetch_records_asset"]
 planned_tests = ["todo::e07f8282fb"]
 
 [[item]]
@@ -932,8 +932,8 @@ id = "capability-permissions.md:7:6a32bde847"
 file = "capability-permissions.md"
 line = 7
 text = "Capability-oriented permission policy exists"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::config_defaults_merge_with_partial_overrides"]
 planned_tests = ["todo::6a32bde847"]
 
 [[item]]
@@ -941,8 +941,8 @@ id = "capability-permissions.md:8:b86c24dc06"
 file = "capability-permissions.md"
 line = 8
 text = "Default decision model supports `allow`, `ask`, and `deny`"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::config_defaults_merge_with_partial_overrides"]
 planned_tests = ["todo::b86c24dc06"]
 
 [[item]]
@@ -950,8 +950,8 @@ id = "capability-permissions.md:9:d8af74b4d5"
 file = "capability-permissions.md"
 line = 9
 text = "Capability defaults are configurable in TOML"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::config_defaults_merge_with_partial_overrides"]
 planned_tests = ["todo::d8af74b4d5"]
 
 [[item]]
@@ -968,8 +968,8 @@ id = "capability-permissions.md:14:1b69086988"
 file = "capability-permissions.md"
 line = 14
 text = "Terminal execution capability placeholder exists in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::1b69086988"]
 
 [[item]]
@@ -977,8 +977,8 @@ id = "capability-permissions.md:15:1d50caa266"
 file = "capability-permissions.md"
 line = 15
 text = "DOM read capability placeholder exists in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::1d50caa266"]
 
 [[item]]
@@ -986,8 +986,8 @@ id = "capability-permissions.md:16:a3efae5655"
 file = "capability-permissions.md"
 line = 16
 text = "Cache read capability placeholder exists in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::a3efae5655"]
 
 [[item]]
@@ -995,8 +995,8 @@ id = "capability-permissions.md:17:ad0e16cb18"
 file = "capability-permissions.md"
 line = 17
 text = "Tab inspection capability placeholder exists in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::ad0e16cb18"]
 
 [[item]]
@@ -1004,8 +1004,8 @@ id = "capability-permissions.md:18:eaa8a4aeb0"
 file = "capability-permissions.md"
 line = 18
 text = "AI tool usage capability placeholder exists in config"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::eaa8a4aeb0"]
 
 [[item]]
@@ -1013,8 +1013,8 @@ id = "capability-permissions.md:19:f63573fe80"
 file = "capability-permissions.md"
 line = 19
 text = "Terminal output-read capability"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::f63573fe80"]
 
 [[item]]
@@ -1022,8 +1022,8 @@ id = "capability-permissions.md:20:fe2c9fc9cd"
 file = "capability-permissions.md"
 line = 20
 text = "File / workspace access capabilities"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::fe2c9fc9cd"]
 
 [[item]]
@@ -1076,8 +1076,8 @@ id = "capability-permissions.md:29:276fa01724"
 file = "capability-permissions.md"
 line = 29
 text = "One-shot approval prompts"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::terminal_exec_requires_approval_when_ask"]
 planned_tests = ["todo::276fa01724"]
 
 [[item]]
@@ -1103,8 +1103,8 @@ id = "capability-permissions.md:32:8de5db5d32"
 file = "capability-permissions.md"
 line = 32
 text = "Capability-specific argument constraints"
-status = "planned"
-tests = []
+status = "done"
+tests = ["terminal::tests::terminal_enforces_allowlist"]
 planned_tests = ["todo::8de5db5d32"]
 
 [[item]]
@@ -1139,8 +1139,8 @@ id = "capability-permissions.md:39:dab3e8f940"
 file = "capability-permissions.md"
 line = 39
 text = "Programmatic checks for automation / API clients"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::terminal_exec_requires_approval_when_ask"]
 planned_tests = ["todo::dab3e8f940"]
 
 [[item]]

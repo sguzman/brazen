@@ -26,6 +26,9 @@ fn default_config_contains_capability_sections() {
     let config = default_config_toml();
     assert!(config.contains("[permissions.capabilities]"));
     assert!(config.contains("[automation]"));
+    assert!(config.contains("terminal-output-read"));
+    assert!(config.contains("fs-read"));
+    assert!(config.contains("fs-write"));
 }
 
 #[test]

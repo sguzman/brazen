@@ -4,20 +4,20 @@ Tracks browser-mediated grants for sensitive capabilities, following the same co
 
 ## Current State
 
-- [ ] Capability-oriented permission policy exists
-- [ ] Default decision model supports `allow`, `ask`, and `deny`
-- [ ] Capability defaults are configurable in TOML
+- [x] Capability-oriented permission policy exists
+- [x] Default decision model supports `allow`, `ask`, and `deny`
+- [x] Capability defaults are configurable in TOML
 - [ ] Permission state is visible in the shell
 
 ## Capability Surface
 
-- [ ] Terminal execution capability placeholder exists in config
-- [ ] DOM read capability placeholder exists in config
-- [ ] Cache read capability placeholder exists in config
-- [ ] Tab inspection capability placeholder exists in config
-- [ ] AI tool usage capability placeholder exists in config
-- [ ] Terminal output-read capability
-- [ ] File / workspace access capabilities
+- [x] Terminal execution capability placeholder exists in config
+- [x] DOM read capability placeholder exists in config
+- [x] Cache read capability placeholder exists in config
+- [x] Tab inspection capability placeholder exists in config
+- [x] AI tool usage capability placeholder exists in config
+- [x] Terminal output-read capability
+- [x] File / workspace access capabilities
 - [ ] Database / notes-vault capabilities
 - [ ] OCR and media-transcript capabilities
 
@@ -26,14 +26,14 @@ Tracks browser-mediated grants for sensitive capabilities, following the same co
 - [ ] Origin-scoped grants
 - [ ] Session-scoped grants
 - [ ] Profile-scoped grants
-- [ ] One-shot approval prompts
+- [x] One-shot approval prompts
 - [ ] Revocation and deny-remembering rules
 - [ ] Dry-run and preview execution modes
-- [ ] Capability-specific argument constraints
+- [x] Capability-specific argument constraints
 
 ## Product Surfaces
 
 - [ ] Runtime prompt UI
 - [ ] Grant history UI
 - [ ] Capability policy editor UI
-- [ ] Programmatic checks for automation / API clients
+- [x] Programmatic checks for automation / API clients
