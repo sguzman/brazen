@@ -34,6 +34,23 @@ impl Capability {
             Self::ScreenshotWindow => "screenshot-window",
         }
     }
+
+    pub fn from_label(label: &str) -> Option<Self> {
+        match label {
+            "terminal-exec" => Some(Self::TerminalExec),
+            "terminal-output-read" => Some(Self::TerminalOutputRead),
+            "dom-read" => Some(Self::DomRead),
+            "cache-read" => Some(Self::CacheRead),
+            "tab-inspect" => Some(Self::TabInspect),
+            "ai-tool-use" => Some(Self::AiToolUse),
+            "virtual-resource-mount" => Some(Self::VirtualResourceMount),
+            "fs-read" => Some(Self::FsRead),
+            "fs-write" => Some(Self::FsWrite),
+            "dom-write" => Some(Self::DomWrite),
+            "screenshot-window" => Some(Self::ScreenshotWindow),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -43,6 +60,25 @@ pub enum PermissionDecision {
     #[default]
     Ask,
     Deny,
+}
+
+impl PermissionDecision {
+    pub fn from_label(label: &str) -> Option<Self> {
+        match label {
+            "allow" => Some(Self::Allow),
+            "ask" => Some(Self::Ask),
+            "deny" => Some(Self::Deny),
+            _ => None,
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Allow => "allow",
+            Self::Ask => "ask",
+            Self::Deny => "deny",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

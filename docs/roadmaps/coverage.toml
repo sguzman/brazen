@@ -2589,8 +2589,8 @@ id = "persistence-and-profiles.md:17:c8cf35f0c2"
 file = "persistence-and-profiles.md"
 line = 17
 text = "Permission-grant persistence"
-status = "planned"
-tests = []
+status = "done"
+tests = ["profile_db::tests::db_round_trips_permission_grants", "permission_grants_persist::persisted_permission_grants_override_default_policy"]
 planned_tests = ["todo::c8cf35f0c2"]
 
 [[item]]

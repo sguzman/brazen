@@ -14,7 +14,7 @@ Tracks config, data directories, structured local state, and multi-profile isola
 - [x] Structured browser-state persistence beyond config/logs (SQLite per profile)
 - [x] Session persistence
 - [x] History persistence
-- [ ] Permission-grant persistence
+- [x] Permission-grant persistence
 - [ ] Cache index persistence
 - [x] Reading and knowledge persistence (reading + TTS + visit stats)
 

@@ -78,8 +78,20 @@ pub fn bootstrap(
     let config_path = options
         .config_path
         .unwrap_or_else(|| platform_paths.default_config_path());
-    let config = BrazenConfig::load_with_defaults(&config_path)?;
+    let mut config = BrazenConfig::load_with_defaults(&config_path)?;
     let runtime_paths = platform_paths.resolve_runtime_paths(&config, &config_path)?;
+
+    // Merge persisted permission grants (profile-scoped) into the effective config policy.
+    if let Ok(db) = profile_db::ProfileDb::open(runtime_paths.active_profile_dir.join("state.sqlite"))
+        && let Ok(grants) = db.load_permission_grants()
+    {
+        for (domain, overrides) in grants {
+            let entry = config.permissions.domain_overrides.entry(domain).or_default();
+            for (capability, decision) in overrides {
+                entry.insert(capability, decision);
+            }
+        }
+    }
 
     init_tracing(&config.logging, &runtime_paths.logs_dir)?;
 

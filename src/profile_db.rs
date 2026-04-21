@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use rusqlite::{Connection, OptionalExtension};
 
 use crate::app::ReadingQueueItem;
+use crate::permissions::{Capability, PermissionDecision};
 
 #[derive(Debug, Clone)]
 pub struct ProfileDb {
@@ -75,6 +76,14 @@ impl ProfileDb {
             CREATE TABLE IF NOT EXISTS visit_counts (
               url TEXT PRIMARY KEY,
               count INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS permission_grants (
+              domain TEXT NOT NULL,
+              capability TEXT NOT NULL,
+              decision TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              PRIMARY KEY(domain, capability)
             );
             "#,
         )
@@ -267,6 +276,65 @@ impl ProfileDb {
 
         Ok((visit_total.max(0) as u64, revisit_total.max(0) as u64, counts))
     }
+
+    pub fn upsert_permission_grant(
+        &self,
+        domain: &str,
+        capability: Capability,
+        decision: PermissionDecision,
+        updated_at: &str,
+    ) -> Result<(), String> {
+        let conn = self.connect()?;
+        conn.execute(
+            r#"
+            INSERT INTO permission_grants(domain, capability, decision, updated_at)
+            VALUES(?,?,?,?)
+            ON CONFLICT(domain, capability) DO UPDATE SET
+              decision=excluded.decision,
+              updated_at=excluded.updated_at
+            "#,
+            (domain, capability.label(), decision.label(), updated_at),
+        )
+        .map_err(|e| format!("upsert permission grant failed: {e}"))?;
+        Ok(())
+    }
+
+    pub fn load_permission_grants(
+        &self,
+    ) -> Result<std::collections::BTreeMap<String, std::collections::BTreeMap<Capability, PermissionDecision>>, String>
+    {
+        let conn = self.connect()?;
+        let mut stmt = conn
+            .prepare("SELECT domain, capability, decision FROM permission_grants")
+            .map_err(|e| format!("prepare permission grants failed: {e}"))?;
+        let mut rows = stmt
+            .query([])
+            .map_err(|e| format!("query permission grants failed: {e}"))?;
+        let mut out: std::collections::BTreeMap<
+            String,
+            std::collections::BTreeMap<Capability, PermissionDecision>,
+        > = std::collections::BTreeMap::new();
+        while let Some(row) = rows
+            .next()
+            .map_err(|e| format!("read permission grant row failed: {e}"))?
+        {
+            let domain: String = row.get(0).map_err(|e| format!("get domain failed: {e}"))?;
+            let capability: String =
+                row.get(1).map_err(|e| format!("get capability failed: {e}"))?;
+            let decision: String =
+                row.get(2).map_err(|e| format!("get decision failed: {e}"))?;
+            let Some(capability) = Capability::from_label(&capability) else {
+                continue;
+            };
+            let Some(decision) = PermissionDecision::from_label(&decision) else {
+                continue;
+            };
+            out.entry(domain)
+                .or_default()
+                .insert(capability, decision);
+        }
+        Ok(out)
+    }
 }
 
 #[cfg(test)]
@@ -314,5 +382,26 @@ mod tests {
         assert_eq!(revisit_total, 1);
         assert_eq!(loaded.get("u1").copied(), Some(2));
     }
-}
 
+    #[test]
+    fn db_round_trips_permission_grants() {
+        let dir = tempfile::tempdir().unwrap();
+        let db_path = dir.path().join("state.sqlite");
+        let db = ProfileDb::open(&db_path).unwrap();
+        db.upsert_permission_grant(
+            "example.com",
+            Capability::TerminalExec,
+            PermissionDecision::Allow,
+            "now",
+        )
+        .unwrap();
+        let loaded = db.load_permission_grants().unwrap();
+        assert_eq!(
+            loaded
+                .get("example.com")
+                .and_then(|m| m.get(&Capability::TerminalExec))
+                .copied(),
+            Some(PermissionDecision::Allow)
+        );
+    }
+}
