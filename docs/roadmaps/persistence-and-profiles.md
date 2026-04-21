@@ -24,7 +24,7 @@ Tracks config, data directories, structured local state, and multi-profile isola
 - [x] Per-profile cache roots
 - [ ] Per-profile connector policies
 - [ ] Per-profile automation/API settings
-- [ ] Import/export profile bundles
+- [x] Import/export profile bundles
 
 ## Migration And Durability
 

@@ -30,6 +30,9 @@ use std::path::Path;
 use std::collections::HashMap;
 use uuid::Uuid;
 use tokio::io::{AsyncBufReadExt, BufReader};
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use tar::{Archive, Builder};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AutomationSnapshot {
@@ -311,6 +314,16 @@ pub enum AutomationRequest {
     },
     ProfileSwitch {
         profile_id: String,
+    },
+    ProfileExport {
+        profile_id: String,
+        output_path: String,
+        include_cache_blobs: Option<bool>,
+    },
+    ProfileImport {
+        profile_id: String,
+        input_path: String,
+        overwrite: Option<bool>,
     },
     Shutdown,
 }
@@ -759,6 +772,99 @@ fn run_automation_server(bind: &str, state: AutomationServerState) -> Result<(),
         }
         Ok(())
     })
+}
+
+fn is_safe_relpath(path: &std::path::Path) -> bool {
+    !path.is_absolute()
+        && !path
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+}
+
+fn add_dir_to_tar(
+    builder: &mut Builder<GzEncoder<std::fs::File>>,
+    src_dir: &std::path::Path,
+    tar_prefix: &str,
+) -> Result<(), String> {
+    if !src_dir.exists() {
+        return Ok(());
+    }
+    let walk = walkdir::WalkDir::new(src_dir).into_iter();
+    for entry in walk {
+        let entry = entry.map_err(|e| format!("walk error: {e}"))?;
+        let path = entry.path();
+        let rel = path
+            .strip_prefix(src_dir)
+            .map_err(|e| format!("strip prefix: {e}"))?;
+        if rel.as_os_str().is_empty() {
+            continue;
+        }
+        if !is_safe_relpath(rel) {
+            return Err("unsafe path in export".to_string());
+        }
+        let tar_path = std::path::Path::new(tar_prefix).join(rel);
+        if entry.file_type().is_dir() {
+            builder
+                .append_dir(&tar_path, path)
+                .map_err(|e| format!("append_dir failed: {e}"))?;
+        } else if entry.file_type().is_file() {
+            let mut file =
+                std::fs::File::open(path).map_err(|e| format!("open file failed: {e}"))?;
+            builder
+                .append_file(&tar_path, &mut file)
+                .map_err(|e| format!("append_file failed: {e}"))?;
+        }
+    }
+    Ok(())
+}
+
+fn unpack_tar_to_dir(
+    input_path: &std::path::Path,
+    dest_dir: &std::path::Path,
+    expected_prefix: &str,
+    overwrite: bool,
+) -> Result<(), String> {
+    let file =
+        std::fs::File::open(input_path).map_err(|e| format!("open bundle failed: {e}"))?;
+    let decoder = flate2::read::GzDecoder::new(file);
+    let mut archive = Archive::new(decoder);
+    for entry in archive.entries().map_err(|e| format!("entries failed: {e}"))? {
+        let mut entry = entry.map_err(|e| format!("entry failed: {e}"))?;
+        let path = entry
+            .path()
+            .map_err(|e| format!("entry path failed: {e}"))?
+            .into_owned();
+        if !is_safe_relpath(&path) {
+            return Err("unsafe path in bundle".to_string());
+        }
+        let mut comps = path.components();
+        let Some(first) = comps.next() else {
+            continue;
+        };
+        let first = first.as_os_str().to_string_lossy().to_string();
+        if first != expected_prefix {
+            continue;
+        }
+        let rel: std::path::PathBuf = comps.collect();
+        if rel.as_os_str().is_empty() {
+            continue;
+        }
+        if !is_safe_relpath(&rel) {
+            return Err("unsafe rel path in bundle".to_string());
+        }
+        let out_path = dest_dir.join(rel);
+        if let Some(parent) = out_path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("mkdir failed: {e}"))?;
+        }
+        if out_path.exists() && !overwrite {
+            continue;
+        }
+        entry
+            .unpack(&out_path)
+            .map_err(|e| format!("unpack failed: {e}"))?;
+    }
+    Ok(())
 }
 
 fn ensure_mount_api(state: &AutomationServerState) -> Result<(), String> {
@@ -2253,6 +2359,121 @@ async fn handle_request(
             };
             Some(serde_json::to_string(&response).unwrap())
         }
+        AutomationRequest::ProfileExport {
+            profile_id,
+            output_path,
+            include_cache_blobs,
+        } => {
+            let profile_id = profile_id.trim().to_string();
+            if profile_id.is_empty() {
+                return Some(error_response(id, "profile id required"));
+            }
+            if profile_id.contains("..") || profile_id.contains('/') || profile_id.contains('\\') {
+                return Some(error_response(id, "invalid profile id"));
+            }
+            let include_cache_blobs = include_cache_blobs.unwrap_or(false);
+            let out_path = std::path::PathBuf::from(output_path);
+            if let Some(parent) = out_path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            let file = match std::fs::File::create(&out_path) {
+                Ok(f) => f,
+                Err(e) => return Some(error_response(id, &format!("create bundle failed: {e}"))),
+            };
+            let encoder = GzEncoder::new(file, Compression::default());
+            let mut builder = Builder::new(encoder);
+
+            let profile_dir = state.handle.runtime_paths.profiles_dir.join(&profile_id);
+            let cache_dir = state.handle.runtime_paths.cache_dir.join(&profile_id);
+            let mut items = Vec::new();
+            items.push(("profile", profile_dir.clone()));
+            items.push(("cache", cache_dir.clone()));
+
+            // Always include: profile/* and cache/{index,metadata,headers,pinned}. Blobs optional.
+            if let Err(error) = add_dir_to_tar(&mut builder, &profile_dir, "profile") {
+                return Some(error_response(id, &error));
+            }
+            if cache_dir.exists() {
+                let wanted = ["index.jsonl", "metadata.jsonl", "headers.jsonl", "pinned.json"];
+                for name in wanted {
+                    let p = cache_dir.join(name);
+                    if p.exists() {
+                        let rel = std::path::Path::new("cache").join(name);
+                        let mut f = match std::fs::File::open(&p) {
+                            Ok(f) => f,
+                            Err(e) => return Some(error_response(id, &format!("open cache file failed: {e}"))),
+                        };
+                        if let Err(e) = builder.append_file(rel, &mut f) {
+                            return Some(error_response(id, &format!("append cache file failed: {e}")));
+                        }
+                    }
+                }
+                if include_cache_blobs {
+                    let blobs = cache_dir.join("blobs");
+                    if let Err(error) = add_dir_to_tar(&mut builder, &blobs, "cache/blobs") {
+                        return Some(error_response(id, &error));
+                    }
+                }
+            }
+            if let Err(e) = builder.finish() {
+                return Some(error_response(id, &format!("finish bundle failed: {e}")));
+            }
+
+            let response = AutomationResponse {
+                id,
+                ok: true,
+                result: Some(serde_json::json!({
+                    "profile_id": profile_id,
+                    "output_path": out_path.display().to_string(),
+                    "include_cache_blobs": include_cache_blobs,
+                    "included": items.iter().map(|(k,p)| serde_json::json!({"kind":k,"path":p.display().to_string()})).collect::<Vec<_>>(),
+                })),
+                error: None,
+            };
+            Some(serde_json::to_string(&response).unwrap())
+        }
+        AutomationRequest::ProfileImport {
+            profile_id,
+            input_path,
+            overwrite,
+        } => {
+            let profile_id = profile_id.trim().to_string();
+            if profile_id.is_empty() {
+                return Some(error_response(id, "profile id required"));
+            }
+            if profile_id.contains("..") || profile_id.contains('/') || profile_id.contains('\\') {
+                return Some(error_response(id, "invalid profile id"));
+            }
+            let input_path = std::path::PathBuf::from(input_path);
+            let overwrite = overwrite.unwrap_or(false);
+
+            let profile_dir = state.handle.runtime_paths.profiles_dir.join(&profile_id);
+            let cache_dir = state.handle.runtime_paths.cache_dir.join(&profile_id);
+            let _ = std::fs::create_dir_all(&profile_dir);
+            let _ = std::fs::create_dir_all(&cache_dir);
+
+            if let Err(error) = unpack_tar_to_dir(&input_path, &profile_dir, "profile", overwrite) {
+                return Some(error_response(id, &error));
+            }
+            if let Err(error) = unpack_tar_to_dir(&input_path, &cache_dir, "cache", overwrite) {
+                return Some(error_response(id, &error));
+            }
+
+            // Ensure schema exists if state.sqlite missing.
+            let _ = crate::profile_db::ProfileDb::open(profile_dir.join("state.sqlite"));
+
+            let response = AutomationResponse {
+                id,
+                ok: true,
+                result: Some(serde_json::json!({
+                    "profile_id": profile_id,
+                    "input_path": input_path.display().to_string(),
+                    "overwrite": overwrite,
+                })),
+                error: None,
+            };
+            Some(serde_json::to_string(&response).unwrap())
+        }
         AutomationRequest::Shutdown => {
             let result = state.handle.request_shutdown();
             match result {
@@ -3721,6 +3942,91 @@ mod tests {
             updated.contains("active_profile") && updated.contains("p2"),
             "expected config to include active_profile=p2: {updated}"
         );
+    }
+
+    #[tokio::test]
+    async fn profile_export_and_import_round_trip_state() {
+        let dir = tempdir().unwrap();
+        let config = BrazenConfig {
+            automation: AutomationConfig {
+                enabled: true,
+                require_auth: false,
+                ..AutomationConfig::default()
+            },
+            features: crate::config::FeatureFlags {
+                automation_server: true,
+                ..crate::config::FeatureFlags::default()
+            },
+            ..BrazenConfig::default()
+        };
+
+        let config_path = dir.path().join("brazen.toml");
+        std::fs::write(&config_path, " \n").unwrap();
+        let paths = RuntimePaths {
+            config_path,
+            data_dir: dir.path().join("data"),
+            logs_dir: dir.path().join("logs"),
+            profiles_dir: dir.path().join("profiles"),
+            cache_dir: dir.path().join("cache"),
+            downloads_dir: dir.path().join("downloads"),
+            crash_dumps_dir: dir.path().join("crash"),
+            active_profile_dir: dir.path().join("profiles/default"),
+            session_path: dir.path().join("profiles/default/session.json"),
+            audit_log_path: dir.path().join("logs/audit.jsonl"),
+        };
+
+        let runtime = start_automation_runtime(&config, &paths, crate::mounts::MountManager::new())
+            .expect("runtime");
+        let audit_logger = Arc::new(AuditLogger::new(paths.audit_log_path.clone()));
+        let state = AutomationServerState::new(config.automation.clone(), runtime.handle, audit_logger);
+
+        // Create profile with some state.
+        let profile_id = "p_src";
+        let profile_dir = paths.profiles_dir.join(profile_id);
+        std::fs::create_dir_all(&profile_dir).unwrap();
+        let db = crate::profile_db::ProfileDb::open(profile_dir.join("state.sqlite")).unwrap();
+        db.save_tts_state(true, &["hi".to_string()]).unwrap();
+
+        let cache_dir = paths.cache_dir.join(profile_id);
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        std::fs::write(cache_dir.join("index.jsonl"), "[]\n").unwrap();
+
+        // Export.
+        let bundle = dir.path().join("bundle.tar.gz");
+        let raw = serde_json::json!({
+            "id": "1",
+            "type": "profile-export",
+            "profile_id": profile_id,
+            "output_path": bundle.display().to_string(),
+            "include_cache_blobs": false
+        })
+        .to_string();
+        let response = handle_request(&state, &raw, &mut Vec::new(), None, None)
+            .await
+            .expect("export resp");
+        let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        assert!(parsed.ok);
+        assert!(bundle.exists());
+
+        // Import into another profile id.
+        let raw = serde_json::json!({
+            "id": "2",
+            "type": "profile-import",
+            "profile_id": "p_dst",
+            "input_path": bundle.display().to_string(),
+            "overwrite": true
+        })
+        .to_string();
+        let response = handle_request(&state, &raw, &mut Vec::new(), None, None)
+            .await
+            .expect("import resp");
+        let parsed: AutomationResponse<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        assert!(parsed.ok);
+
+        let dst_db = crate::profile_db::ProfileDb::open(paths.profiles_dir.join("p_dst/state.sqlite")).unwrap();
+        let (playing, queue) = dst_db.load_tts_state().unwrap();
+        assert!(playing);
+        assert_eq!(queue.first().map(|s| s.as_str()), Some("hi"));
     }
 }
 

@@ -2652,8 +2652,8 @@ id = "persistence-and-profiles.md:27:0d32663326"
 file = "persistence-and-profiles.md"
 line = 27
 text = "Import/export profile bundles"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::profile_export_and_import_round_trip_state"]
 planned_tests = ["todo::0d32663326"]
 
 [[item]]

@@ -66,6 +66,22 @@ pub enum IntrospectCommand {
         /// Profile id/name
         id: String,
     },
+    /// Export a profile bundle (.tar.gz)
+    ProfileExport {
+        id: String,
+        #[arg(short, long)]
+        output: String,
+        #[arg(long)]
+        include_cache_blobs: bool,
+    },
+    /// Import a profile bundle (.tar.gz)
+    ProfileImport {
+        id: String,
+        #[arg(short, long)]
+        input: String,
+        #[arg(long)]
+        overwrite: bool,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -88,6 +104,8 @@ enum AutomationRequest {
     Shutdown,
     ProfileCreate { profile_id: String },
     ProfileSwitch { profile_id: String },
+    ProfileExport { profile_id: String, output_path: String, include_cache_blobs: Option<bool> },
+    ProfileImport { profile_id: String, input_path: String, overwrite: Option<bool> },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -293,6 +311,44 @@ pub async fn run_introspect_cli(args: &[String]) -> Result<(), Box<dyn std::erro
             let request = AutomationEnvelope {
                 id: Some("cli-profile-switch".to_string()),
                 payload: AutomationRequest::ProfileSwitch { profile_id: id },
+            };
+            write.send(Message::Text(serde_json::to_string(&request)?.into())).await?;
+            if let Some(Ok(Message::Text(text))) = read.next().await {
+                let response: AutomationResponse<serde_json::Value> = serde_json::from_str(&text)?;
+                if response.ok {
+                    println!("{}", serde_json::to_string_pretty(&response.result)?);
+                } else {
+                    eprintln!("Error: {}", response.error.unwrap_or_default());
+                }
+            }
+        }
+        IntrospectCommand::ProfileExport { id, output, include_cache_blobs } => {
+            let request = AutomationEnvelope {
+                id: Some("cli-profile-export".to_string()),
+                payload: AutomationRequest::ProfileExport {
+                    profile_id: id,
+                    output_path: output,
+                    include_cache_blobs: Some(include_cache_blobs),
+                },
+            };
+            write.send(Message::Text(serde_json::to_string(&request)?.into())).await?;
+            if let Some(Ok(Message::Text(text))) = read.next().await {
+                let response: AutomationResponse<serde_json::Value> = serde_json::from_str(&text)?;
+                if response.ok {
+                    println!("{}", serde_json::to_string_pretty(&response.result)?);
+                } else {
+                    eprintln!("Error: {}", response.error.unwrap_or_default());
+                }
+            }
+        }
+        IntrospectCommand::ProfileImport { id, input, overwrite } => {
+            let request = AutomationEnvelope {
+                id: Some("cli-profile-import".to_string()),
+                payload: AutomationRequest::ProfileImport {
+                    profile_id: id,
+                    input_path: input,
+                    overwrite: Some(overwrite),
+                },
             };
             write.send(Message::Text(serde_json::to_string(&request)?.into())).await?;
             if let Some(Ok(Message::Text(text))) = read.next().await {
