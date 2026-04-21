@@ -1,0 +1,548 @@
+[1m[92m   Compiling[0m brazen v0.1.0 (/win/linux/Code/rust/brazen)
+[1m[33mwarning[0m[1m: fields `cache_config`, `runtime_paths`, `profile_id`, and `expose_cache_api` are never read[0m
+   [1m[94m--> [0msrc/automation.rs:319:5
+    [1m[94m|[0m
+[1m[94m315[0m [1m[94m|[0m pub struct AutomationHandle {
+    [1m[94m|[0m            [1m[94m----------------[0m [1m[94mfields in this struct[0m
+[1m[94m...[0m
+[1m[94m319[0m [1m[94m|[0m     cache_config: CacheConfig,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^^^[0m
+[1m[94m320[0m [1m[94m|[0m     runtime_paths: RuntimePaths,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^[0m
+[1m[94m321[0m [1m[94m|[0m     profile_id: String,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^[0m
+[1m[94m...[0m
+[1m[94m324[0m [1m[94m|[0m     expose_cache_api: bool,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^^^[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `AutomationHandle` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+    [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: function `ensure_cache_api` is never used[0m
+    [1m[94m--> [0msrc/automation.rs:1621:4
+     [1m[94m|[0m
+[1m[94m1621[0m [1m[94m|[0m fn ensure_cache_api(state: &AutomationServerState) -> Result<(), String> {
+     [1m[94m|[0m    [1m[33m^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: struct `AutomationCacheBody` is never constructed[0m
+    [1m[94m--> [0msrc/automation.rs:1682:8
+     [1m[94m|[0m
+[1m[94m1682[0m [1m[94m|[0m struct AutomationCacheBody {
+     [1m[94m|[0m        [1m[33m^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `load_cache_body` is never used[0m
+    [1m[94m--> [0msrc/automation.rs:1689:4
+     [1m[94m|[0m
+[1m[94m1689[0m [1m[94m|[0m fn load_cache_body(
+     [1m[94m|[0m    [1m[33m^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `brazen` (lib) generated 4 warnings
+[1m[92m    Finished[0m ]8;;https://doc.rust-lang.org/cargo/reference/profiles.html#default-profiles\`test` profile [unoptimized + debuginfo]]8;;\ target(s) in 2.04s
+[1m[92m     Running[0m tests/e2e_automation.rs (target/debug/deps/e2e_automation-3d867a4b0a9e8c02)
+
+running 1 test
+[2m2026-04-21T15:51:11.599601Z[0m [32m INFO[0m [2mbrazen::logging[0m[2m:[0m tracing initialized [3mpath[0m[2m=[0m/win/linux/Code/rust/brazen/logs
+[2m2026-04-21T15:51:11.599800Z[0m [32m INFO[0m [2mbrazen[0m[2m:[0m starting brazen shell
+[2m2026-04-21T15:51:11.599860Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m audit logging initialized [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.601675Z[0m [33m WARN[0m [2mwinit::platform_impl::linux::x11::xdisplay[0m[2m:[0m error setting XSETTINGS; Xft options won't reload automatically
+[2m2026-04-21T15:51:11.601679Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m automation server listening [3maddr[0m[2m=[0m127.0.0.1:0 [3mpath[0m[2m=[0m"/ws"
+[2m2026-04-21T15:51:11.610034Z[0m [33m WARN[0m [2mwinit::platform_impl::linux::x11::util::randr[0m[2m:[0m XRandR reported that the display's 0mm in size, which is certifiably insane
+[2m2026-04-21T15:51:11.628027Z[0m [32m INFO[0m [2mwinit::platform_impl::linux::x11::window[0m[2m:[0m Guessed window scale factor: 1
+[2m2026-04-21T15:51:11.643799Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: TabNavigate { url: "data:text/html;charset=utf-8,<html><body><article><h1>Article</h1><p>Content</p></article></body></html>" } [3mid[0m[2m=[0m"nav"
+[2m2026-04-21T15:51:11.644430Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.644593Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.653366Z[0m [32m INFO[0m [2mbrazen::render[0m[2m:[0m render surface updated [3mviewport_width[0m[2m=[0m1280 [3mviewport_height[0m[2m=[0m720 [3mpixels_per_point[0m[2m=[0m1.0 [3mscale_factor[0m[2m=[0m100
+[2m2026-04-21T15:51:11.697441Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.697658Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.748674Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.748966Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.801146Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.801382Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.853168Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.853375Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.905822Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.906136Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:11.958640Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:11.958975Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.011252Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.011623Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.063175Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.063503Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.115671Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.115958Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.168241Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.168578Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.220969Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.221268Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.273544Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.273985Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.326236Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.326599Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.378954Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.379404Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.431522Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.431842Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.484556Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.484969Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.537560Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.538058Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.590589Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.590997Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.643451Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.643888Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.696355Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.696787Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.749250Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.749648Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.802380Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.802973Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.855526Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.855940Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.908255Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.908726Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:12.960996Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:12.961364Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.013632Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.014073Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.066560Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.067039Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.119585Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.120082Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.172614Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.173213Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.225562Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.226083Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.278662Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.279325Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.331617Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.332092Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.384500Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.384920Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.437454Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.437909Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.490692Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.491115Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.543515Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.543969Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.596352Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.596859Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.649194Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.649661Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.702026Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.702498Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.754828Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.755303Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.807708Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.808238Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.860608Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.861092Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.913533Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.914006Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:13.966464Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:13.966982Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.019303Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.019814Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.080716Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.081223Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.133778Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.134310Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.186822Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.187362Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.239791Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.240407Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.292974Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.293532Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.345006Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.345558Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.398122Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.398675Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.451526Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.452085Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.504712Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.505377Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.557890Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.558446Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.611050Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.611831Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.664499Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.665137Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.717791Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.718504Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.770003Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.770586Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.823172Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.823759Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.876333Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.876941Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.929469Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.930073Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:14.982671Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:14.983271Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.036013Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.036689Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.089422Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.090063Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.142723Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.143387Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.194970Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.195654Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.248063Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.248747Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.301126Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.301765Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.354356Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.355414Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.407065Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.407716Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.460265Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.460947Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.513551Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.514209Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.566738Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.567409Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.618894Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.619594Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.672309Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.673043Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.725726Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.726413Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.778040Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.778750Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.831370Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.832060Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.884667Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.885377Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.936909Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.937612Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:15.990269Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:15.990991Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.043681Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.044392Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.096200Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.096964Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.149650Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.150397Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.203032Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.203795Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.256297Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.257053Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.309723Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.310469Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.363093Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.363903Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.416473Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.417222Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.469789Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.470614Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.523201Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.523970Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.576548Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.577338Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.628954Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.629818Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.682538Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.683331Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.735086Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.736001Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.788692Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.789515Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.842273Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.843495Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.896167Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.896982Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:16.949923Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:16.951088Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.004032Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.004935Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.057839Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.059156Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.112006Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.112892Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.165632Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.166469Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.219223Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.220126Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.272917Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.273915Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.326508Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.327371Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.379071Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.379925Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.432625Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.433545Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.486157Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.487033Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.539795Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.540740Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.593429Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.594314Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.645990Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.646984Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.699659Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.700574Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.753327Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.754314Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.807049Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.808417Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.861467Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.862466Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.915726Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.916998Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:17.969861Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:17.970796Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.023422Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.024413Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.077295Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.078559Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.131407Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.132374Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.184950Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.185969Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.238881Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.239845Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.292758Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.293729Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.346754Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.348115Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.400263Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.401358Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.454370Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.455343Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.508088Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.509041Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.561904Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.562906Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.615723Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.616772Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.669532Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.670500Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.723437Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.724448Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.777458Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.778762Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.831531Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.832517Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.885952Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.887068Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.939896Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.940877Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:18.993841Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:18.994830Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.047991Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.049009Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.109371Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.110482Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.163412Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.164382Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.217100Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.218112Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.271085Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.272191Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.324987Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.326062Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.378759Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.379743Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.432413Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.433442Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.486295Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.487311Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.539974Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.540927Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.593564Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.594546Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.647329Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.648306Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.701023Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.702034Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.754912Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.755978Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.808886Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.809966Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.862790Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.863757Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.916554Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.917549Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:19.970278Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:19.971332Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.024207Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.025193Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.077051Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.078049Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.131024Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.132015Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.184896Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.185914Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.238881Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.239914Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.292728Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.293822Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.346588Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.347592Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.400452Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.401433Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.454321Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.455293Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.508189Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.509195Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.560966Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.561959Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.614972Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.616410Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.669542Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.670576Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.723472Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.724596Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.777414Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.778411Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.831385Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.832361Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.885095Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.886136Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.938885Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.939863Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:20.992869Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:20.993850Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.046775Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.047753Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.100555Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.101571Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.154407Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.155394Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.208462Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.209504Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.262611Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.263681Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.316902Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.317973Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.370784Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.372242Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.423992Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.425086Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.477869Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.478882Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.531809Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.532898Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.585637Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.586653Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:51:21.639362Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:51:21.640390Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+
+thread 'e2e_automation_roadmap_features' (67319) panicked at tests/e2e_automation.rs:131:13:
+timed out waiting for url prefix: data:text/html
+stack backtrace:
+   0:     0x55c61427311a - std[e84040df3bd3b365]::backtrace_rs::backtrace::libunwind::trace
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/../../backtrace/src/backtrace/libunwind.rs:117:9
+   1:     0x55c61427311a - std[e84040df3bd3b365]::backtrace_rs::backtrace::trace_unsynchronized::<std[e84040df3bd3b365]::sys::backtrace::_print_fmt::{closure#1}>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/../../backtrace/src/backtrace/mod.rs:66:14
+   2:     0x55c61427311a - std[e84040df3bd3b365]::sys::backtrace::_print_fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:74:9
+   3:     0x55c61427311a - <<std[e84040df3bd3b365]::sys::backtrace::BacktraceLock>::print::DisplayBacktrace as core[6c6f0f72ed298c38]::fmt::Display>::fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:44:26
+   4:     0x55c6142897ba - <core[6c6f0f72ed298c38]::fmt::rt::Argument>::fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/fmt/rt.rs:152:76
+   5:     0x55c6142897ba - core[6c6f0f72ed298c38]::fmt::write
+   6:     0x55c614279272 - std[e84040df3bd3b365]::io::default_write_fmt::<std[e84040df3bd3b365]::sys::stdio::unix::Stderr>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/io/mod.rs:639:11
+   7:     0x55c614279272 - <std[e84040df3bd3b365]::sys::stdio::unix::Stderr as std[e84040df3bd3b365]::io::Write>::write_fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/io/mod.rs:1994:13
+   8:     0x55c61424f74f - <std[e84040df3bd3b365]::sys::backtrace::BacktraceLock>::print
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:47:9
+   9:     0x55c61424f74f - std[e84040df3bd3b365]::panicking::default_hook::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:292:27
+  10:     0x55c61426a3f1 - std[e84040df3bd3b365]::panicking::default_hook
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:319:9
+  11:     0x55c61426a65b - std[e84040df3bd3b365]::panicking::panic_with_hook
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:825:13
+  12:     0x55c61424f808 - std[e84040df3bd3b365]::panicking::panic_handler::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:698:13
+  13:     0x55c614246e29 - std[e84040df3bd3b365]::sys::backtrace::__rust_end_short_backtrace::<std[e84040df3bd3b365]::panicking::panic_handler::{closure#0}, !>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:182:18
+  14:     0x55c6142506dd - __rustc[d6e935dc4dcc4704]::rust_begin_unwind
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:689:5
+  15:     0x55c61428a0cc - core[6c6f0f72ed298c38]::panicking::panic_fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/panicking.rs:80:14
+  16:     0x55c613e6b679 - e2e_automation[84c6a1a35b2cb474]::wait_for_url::{closure#0}
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:131:13
+  17:     0x55c613e6e32b - e2e_automation[84c6a1a35b2cb474]::e2e_automation_roadmap_features::{closure#0}
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:256:42
+  18:     0x55c613e78d52 - <core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>> as core[6c6f0f72ed298c38]::future::future::Future>::poll
+                               at /home/admin/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  19:     0x55c613e9939d - <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/park.rs:284:71
+  20:     0x55c613e989b2 - tokio[d1883e85e4bace02]::task::coop::with_budget::<core[6c6f0f72ed298c38]::task::poll::Poll<()>, <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/task/coop/mod.rs:167:5
+  21:     0x55c613e989b2 - tokio[d1883e85e4bace02]::task::coop::budget::<core[6c6f0f72ed298c38]::task::poll::Poll<()>, <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/task/coop/mod.rs:133:5
+  22:     0x55c613e989b2 - <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/park.rs:284:31
+  23:     0x55c613e5ba94 - <tokio[d1883e85e4bace02]::runtime::context::blocking::BlockingRegionGuard>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/context/blocking.rs:66:14
+  24:     0x55c613e63528 - <tokio[d1883e85e4bace02]::runtime::scheduler::multi_thread::MultiThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/scheduler/multi_thread/mod.rs:89:22
+  25:     0x55c613e5edfb - tokio[d1883e85e4bace02]::runtime::context::runtime::enter_runtime::<<tokio[d1883e85e4bace02]::runtime::scheduler::multi_thread::MultiThread>::block_on<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}, ()>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/context/runtime.rs:65:16
+  26:     0x55c613e634a4 - <tokio[d1883e85e4bace02]::runtime::scheduler::multi_thread::MultiThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/scheduler/multi_thread/mod.rs:88:9
+  27:     0x55c613e7d914 - <tokio[d1883e85e4bace02]::runtime::runtime::Runtime>::block_on_inner::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/runtime.rs:373:50
+  28:     0x55c613e7db0c - <tokio[d1883e85e4bace02]::runtime::runtime::Runtime>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/runtime.rs:345:18
+  29:     0x55c613e7f98d - e2e_automation[84c6a1a35b2cb474]::e2e_automation_roadmap_features
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:291:52
+  30:     0x55c613e6c957 - e2e_automation[84c6a1a35b2cb474]::e2e_automation_roadmap_features::{closure#0}
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:236:43
+  31:     0x55c613e8bab6 - <e2e_automation[84c6a1a35b2cb474]::e2e_automation_roadmap_features::{closure#0} as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /home/admin/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  32:     0x55c613eb697b - <fn() -> core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/ops/function.rs:250:5
+  33:     0x55c613eb697b - test[3a506293c5536072]::__rust_begin_short_backtrace::<core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>, fn() -> core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:663:18
+  34:     0x55c613ec336b - test[3a506293c5536072]::run_test_in_process::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:686:74
+  35:     0x55c613ec336b - <core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/panic/unwind_safe.rs:274:9
+  36:     0x55c613ec336b - std[e84040df3bd3b365]::panicking::catch_unwind::do_call::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}>, core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:581:40
+  37:     0x55c613ec336b - std[e84040df3bd3b365]::panicking::catch_unwind::<core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>, core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:544:19
+  38:     0x55c613ec336b - std[e84040df3bd3b365]::panic::catch_unwind::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}>, core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panic.rs:359:14
+  39:     0x55c613ec336b - test[3a506293c5536072]::run_test_in_process
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:686:27
+  40:     0x55c613ec336b - test[3a506293c5536072]::run_test::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:607:43
+  41:     0x55c613ebea84 - test[3a506293c5536072]::run_test::{closure#1}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:637:41
+  42:     0x55c613ebea84 - std[e84040df3bd3b365]::sys::backtrace::__rust_begin_short_backtrace::<test[3a506293c5536072]::run_test::{closure#1}, ()>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:166:18
+  43:     0x55c613ec5f82 - std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked::<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/thread/lifecycle.rs:91:13
+  44:     0x55c613ec5f82 - <core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/panic/unwind_safe.rs:274:9
+  45:     0x55c613ec5f82 - std[e84040df3bd3b365]::panicking::catch_unwind::do_call::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:581:40
+  46:     0x55c613ec5f82 - std[e84040df3bd3b365]::panicking::catch_unwind::<(), core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:544:19
+  47:     0x55c613ec5f82 - std[e84040df3bd3b365]::panic::catch_unwind::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panic.rs:359:14
+  48:     0x55c613ec5f82 - std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked::<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/thread/lifecycle.rs:89:26
+  49:     0x55c613ec5f82 - <std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1} as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/ops/function.rs:250:5
+  50:     0x55c6142724ff - <alloc[d9717d1773e7bcdb]::boxed::Box<dyn core[6c6f0f72ed298c38]::ops::function::FnOnce<(), Output = ()> + core[6c6f0f72ed298c38]::marker::Send> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/alloc/src/boxed.rs:2206:9
+  51:     0x55c6142724ff - <std[e84040df3bd3b365]::sys::thread::unix::Thread>::new::thread_start
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/thread/unix.rs:118:17
+  52:     0x7f3cc9ad797a - <unknown>
+  53:     0x7f3cc9b5b2bc - <unknown>
+  54:                0x0 - <unknown>
+test e2e_automation_roadmap_features ... FAILED
+
+failures:
+
+failures:
+    e2e_automation_roadmap_features
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 10.65s
+
+[1m[91merror[0m: test failed, to rerun pass `--test e2e_automation`

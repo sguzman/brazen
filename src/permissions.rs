@@ -14,6 +14,8 @@ pub enum Capability {
     VirtualResourceMount,
     FsRead,
     FsWrite,
+    DomWrite,
+    ScreenshotWindow,
 }
 
 impl Capability {
@@ -28,6 +30,8 @@ impl Capability {
             Self::VirtualResourceMount => "virtual-resource-mount",
             Self::FsRead => "fs-read",
             Self::FsWrite => "fs-write",
+            Self::DomWrite => "dom-write",
+            Self::ScreenshotWindow => "screenshot-window",
         }
     }
 }

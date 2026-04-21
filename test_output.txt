@@ -1,0 +1,174 @@
+[1m[92m   Compiling[0m brazen v0.1.0 (/win/linux/Code/rust/brazen)
+[1m[33mwarning[0m[1m: fields `cache_config`, `runtime_paths`, `profile_id`, and `expose_cache_api` are never read[0m
+   [1m[94m--> [0msrc/automation.rs:319:5
+    [1m[94m|[0m
+[1m[94m315[0m [1m[94m|[0m pub struct AutomationHandle {
+    [1m[94m|[0m            [1m[94m----------------[0m [1m[94mfields in this struct[0m
+[1m[94m...[0m
+[1m[94m319[0m [1m[94m|[0m     cache_config: CacheConfig,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^^^[0m
+[1m[94m320[0m [1m[94m|[0m     runtime_paths: RuntimePaths,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^[0m
+[1m[94m321[0m [1m[94m|[0m     profile_id: String,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^[0m
+[1m[94m...[0m
+[1m[94m324[0m [1m[94m|[0m     expose_cache_api: bool,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^^^[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `AutomationHandle` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+    [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: function `ensure_cache_api` is never used[0m
+    [1m[94m--> [0msrc/automation.rs:1621:4
+     [1m[94m|[0m
+[1m[94m1621[0m [1m[94m|[0m fn ensure_cache_api(state: &AutomationServerState) -> Result<(), String> {
+     [1m[94m|[0m    [1m[33m^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: struct `AutomationCacheBody` is never constructed[0m
+    [1m[94m--> [0msrc/automation.rs:1682:8
+     [1m[94m|[0m
+[1m[94m1682[0m [1m[94m|[0m struct AutomationCacheBody {
+     [1m[94m|[0m        [1m[33m^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `load_cache_body` is never used[0m
+    [1m[94m--> [0msrc/automation.rs:1689:4
+     [1m[94m|[0m
+[1m[94m1689[0m [1m[94m|[0m fn load_cache_body(
+     [1m[94m|[0m    [1m[33m^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `brazen` (lib) generated 4 warnings
+[1m[92m    Finished[0m ]8;;https://doc.rust-lang.org/cargo/reference/profiles.html#default-profiles\`test` profile [unoptimized + debuginfo]]8;;\ target(s) in 2.04s
+[1m[92m     Running[0m tests/e2e_automation.rs (target/debug/deps/e2e_automation-3d867a4b0a9e8c02)
+
+running 1 test
+[2m2026-04-21T15:57:04.978324Z[0m [32m INFO[0m [2mbrazen::logging[0m[2m:[0m tracing initialized [3mpath[0m[2m=[0m/win/linux/Code/rust/brazen/logs
+[2m2026-04-21T15:57:04.978516Z[0m [32m INFO[0m [2mbrazen[0m[2m:[0m starting brazen shell
+[2m2026-04-21T15:57:04.978565Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m audit logging initialized [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:57:04.980439Z[0m [33m WARN[0m [2mwinit::platform_impl::linux::x11::xdisplay[0m[2m:[0m error setting XSETTINGS; Xft options won't reload automatically
+[2m2026-04-21T15:57:04.980545Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m automation server listening [3maddr[0m[2m=[0m127.0.0.1:0 [3mpath[0m[2m=[0m"/ws"
+[2m2026-04-21T15:57:04.988999Z[0m [33m WARN[0m [2mwinit::platform_impl::linux::x11::util::randr[0m[2m:[0m XRandR reported that the display's 0mm in size, which is certifiably insane
+[2m2026-04-21T15:57:05.006233Z[0m [32m INFO[0m [2mwinit::platform_impl::linux::x11::window[0m[2m:[0m Guessed window scale factor: 1
+[2m2026-04-21T15:57:05.023258Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: LogSubscribe [3mid[0m[2m=[0m"t1"
+[2m2026-04-21T15:57:05.023385Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:57:05.023966Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: Snapshot [3mid[0m[2m=[0m"snap"
+[2m2026-04-21T15:57:05.024075Z[0m [32m INFO[0m [2mbrazen::audit[0m[2m:[0m writing audit entry [3mpath[0m[2m=[0m/home/admin/.local/share/brazen/audit.log
+[2m2026-04-21T15:57:05.024651Z[0m [32m INFO[0m [2mbrazen::automation[0m[2m:[0m handling automation request: TabList [3mid[0m[2m=[0m"t2"
+
+thread 'e2e_boot_connect_logs_and_shutdown' (77939) panicked at tests/e2e_automation.rs:202:5:
+tab list failed: {"error":"approval-required","id":"t2","ok":false,"result":null}
+stack backtrace:
+[2m2026-04-21T15:57:05.031481Z[0m [32m INFO[0m [2mbrazen::render[0m[2m:[0m render surface updated [3mviewport_width[0m[2m=[0m1280 [3mviewport_height[0m[2m=[0m720 [3mpixels_per_point[0m[2m=[0m1.0 [3mscale_factor[0m[2m=[0m100
+   0:     0x562581efb56a - std[e84040df3bd3b365]::backtrace_rs::backtrace::libunwind::trace
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/../../backtrace/src/backtrace/libunwind.rs:117:9
+   1:     0x562581efb56a - std[e84040df3bd3b365]::backtrace_rs::backtrace::trace_unsynchronized::<std[e84040df3bd3b365]::sys::backtrace::_print_fmt::{closure#1}>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/../../backtrace/src/backtrace/mod.rs:66:14
+   2:     0x562581efb56a - std[e84040df3bd3b365]::sys::backtrace::_print_fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:74:9
+   3:     0x562581efb56a - <<std[e84040df3bd3b365]::sys::backtrace::BacktraceLock>::print::DisplayBacktrace as core[6c6f0f72ed298c38]::fmt::Display>::fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:44:26
+   4:     0x562581f11c0a - <core[6c6f0f72ed298c38]::fmt::rt::Argument>::fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/fmt/rt.rs:152:76
+   5:     0x562581f11c0a - core[6c6f0f72ed298c38]::fmt::write
+   6:     0x562581f016c2 - std[e84040df3bd3b365]::io::default_write_fmt::<std[e84040df3bd3b365]::sys::stdio::unix::Stderr>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/io/mod.rs:639:11
+   7:     0x562581f016c2 - <std[e84040df3bd3b365]::sys::stdio::unix::Stderr as std[e84040df3bd3b365]::io::Write>::write_fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/io/mod.rs:1994:13
+   8:     0x562581ed7a9f - <std[e84040df3bd3b365]::sys::backtrace::BacktraceLock>::print
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:47:9
+   9:     0x562581ed7a9f - std[e84040df3bd3b365]::panicking::default_hook::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:292:27
+  10:     0x562581ef2841 - std[e84040df3bd3b365]::panicking::default_hook
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:319:9
+  11:     0x562581ef2aab - std[e84040df3bd3b365]::panicking::panic_with_hook
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:825:13
+  12:     0x562581ed7b58 - std[e84040df3bd3b365]::panicking::panic_handler::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:698:13
+  13:     0x562581ecf179 - std[e84040df3bd3b365]::sys::backtrace::__rust_end_short_backtrace::<std[e84040df3bd3b365]::panicking::panic_handler::{closure#0}, !>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:182:18
+  14:     0x562581ed8a2d - __rustc[d6e935dc4dcc4704]::rust_begin_unwind
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:689:5
+  15:     0x562581f1251c - core[6c6f0f72ed298c38]::panicking::panic_fmt
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/panicking.rs:80:14
+  16:     0x562581afc07a - e2e_automation[84c6a1a35b2cb474]::e2e_boot_connect_logs_and_shutdown::{closure#0}
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:202:5
+  17:     0x562581b00e02 - <core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>> as core[6c6f0f72ed298c38]::future::future::Future>::poll
+                               at /home/admin/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  18:     0x562581b2168d - <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/park.rs:284:71
+  19:     0x562581b20ca2 - tokio[d1883e85e4bace02]::task::coop::with_budget::<core[6c6f0f72ed298c38]::task::poll::Poll<()>, <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/task/coop/mod.rs:167:5
+  20:     0x562581b20ca2 - tokio[d1883e85e4bace02]::task::coop::budget::<core[6c6f0f72ed298c38]::task::poll::Poll<()>, <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/task/coop/mod.rs:133:5
+  21:     0x562581b20ca2 - <tokio[d1883e85e4bace02]::runtime::park::CachedParkThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/park.rs:284:31
+  22:     0x562581ae3ba4 - <tokio[d1883e85e4bace02]::runtime::context::blocking::BlockingRegionGuard>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/context/blocking.rs:66:14
+  23:     0x562581aeb638 - <tokio[d1883e85e4bace02]::runtime::scheduler::multi_thread::MultiThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/scheduler/multi_thread/mod.rs:89:22
+  24:     0x562581ae6f0b - tokio[d1883e85e4bace02]::runtime::context::runtime::enter_runtime::<<tokio[d1883e85e4bace02]::runtime::scheduler::multi_thread::MultiThread>::block_on<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>::{closure#0}, ()>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/context/runtime.rs:65:16
+  25:     0x562581aeb5b4 - <tokio[d1883e85e4bace02]::runtime::scheduler::multi_thread::MultiThread>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/scheduler/multi_thread/mod.rs:88:9
+  26:     0x562581b059c4 - <tokio[d1883e85e4bace02]::runtime::runtime::Runtime>::block_on_inner::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/runtime.rs:373:50
+  27:     0x562581b05bbc - <tokio[d1883e85e4bace02]::runtime::runtime::Runtime>::block_on::<core[6c6f0f72ed298c38]::pin::Pin<&mut dyn core[6c6f0f72ed298c38]::future::future::Future<Output = ()>>>
+                               at /home/admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/runtime.rs:345:18
+  28:     0x562581b07e6d - e2e_automation[84c6a1a35b2cb474]::e2e_boot_connect_logs_and_shutdown
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:248:52
+  29:     0x562581af4a37 - e2e_automation[84c6a1a35b2cb474]::e2e_boot_connect_logs_and_shutdown::{closure#0}
+                               at /win/linux/Code/rust/brazen/tests/e2e_automation.rs:169:46
+  30:     0x562581b13de6 - <e2e_automation[84c6a1a35b2cb474]::e2e_boot_connect_logs_and_shutdown::{closure#0} as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /home/admin/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  31:     0x562581b3ec7b - <fn() -> core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/ops/function.rs:250:5
+  32:     0x562581b3ec7b - test[3a506293c5536072]::__rust_begin_short_backtrace::<core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>, fn() -> core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:663:18
+  33:     0x562581b4b66b - test[3a506293c5536072]::run_test_in_process::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:686:74
+  34:     0x562581b4b66b - <core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/panic/unwind_safe.rs:274:9
+  35:     0x562581b4b66b - std[e84040df3bd3b365]::panicking::catch_unwind::do_call::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}>, core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:581:40
+  36:     0x562581b4b66b - std[e84040df3bd3b365]::panicking::catch_unwind::<core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>, core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:544:19
+  37:     0x562581b4b66b - std[e84040df3bd3b365]::panic::catch_unwind::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<test[3a506293c5536072]::run_test_in_process::{closure#0}>, core[6c6f0f72ed298c38]::result::Result<(), alloc[d9717d1773e7bcdb]::string::String>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panic.rs:359:14
+  38:     0x562581b4b66b - test[3a506293c5536072]::run_test_in_process
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:686:27
+  39:     0x562581b4b66b - test[3a506293c5536072]::run_test::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:607:43
+  40:     0x562581b46d84 - test[3a506293c5536072]::run_test::{closure#1}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/test/src/lib.rs:637:41
+  41:     0x562581b46d84 - std[e84040df3bd3b365]::sys::backtrace::__rust_begin_short_backtrace::<test[3a506293c5536072]::run_test::{closure#1}, ()>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/backtrace.rs:166:18
+  42:     0x562581b4e282 - std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked::<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/thread/lifecycle.rs:91:13
+  43:     0x562581b4e282 - <core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/panic/unwind_safe.rs:274:9
+  44:     0x562581b4e282 - std[e84040df3bd3b365]::panicking::catch_unwind::do_call::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:581:40
+  45:     0x562581b4e282 - std[e84040df3bd3b365]::panicking::catch_unwind::<(), core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panicking.rs:544:19
+  46:     0x562581b4e282 - std[e84040df3bd3b365]::panic::catch_unwind::<core[6c6f0f72ed298c38]::panic::unwind_safe::AssertUnwindSafe<std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/panic.rs:359:14
+  47:     0x562581b4e282 - std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked::<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/thread/lifecycle.rs:89:26
+  48:     0x562581b4e282 - <std[e84040df3bd3b365]::thread::lifecycle::spawn_unchecked<test[3a506293c5536072]::run_test::{closure#1}, ()>::{closure#1} as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/core/src/ops/function.rs:250:5
+  49:     0x562581efa94f - <alloc[d9717d1773e7bcdb]::boxed::Box<dyn core[6c6f0f72ed298c38]::ops::function::FnOnce<(), Output = ()> + core[6c6f0f72ed298c38]::marker::Send> as core[6c6f0f72ed298c38]::ops::function::FnOnce<()>>::call_once
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/alloc/src/boxed.rs:2206:9
+  50:     0x562581efa94f - <std[e84040df3bd3b365]::sys::thread::unix::Thread>::new::thread_start
+                               at /rustc/873b4beb0cc726493b94c8ef21f68795c04fbbc1/library/std/src/sys/thread/unix.rs:118:17
+  51:     0x7f5f6b53397a - <unknown>
+  52:     0x7f5f6b5b72bc - <unknown>
+  53:                0x0 - <unknown>
+test e2e_boot_connect_logs_and_shutdown ... FAILED
+
+failures:
+
+failures:
+    e2e_boot_connect_logs_and_shutdown
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.91s
+
+[1m[91merror[0m: test failed, to rerun pass `--test e2e_automation`

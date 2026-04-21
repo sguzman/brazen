@@ -71,6 +71,7 @@ pub struct ShellState {
     pub automation_activities: Vec<crate::automation::AutomationActivity>,
     pub mount_manager: crate::mounts::MountManager,
     pub runtime_paths: RuntimePaths,
+    pub pending_window_screenshot: Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<Result<crate::engine::EngineFrame, String>>>>>,
 }
 
 impl ShellState {
@@ -332,8 +333,9 @@ pub fn build_shell_state(
         find_query: String::new(),
         capabilities_snapshot,
         automation_activities: Vec::new(),
-        mount_manager,
+        mount_manager: crate::mounts::MountManager::new(),
         runtime_paths: paths.clone(),
+        pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
     };
 
     shell_state.sync_from_engine(engine.as_mut());
@@ -406,6 +408,7 @@ pub struct BrazenApp {
     automation_rx: Option<tokio::sync::mpsc::UnboundedReceiver<AutomationCommand>>,
     last_nav_event: Option<(String, Option<EngineLoadStatus>, f32)>,
     last_event_log_len: usize,
+    pending_screenshot_tx: Option<tokio::sync::oneshot::Sender<Result<crate::engine::EngineFrame, String>>>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -597,6 +600,7 @@ impl BrazenApp {
             automation_rx,
             last_nav_event: None,
             last_event_log_len: 0,
+            pending_screenshot_tx: None,
         }
     }
 
@@ -639,10 +643,47 @@ impl BrazenApp {
         }
     }
 
-    fn update_automation(&mut self) {
+    fn update_automation(&mut self, ctx: &eframe::egui::Context) {
         if let Some(receiver) = &mut self.automation_rx {
-            drain_automation_commands(receiver, &mut self.shell_state, self.engine.as_mut());
+            drain_automation_commands(receiver, &mut self.shell_state, self.engine.as_mut(), &mut self.cache_store);
         }
+
+        if let Some(tx) = self.shell_state.pending_window_screenshot.lock().unwrap().take() {
+            tracing::info!(target: "brazen::automation", "received screenshot request, triggering viewport command");
+            ctx.send_viewport_cmd(eframe::egui::ViewportCommand::Screenshot(eframe::egui::UserData::new(0usize)));
+            self.pending_screenshot_tx = Some(tx);
+        }
+
+        let screenshot = ctx.input(|i| {
+            i.events.iter().find_map(|e| {
+                if let eframe::egui::Event::Screenshot { image, .. } = e {
+                    tracing::info!(target: "brazen::automation", "received screenshot event from egui");
+                    Some(image.clone())
+                } else {
+                    None
+                }
+            })
+        });
+
+        if let Some(image) = screenshot {
+            if let Some(tx) = self.pending_screenshot_tx.take() {
+                tracing::info!(target: "brazen::automation", "sending screenshot frame to automation client");
+                let frame = crate::engine::EngineFrame {
+                    width: image.width() as u32,
+                    height: image.height() as u32,
+                    stride_bytes: image.width() * 4,
+                    pixels: image.as_raw().to_vec(),
+                    pixel_format: crate::engine::PixelFormat::Rgba8,
+                    alpha_mode: crate::engine::AlphaMode::Premultiplied,
+                    color_space: crate::engine::ColorSpace::Srgb,
+                    frame_number: 0,
+                };
+                let _ = tx.send(Ok(frame));
+            } else {
+                tracing::warn!(target: "brazen::automation", "received screenshot event but no pending tx");
+            }
+        }
+
         if let Some(handle) = &self.automation_handle {
             handle.update_snapshot(&self.shell_state, &self.cache_store);
             let automation_snapshot = handle.snapshot();
@@ -2694,7 +2735,7 @@ impl eframe::App for BrazenApp {
         if let Some(handle) = &self.automation_handle {
             handle.set_egui_context(ctx.clone());
         }
-        self.update_automation();
+        self.update_automation(ctx);
         self.update_render_health();
         self.apply_ui_settings(ctx);
         self.apply_cursor_icon(ctx);
@@ -3386,6 +3427,16 @@ mod tests {
         fn take_screenshot(&mut self) -> Result<EngineFrame, String> {
             Err("MockEngine does not support screenshots".to_string())
         }
+
+        fn interact_dom(
+            &mut self,
+            _selector: String,
+            _event: String,
+            _value: Option<String>,
+            callback: Box<dyn FnOnce(Result<(), String>) + Send + 'static>,
+        ) {
+            callback(Ok(()));
+        }
     }
 
     #[test]
@@ -3443,6 +3494,7 @@ mod tests {
             automation_activities: Vec::new(),
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
+            pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
         };
 
         let mut ready_engine = MockEngine {
@@ -3540,6 +3592,7 @@ mod tests {
             automation_activities: Vec::new(),
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
+            pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
         };
 
         let mut engine = MockEngine {

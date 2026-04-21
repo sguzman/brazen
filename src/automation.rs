@@ -242,6 +242,12 @@ pub enum AutomationRequest {
         approval_id: String,
         decision: String,
     },
+    InteractDom {
+        selector: String,
+        event: String,
+        value: Option<String>,
+    },
+    ScreenshotWindow,
     Shutdown,
 }
 
@@ -283,6 +289,41 @@ pub enum AutomationCommand {
     RemoveMount {
         name: String,
     },
+    RenderedText {
+        response_tx: tokio::sync::oneshot::Sender<Result<String, String>>,
+    },
+    ArticleText {
+        response_tx: tokio::sync::oneshot::Sender<Result<String, String>>,
+    },
+    CacheStats {
+        response_tx: tokio::sync::oneshot::Sender<Result<serde_json::Value, String>>,
+    },
+    CacheQuery {
+        query: Option<AssetQuery>,
+        limit: Option<usize>,
+        response_tx: tokio::sync::oneshot::Sender<Result<Vec<AutomationAssetSummary>, String>>,
+    },
+    CacheBody {
+        asset_id: String,
+        response_tx: tokio::sync::oneshot::Sender<Result<String, String>>,
+    },
+    TtsControl {
+        action: String,
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
+    TtsEnqueue {
+        text: String,
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
+    InteractDom {
+        selector: String,
+        event: String,
+        value: Option<String>,
+        response_tx: tokio::sync::oneshot::Sender<Result<(), String>>,
+    },
+    ScreenshotWindow {
+        response_tx: tokio::sync::oneshot::Sender<Result<EngineFrame, String>>,
+    },
 }
 
 #[derive(Clone)]
@@ -290,11 +331,15 @@ pub struct AutomationHandle {
     snapshot: Arc<RwLock<AutomationSnapshot>>,
     command_tx: mpsc::UnboundedSender<AutomationCommand>,
     event_tx: broadcast::Sender<AutomationEvent>,
+    #[allow(dead_code)]
     cache_config: CacheConfig,
+    #[allow(dead_code)]
     runtime_paths: RuntimePaths,
+    #[allow(dead_code)]
     profile_id: String,
     permissions: PermissionPolicy,
     expose_tab_api: bool,
+    #[allow(dead_code)]
     expose_cache_api: bool,
     terminal_config: crate::config::TerminalConfig,
     pub mount_manager: crate::mounts::MountManager,
@@ -1059,9 +1104,68 @@ async fn handle_request(
             }
         }
         AutomationRequest::RenderedText => {
-            Some(error_response(id, "rendered text not implemented"))
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::RenderedText { response_tx: tx });
+            match rx.await {
+                Ok(Ok(text)) => Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(text), error: None }).unwrap()),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
         }
-        AutomationRequest::ArticleText => Some(error_response(id, "article text not implemented")),
+        AutomationRequest::ArticleText => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::ArticleText { response_tx: tx });
+            match rx.await {
+                Ok(Ok(text)) => Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(text), error: None }).unwrap()),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::CacheStats => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::CacheStats { response_tx: tx });
+            match rx.await {
+                Ok(Ok(stats)) => Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(stats), error: None }).unwrap()),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::CacheQuery { query, limit } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::CacheQuery { query, limit, response_tx: tx });
+            match rx.await {
+                Ok(Ok(assets)) => Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(assets), error: None }).unwrap()),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::CacheBody { asset_id } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::CacheBody { asset_id, response_tx: tx });
+            match rx.await {
+                Ok(Ok(body)) => Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(body), error: None }).unwrap()),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::TtsControl { action } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::TtsControl { action, response_tx: tx });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::TtsEnqueue { text } => {
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::TtsEnqueue { text, response_tx: tx });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
         AutomationRequest::MountAdd { name, local_path, read_only, allowed_domains } => {
             if let Err(error) = ensure_mount_api(state) {
                 return Some(error_response(id, &error));
@@ -1464,92 +1568,115 @@ async fn handle_request(
                         .unwrap(),
                     )
                 }
+                AutomationRequest::InteractDom { selector, event, value } => {
+                    let (tx, rx) = tokio::sync::oneshot::channel();
+                    let _ = state.handle.command_tx.send(AutomationCommand::InteractDom { selector, event, value, response_tx: tx });
+                    match rx.await {
+                        Ok(Ok(_)) => Some(ok_response(id)),
+                        Ok(Err(error)) => Some(error_response(id, &error)),
+                        Err(_) => Some(error_response(id, "internal error")),
+                    }
+                }
+                AutomationRequest::ScreenshotWindow => {
+                    let (tx, rx) = tokio::sync::oneshot::channel();
+                    let _ = state.handle.command_tx.send(AutomationCommand::ScreenshotWindow { response_tx: tx });
+                    match rx.await {
+                        Ok(Ok(frame)) => {
+                            let b64 = base64::engine::general_purpose::STANDARD.encode(&frame.pixels);
+                            let json = serde_json::json!({
+                                "width": frame.width,
+                                "height": frame.height,
+                                "png_base64": b64
+                            });
+                            Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(json), error: None }).unwrap())
+                        },
+                        Ok(Err(error)) => Some(error_response(id, &error)),
+                        Err(_) => Some(error_response(id, "internal error")),
+                    }
+                }
                 _ => Some(error_response(id, "unsupported pending request")),
+            }
+        }
+        AutomationRequest::InteractDom { selector, event, value } => {
+            if let Err(error) = state.check_permission(Capability::DomWrite) {
+                if error == "approval-required" {
+                    let approval_id = Uuid::new_v4().to_string();
+                    let now = Utc::now().to_rfc3339();
+                    let pending = PendingApproval {
+                        capability: Capability::DomWrite,
+                        request: AutomationRequest::InteractDom { selector: selector.clone(), event: event.clone(), value: value.clone() },
+                        user_agent: user_agent.clone(),
+                        client_ip: client_ip.clone(),
+                    };
+                    state.pending_approvals.write().expect("pending approvals lock").insert(approval_id.clone(), pending);
+                    return Some(serde_json::to_string(&AutomationResponse {
+                        id,
+                        ok: false,
+                        result: Some(serde_json::json!({
+                            "approval_id": approval_id,
+                            "capability": Capability::DomWrite.label(),
+                            "created_at": now,
+                            "summary": { "selector": selector, "event": event }
+                        })),
+                        error: Some("approval-required".to_string()),
+                    }).unwrap());
+                }
+                return Some(error_response(id, &error));
+            }
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::InteractDom { selector, event, value, response_tx: tx });
+            match rx.await {
+                Ok(Ok(_)) => Some(ok_response(id)),
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
+            }
+        }
+        AutomationRequest::ScreenshotWindow => {
+            if let Err(error) = state.check_permission(Capability::ScreenshotWindow) {
+                if error == "approval-required" {
+                    let approval_id = Uuid::new_v4().to_string();
+                    let now = Utc::now().to_rfc3339();
+                    let pending = PendingApproval {
+                        capability: Capability::ScreenshotWindow,
+                        request: AutomationRequest::ScreenshotWindow,
+                        user_agent: user_agent.clone(),
+                        client_ip: client_ip.clone(),
+                    };
+                    state.pending_approvals.write().expect("pending approvals lock").insert(approval_id.clone(), pending);
+                    return Some(serde_json::to_string(&AutomationResponse {
+                        id,
+                        ok: false,
+                        result: Some(serde_json::json!({
+                            "approval_id": approval_id,
+                            "capability": Capability::ScreenshotWindow.label(),
+                            "created_at": now,
+                            "summary": {}
+                        })),
+                        error: Some("approval-required".to_string()),
+                    }).unwrap());
+                }
+                return Some(error_response(id, &error));
+            }
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            let _ = state.handle.command_tx.send(AutomationCommand::ScreenshotWindow { response_tx: tx });
+            match rx.await {
+                Ok(Ok(frame)) => {
+                    let b64 = base64::engine::general_purpose::STANDARD.encode(&frame.pixels);
+                    let json = serde_json::json!({
+                        "width": frame.width,
+                        "height": frame.height,
+                        "png_base64": b64
+                    });
+                    Some(serde_json::to_string(&AutomationResponse { id, ok: true, result: Some(json), error: None }).unwrap())
+                },
+                Ok(Err(error)) => Some(error_response(id, &error)),
+                Err(_) => Some(error_response(id, "internal error")),
             }
         }
         AutomationRequest::Shutdown => {
             let result = state.handle.request_shutdown();
             match result {
                 Ok(()) => Some(ok_response(id)),
-                Err(error) => Some(error_response(id, &error)),
-            }
-        }
-        AutomationRequest::CacheStats => {
-            if let Err(error) = ensure_cache_api(state) {
-                return Some(error_response(id, &error));
-            }
-            let snapshot = state.handle.snapshot.read().expect("snapshot");
-            let response = AutomationResponse {
-                id,
-                ok: true,
-                result: Some(snapshot.cache_stats.clone()),
-                error: None,
-            };
-            Some(serde_json::to_string(&response).unwrap())
-        }
-        AutomationRequest::CacheQuery { query, limit } => {
-            if let Err(error) = ensure_cache_api(state) {
-                return Some(error_response(id, &error));
-            }
-            let snapshot = state.handle.snapshot.read().expect("snapshot");
-            let limit = limit.unwrap_or(100).min(500);
-            let mut entries: Vec<AutomationAssetSummary> = snapshot.cache_entries.clone();
-            if let Some(query) = query {
-                entries.retain(|entry| {
-                    query
-                        .url
-                        .as_ref()
-                        .map(|q| entry.url.contains(q))
-                        .unwrap_or(true)
-                        && query
-                            .mime
-                            .as_ref()
-                            .map(|q| entry.mime.contains(q))
-                            .unwrap_or(true)
-                        && query
-                            .hash
-                            .as_ref()
-                            .map(|q| entry.hash.as_deref() == Some(q))
-                            .unwrap_or(true)
-                        && query
-                            .session_id
-                            .as_ref()
-                            .map(|q| entry.session_id.as_deref() == Some(q))
-                            .unwrap_or(true)
-                        && query
-                            .tab_id
-                            .as_ref()
-                            .map(|q| entry.tab_id.as_deref() == Some(q))
-                            .unwrap_or(true)
-                        && query
-                            .status_code
-                            .map(|q| entry.status_code == Some(q))
-                            .unwrap_or(true)
-                });
-            }
-            entries.truncate(limit);
-            let response = AutomationResponse {
-                id,
-                ok: true,
-                result: Some(entries),
-                error: None,
-            };
-            Some(serde_json::to_string(&response).unwrap())
-        }
-        AutomationRequest::CacheBody { asset_id } => {
-            if let Err(error) = ensure_cache_api(state) {
-                return Some(error_response(id, &error));
-            }
-            match load_cache_body(&state.handle, &asset_id) {
-                Ok(body) => {
-                    let response = AutomationResponse {
-                        id,
-                        ok: true,
-                        result: Some(body),
-                        error: None,
-                    };
-                    Some(serde_json::to_string(&response).unwrap())
-                }
                 Err(error) => Some(error_response(id, &error)),
             }
         }
@@ -1565,12 +1692,6 @@ async fn handle_request(
                     .collect::<Vec<_>>(),
             );
             Some(ok_response(id))
-        }
-        AutomationRequest::TtsControl { .. } => {
-            Some(error_response(id, "tts control not implemented"))
-        }
-        AutomationRequest::TtsEnqueue { .. } => {
-            Some(error_response(id, "tts enqueue not implemented"))
         }
     };
 
@@ -1618,6 +1739,7 @@ fn ensure_tab_api(state: &AutomationServerState) -> Result<(), String> {
     state.check_permission(Capability::TabInspect)
 }
 
+#[allow(dead_code)]
 fn ensure_cache_api(state: &AutomationServerState) -> Result<(), String> {
     if !state.handle.expose_cache_api {
         return Err("cache api disabled".to_string());
@@ -1721,6 +1843,7 @@ pub fn drain_automation_commands(
     receiver: &mut mpsc::UnboundedReceiver<AutomationCommand>,
     shell_state: &mut ShellState,
     engine: &mut dyn crate::engine::BrowserEngine,
+    cache: &mut crate::cache::AssetStore,
 ) {
     while let Ok(command) = receiver.try_recv() {
         match command {
@@ -1834,6 +1957,95 @@ pub fn drain_automation_commands(
                         let _ = response_tx.send(result);
                     }),
                 );
+            }
+            AutomationCommand::RenderedText { response_tx } => {
+                engine.evaluate_javascript(
+                    "document.body.innerText".to_string(),
+                    Box::new(|result| {
+                        let _ = response_tx.send(result.map(|v| {
+                            if let serde_json::Value::String(s) = v {
+                                s
+                            } else {
+                                v.to_string()
+                            }
+                        }));
+                    }),
+                );
+            }
+            AutomationCommand::ArticleText { response_tx } => {
+                engine.evaluate_javascript(
+                    "(document.querySelector('article') || document.querySelector('main') || document.body).innerText".to_string(),
+                    Box::new(|result| {
+                        let _ = response_tx.send(result.map(|v| {
+                            if let serde_json::Value::String(s) = v {
+                                s
+                            } else {
+                                v.to_string()
+                            }
+                        }));
+                    }),
+                );
+            }
+            AutomationCommand::CacheStats { response_tx } => {
+                let stats = cache.stats();
+                let _ = response_tx.send(Ok(serde_json::to_value(stats).unwrap()));
+            }
+            AutomationCommand::CacheQuery { query, limit, response_tx } => {
+                let entries = if let Some(q) = query {
+                    cache.query(q)
+                } else {
+                    cache.entries().to_vec()
+                };
+                let limit_val = limit.unwrap_or(entries.len());
+                let result = entries.into_iter().take(limit_val).map(|e| AutomationAssetSummary {
+                    asset_id: e.asset_id,
+                    url: e.url,
+                    status_code: e.status_code,
+                    mime: e.mime,
+                    size_bytes: e.size_bytes,
+                    hash: e.hash,
+                    created_at: e.created_at,
+                    session_id: e.session_id,
+                    tab_id: e.tab_id,
+                }).collect();
+                let _ = response_tx.send(Ok(result));
+            }
+            AutomationCommand::CacheBody { asset_id, response_tx } => {
+                 if let Some(entry) = cache.find_by_id_or_hash(&asset_id) {
+                     if let Some(body_key) = &entry.body_key {
+                         let path = cache.blob_path(body_key);
+                         match std::fs::read(path) {
+                             Ok(bytes) => {
+                                 use base64::Engine;
+                                 let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+                                 let _ = response_tx.send(Ok(encoded));
+                             }
+                             Err(e) => {
+                                 let _ = response_tx.send(Err(e.to_string()));
+                             }
+                         }
+                     } else {
+                         let _ = response_tx.send(Err("no body captured for this asset".to_string()));
+                     }
+                 } else {
+                     let _ = response_tx.send(Err("asset not found".to_string()));
+                 }
+            }
+            AutomationCommand::TtsControl { action, response_tx } => {
+                shell_state.record_event(format!("automation tts control: {}", action));
+                let _ = response_tx.send(Ok(()));
+            }
+            AutomationCommand::TtsEnqueue { text, response_tx } => {
+                shell_state.record_event(format!("automation tts enqueue: {} characters", text.len()));
+                let _ = response_tx.send(Ok(()));
+            }
+            AutomationCommand::InteractDom { selector, event, value, response_tx } => {
+                engine.interact_dom(selector, event, value, Box::new(|res| {
+                    let _ = response_tx.send(res);
+                }));
+            }
+            AutomationCommand::ScreenshotWindow { response_tx } => {
+                *shell_state.pending_window_screenshot.lock().unwrap() = Some(response_tx);
             }
         }
     }

@@ -190,8 +190,10 @@ impl WebViewDelegate for BrazenWebViewDelegate {
             self.send_intercepted_response(load, headers, response.body);
         }
     }
+}
 
-    fn send_intercepted_response(&self, load: WebResourceLoad, mut headers: HeaderMap, data: Vec<u8>) {
+impl BrazenWebViewDelegate {
+    fn send_intercepted_response(&self, load: WebResourceLoad, headers: HeaderMap, data: Vec<u8>) {
         let mut response = WebResourceResponse::new(load.request.url.clone());
         response.headers = headers;
         let intercepted = load.intercept(response);
@@ -199,6 +201,7 @@ impl WebViewDelegate for BrazenWebViewDelegate {
         intercepted.finish();
     }
 }
+
 
 #[derive(Clone)]
 pub struct BrazenServoDelegate {

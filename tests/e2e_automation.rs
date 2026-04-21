@@ -19,6 +19,19 @@ enabled = true
 bind = "ws://127.0.0.1:0/ws"
 require_auth = false
 
+[permissions]
+default = "allow"
+[permissions.capabilities]
+tab-inspect = "allow"
+dom-read = "allow"
+cache-read = "allow"
+terminal-exec = "allow"
+terminal-output-read = "allow"
+ai-tool-use = "allow"
+virtual-resource-mount = "allow"
+fs-read = "allow"
+fs-write = "allow"
+
 [logging]
 console_filter = "info"
 file_filter = "off"
@@ -33,8 +46,8 @@ fn spawn_brazen(config_path: &std::path::Path, endpoint_file: &std::path::Path) 
         .arg("--config")
         .arg(config_path)
         .env("BRAZEN_AUTOMATION_ENDPOINT_FILE", endpoint_file)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .spawn()
         .expect("spawn brazen")
 }
@@ -50,21 +63,42 @@ fn spawn_brazen_with_display(
         .arg(config_path)
         .env("BRAZEN_AUTOMATION_ENDPOINT_FILE", endpoint_file)
         .env("DISPLAY", display)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .spawn()
         .expect("spawn brazen")
 }
 
+fn check_display_health() -> bool {
+    let Ok(display) = std::env::var("DISPLAY") else {
+        return false;
+    };
+    if display.is_empty() {
+        return false;
+    }
+    // Try xdpyinfo to see if the display is actually reachable
+    Command::new("xdpyinfo")
+        .arg("-display")
+        .arg(&display)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
 fn start_xvfb_or_skip() -> Option<(Child, String)> {
-    if std::env::var("DISPLAY").ok().is_some() || std::env::var("WAYLAND_DISPLAY").ok().is_some()
+    if check_display_health()
+        || std::env::var("WAYLAND_DISPLAY")
+            .map(|v| !v.is_empty())
+            .unwrap_or(false)
     {
         return None;
     }
     let Some(xvfb_path) = which::which("Xvfb").ok() else {
         return None;
     };
-    let display = ":99".to_string();
+    let display = format!(":{}", 100 + (std::process::id() % 1000));
     let child = Command::new(xvfb_path)
         .arg(&display)
         .arg("-screen")
@@ -74,6 +108,10 @@ fn start_xvfb_or_skip() -> Option<(Child, String)> {
         .stderr(Stdio::null())
         .spawn()
         .ok()?;
+    
+    // Give Xvfb a moment to start
+    std::thread::sleep(Duration::from_millis(800));
+    
     Some((child, display))
 }
 
@@ -128,7 +166,8 @@ async fn wait_for_url(url: &Url, expected_prefix: &str) {
                 .and_then(|tabs| tabs.first())
                 .and_then(|tab| tab["url"].as_str())
                 .unwrap_or("");
-            if current.starts_with(expected_prefix) {
+            let ready = response["result"]["document_ready"].as_bool().unwrap_or(false);
+            if current.starts_with(expected_prefix) && ready {
                 return;
             }
         }
@@ -215,6 +254,82 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     .await
     .expect("join");
     assert!(status.success(), "brazen did not exit cleanly: {status}");
+
+    if let Some((mut xvfb_child, _)) = xvfb.take() {
+        let _ = xvfb_child.kill();
+        let _ = xvfb_child.wait();
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn e2e_automation_roadmap_features() {
+    if std::env::var("BRAZEN_E2E").ok().as_deref() != Some("1") {
+        return;
+    }
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let config_path = tmp.path().join("brazen.toml");
+    let endpoint_file = tmp.path().join("endpoint.txt");
+    write_test_config(&config_path);
+
+    let mut xvfb = start_xvfb_or_skip();
+    let mut child = if let Some((_, ref display)) = xvfb {
+        spawn_brazen_with_display(&config_path, &endpoint_file, display)
+    } else {
+        spawn_brazen(&config_path, &endpoint_file)
+    };
+    let url = wait_for_endpoint_file(&endpoint_file).await;
+
+    // Navigate to a test page
+    let nav_url = "data:text/html;charset=utf-8,<html><body><article><h1>Article</h1><p>Content</p></article></body></html>";
+    let _ = ws_roundtrip(&url, json!({"id":"nav","type":"tab-navigate","url":nav_url})).await;
+    wait_for_url(&url, "data:text/html").await;
+
+    // Test rendered-text
+    let response = ws_roundtrip(&url, json!({"id":"rt","type":"rendered-text"})).await;
+    println!("Rendered text: {:?}", response["result"]);
+    assert!(response["ok"].as_bool().unwrap_or(false), "rendered-text failed: {response}");
+    assert!(response["result"].as_str().unwrap_or("").contains("Article"), "rendered-text missing content");
+
+    // Test article-text
+    let response = ws_roundtrip(&url, json!({"id":"at","type":"article-text"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "article-text failed: {response}");
+    assert!(response["result"].as_str().unwrap_or("").contains("Content"), "article-text missing content");
+
+    // Test cache-stats
+    let response = ws_roundtrip(&url, json!({"id":"cs","type":"cache-stats"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "cache-stats failed: {response}");
+    assert!(response["result"]["total_entries"].is_number(), "cache-stats missing total_entries");
+
+    // Test interact-dom
+    let response = ws_roundtrip(&url, json!({"id":"id1","type":"interact-dom","selector":"h1","event":"click"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "interact-dom failed: {response}");
+
+    // Test screenshot-window
+    let response = ws_roundtrip(&url, json!({"id":"sw1","type":"screenshot-window"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "screenshot-window failed: {response}");
+    assert!(response["result"]["png_base64"].is_string(), "expected base64 PNG");
+
+    // Test cache-body (negative test for now as NullEngine/data URLs might not populate cache)
+    let response = ws_roundtrip(&url, json!({"id":"cb1","type":"cache-body","asset_id":"nonexistent"})).await;
+    assert!(!response["ok"].as_bool().unwrap_or(true), "expected failure for nonexistent asset");
+    assert!(response["error"].as_str().unwrap_or("").contains("asset not found"), "expected asset not found error");
+
+    // Test cache-query
+    let response = ws_roundtrip(&url, json!({"id":"cq","type":"cache-query","limit":10})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "cache-query failed: {response}");
+    assert!(response["result"].is_array(), "cache-query expected array");
+
+    // Test tts-control
+    let response = ws_roundtrip(&url, json!({"id":"tc","type":"tts-control","action":"play"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "tts-control failed: {response}");
+
+    // Test tts-enqueue
+    let response = ws_roundtrip(&url, json!({"id":"te","type":"tts-enqueue","text":"Hello world"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "tts-enqueue failed: {response}");
+
+    // Shutdown
+    let _ = ws_roundtrip(&url, json!({"id":"sd","type":"shutdown"})).await;
+    let _ = child.wait();
 
     if let Some((mut xvfb_child, _)) = xvfb.take() {
         let _ = xvfb_child.kill();
