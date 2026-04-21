@@ -10,10 +10,12 @@ use url::Url;
 pub enum MountType {
     /// A local filesystem directory.
     FileSystem(PathBuf),
-    /// A dynamic terminal session (placeholder for future implementation).
-    Terminal(String),
-    /// MCP tool definitions (placeholder for future implementation).
+    /// A dynamic terminal session.
+    Terminal,
+    /// MCP tool definitions.
     Mcp,
+    /// Cross-tab visibility and management.
+    Tabs,
 }
 
 /// A virtual resource mount.
@@ -96,6 +98,21 @@ impl MountManager {
             }
             _ => None,
         }
+    }
+
+    /// Resolve a brazen://terminal request.
+    pub fn resolve_terminal_request(&self, url: &Url) -> bool {
+        url.scheme() == "brazen" && url.host_str() == Some("terminal")
+    }
+
+    /// Resolve a brazen://tabs request.
+    pub fn resolve_tabs_request(&self, url: &Url) -> bool {
+        url.scheme() == "brazen" && url.host_str() == Some("tabs")
+    }
+
+    /// Resolve a brazen://mcp request.
+    pub fn resolve_mcp_request(&self, url: &Url) -> bool {
+        url.scheme() == "brazen" && url.host_str() == Some("mcp")
     }
 
     /// List all currently active mounts.

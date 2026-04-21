@@ -2,6 +2,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::path::PathBuf;
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 use crate::automation::{
@@ -60,7 +61,7 @@ pub struct ShellState {
     pub upstream_active: bool,
     pub upstream_last_error: Option<String>,
     pub render_warning: Option<String>,
-    pub session: SessionSnapshot,
+    pub session: Arc<RwLock<SessionSnapshot>>,
     pub event_log: Vec<String>,
     pub log_panel_open: bool,
     pub permission_panel_open: bool,
@@ -117,7 +118,7 @@ impl ShellState {
                             timestamp: Utc::now().to_rfc3339(),
                             redirect_chain: state.redirect_chain.clone(),
                         };
-                        self.session.commit_navigation(entry);
+                        self.session.write().unwrap().commit_navigation(entry);
                     }
                     self.record_event(format!(
                         "nav: {} ({:.0}%)",
@@ -169,10 +170,10 @@ impl ShellState {
                         .map(|path| format!("{url} -> {path}"))
                         .unwrap_or_else(|| url.clone());
                     self.last_download = Some(message.clone());
-                    self.session
-                        .active_tab_mut()
-                        .downloads
-                        .push(message.clone());
+                    {
+                        let mut session = self.session.write().unwrap();
+                        session.active_tab_mut().downloads.push(message.clone());
+                    }
                     self.record_event(format!("download requested: {message}"));
                 }
                 EngineEvent::SecurityWarning { kind, url } => {
@@ -181,7 +182,7 @@ impl ShellState {
                 }
                 EngineEvent::Crashed { reason } => {
                     self.last_crash = Some(reason.clone());
-                    self.session.crash_recovery_pending = true;
+                    self.session.write().unwrap().crash_recovery_pending = true;
                     self.record_event(format!("engine crashed: {reason}"));
                 }
                 other => {
@@ -197,8 +198,16 @@ pub fn build_shell_state(
     paths: &RuntimePaths,
     engine_factory: &dyn EngineFactory,
 ) -> ShellState {
+    let session_data = load_session(&paths.session_path).unwrap_or_else(|_| {
+        SessionSnapshot::new(
+            config.profiles.active_profile.clone(),
+            Utc::now().to_rfc3339(),
+        )
+    });
+    let session = Arc::new(RwLock::new(session_data));
+
     let mount_manager = crate::mounts::MountManager::new();
-    let mut engine = engine_factory.create(config, paths, mount_manager.clone());
+    let mut engine = engine_factory.create(config, paths, mount_manager.clone(), session.clone());
     engine.set_render_surface(RenderSurfaceMetadata {
         viewport_width: config.window.initial_width as u32,
         viewport_height: config.window.initial_height as u32,
@@ -250,12 +259,6 @@ pub fn build_shell_state(
         ),
     ];
 
-    let session = load_session(&paths.session_path).unwrap_or_else(|_| {
-        SessionSnapshot::new(
-            config.profiles.active_profile.clone(),
-            Utc::now().to_rfc3339(),
-        )
-    });
     let startup_url = resolve_startup_url(&config.engine.startup_url)
         .ok()
         .flatten();
@@ -279,10 +282,10 @@ pub fn build_shell_state(
         metadata_summary: None,
         history: Vec::new(),
         last_committed_url: None,
-        active_tab_zoom: session
-            .active_tab()
-            .map(|tab| tab.zoom_level)
-            .unwrap_or(config.engine.zoom_default),
+        active_tab_zoom: {
+            let s = session.read().unwrap();
+            s.active_tab().map(|t| t.zoom_level).unwrap_or(config.engine.zoom_default)
+        },
         cursor_icon: None,
         was_minimized: false,
         pending_popup: None,
@@ -496,7 +499,7 @@ impl BrazenApp {
         automation: Option<crate::automation::AutomationRuntime>,
     ) -> Self {
         let engine_factory = crate::engine::ServoEngineFactory;
-        let mut engine = engine_factory.create(&config, &shell_state.runtime_paths, shell_state.mount_manager.clone());
+        let mut engine = engine_factory.create(&config, &shell_state.runtime_paths, shell_state.mount_manager.clone(), shell_state.session.clone());
         engine.set_verbose_logging(config.engine.verbose_logging);
         engine.configure_devtools(
             config.engine.devtools_enabled,
@@ -720,6 +723,8 @@ impl BrazenApp {
         let input = self.shell_state.address_bar_input.trim().to_string();
         self.shell_state
             .session
+            .write()
+            .unwrap()
             .mark_pending_navigation(&input, Utc::now().to_rfc3339());
         let _ = dispatch_command(
             &mut self.shell_state,
@@ -765,11 +770,11 @@ impl BrazenApp {
                         close_menu = true;
                     }
                     if ui.button("Open In New Tab").clicked() {
-                        self.shell_state
-                            .session
-                            .open_new_tab(&current_url, "New Tab");
-                        self.shell_state.session.active_tab_mut().zoom_level =
-                            self.config.engine.zoom_default;
+                        {
+                            let mut session = self.shell_state.session.write().unwrap();
+                            session.open_new_tab(&current_url, "New Tab");
+                            session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                        }
                         self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                         self.shell_state.address_bar_input = current_url.clone();
                         let _ = dispatch_command(
@@ -848,8 +853,10 @@ impl BrazenApp {
 
     fn set_active_tab_zoom(&mut self, zoom: f32, reason: &str) {
         let clamped = self.clamp_zoom(zoom);
-        let tab = self.shell_state.session.active_tab_mut();
-        tab.zoom_level = clamped;
+        {
+            let mut session = self.shell_state.session.write().unwrap();
+            session.active_tab_mut().zoom_level = clamped;
+        }
         self.shell_state.active_tab_zoom = clamped;
         self.engine.set_page_zoom(clamped);
         self.shell_state
@@ -1594,7 +1601,7 @@ impl BrazenApp {
     }
 
     fn sync_active_tab_from_session(&mut self) {
-        let tab = self.shell_state.session.active_tab_mut().clone();
+        let tab = self.shell_state.session.read().unwrap().active_tab().unwrap().clone();
         if self.shell_state.active_tab.current_url != tab.url
             || self.shell_state.active_tab.title != tab.title
         {
@@ -1632,11 +1639,11 @@ impl BrazenApp {
             }
             WindowDisposition::BackgroundTab | WindowDisposition::NewWindow => {
                 if let Ok(normalized) = normalize_url_input(&url) {
-                    self.shell_state
-                        .session
-                        .open_new_tab(&normalized, "New Tab");
-                    self.shell_state.session.active_tab_mut().zoom_level =
-                        self.config.engine.zoom_default;
+                    {
+                        let mut session = self.shell_state.session.write().unwrap();
+                        session.open_new_tab(&normalized, "New Tab");
+                        session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                    }
                     self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                     self.shell_state
                         .record_event(format!("new window opened as tab: {normalized}"));
@@ -1665,8 +1672,8 @@ impl BrazenApp {
             "timestamp={}\nreason={}\nsession_id={}\nprofile={}\nactive_url={}\n",
             timestamp,
             reason,
-            self.shell_state.session.session_id.0,
-            self.shell_state.session.profile_id,
+            self.shell_state.session.read().unwrap().session_id.0,
+            self.shell_state.session.read().unwrap().profile_id.clone(),
             self.shell_state.active_tab.current_url
         );
         let _ = std::fs::write(&path, payload.as_bytes());
@@ -1675,9 +1682,12 @@ impl BrazenApp {
 
     fn restart_engine(&mut self) {
         self.engine.shutdown();
-        self.engine = self
-            .engine_factory
-            .create(&self.config, &self.shell_state.runtime_paths, self.shell_state.mount_manager.clone());
+        self.engine = self.engine_factory.create(
+            &self.config,
+            &self.shell_state.runtime_paths,
+            self.shell_state.mount_manager.clone(),
+            self.shell_state.session.clone(),
+        );
         self.engine
             .set_verbose_logging(self.shell_state.engine_verbose_logging);
         self.engine.configure_devtools(
@@ -1712,7 +1722,7 @@ impl BrazenApp {
         {
             self.restart_engine();
             self.shell_state.last_crash = None;
-            self.shell_state.session.crash_recovery_pending = false;
+            self.shell_state.session.write().unwrap().crash_recovery_pending = false;
             self.pending_restart_at = None;
         }
     }
@@ -1767,11 +1777,11 @@ impl BrazenApp {
     fn apply_palette_command(&mut self, action: PaletteCommand) {
         match action {
             PaletteCommand::NewTab => {
-                self.shell_state
-                    .session
-                    .open_new_tab("about:blank", "New Tab");
-                self.shell_state.session.active_tab_mut().zoom_level =
-                    self.config.engine.zoom_default;
+                {
+                    let mut session = self.shell_state.session.write().unwrap();
+                    session.open_new_tab("about:blank", "New Tab");
+                    session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                }
                 self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                 self.sync_active_tab_from_session();
                 self.shell_state.address_bar_input =
@@ -1779,7 +1789,7 @@ impl BrazenApp {
                 self.shell_state.record_event("palette: new tab");
             }
             PaletteCommand::CloseTab => {
-                self.shell_state.session.close_active_tab();
+                self.shell_state.session.write().unwrap().close_active_tab();
                 self.sync_active_tab_from_session();
                 self.shell_state.address_bar_input =
                     self.shell_state.active_tab.current_url.clone();
@@ -1807,7 +1817,7 @@ impl BrazenApp {
                     self.engine.as_mut(),
                     AppCommand::GoBack,
                 );
-                self.shell_state.session.go_back(Utc::now().to_rfc3339());
+                self.shell_state.session.write().unwrap().go_back(Utc::now().to_rfc3339());
                 self.shell_state.record_event("palette: go back");
             }
             PaletteCommand::GoForward => {
@@ -1816,7 +1826,7 @@ impl BrazenApp {
                     self.engine.as_mut(),
                     AppCommand::GoForward,
                 );
-                self.shell_state.session.go_forward(Utc::now().to_rfc3339());
+                self.shell_state.session.write().unwrap().go_forward(Utc::now().to_rfc3339());
                 self.shell_state.record_event("palette: go forward");
             }
             PaletteCommand::FocusAddressBar => {
@@ -2441,44 +2451,48 @@ impl BrazenApp {
     fn render_tab_strip(&mut self, ctx: &eframe::egui::Context) {
         eframe::egui::TopBottomPanel::top("tab_strip").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                let active_window = self.shell_state.session.active_window;
-                let Some(window) = self.shell_state.session.windows.get(active_window) else {
-                    return;
+                let (active_window, window_count) = {
+                    let s = self.shell_state.session.read().unwrap();
+                    (s.active_window, s.windows.len())
                 };
-                let active_index = window.active_tab;
-                let tabs = window.tabs.clone();
-                for (index, tab) in tabs.iter().enumerate() {
-                    let is_active = index == active_index;
-                    let label = if tab.title.is_empty() {
-                        tab.url.clone()
-                    } else {
-                        tab.title.clone()
+                if active_window < window_count {
+                    let (tabs, active_index) = {
+                        let s = self.shell_state.session.read().unwrap();
+                        let window = &s.windows[active_window];
+                        (window.tabs.clone(), window.active_tab)
                     };
-                    let response = ui.selectable_label(is_active, label);
-                    if response.clicked() {
-                        self.shell_state.session.set_active_tab(index);
-                        self.sync_active_tab_from_session();
-                        self.shell_state.address_bar_input = tab.url.clone();
-                    }
-                    if tabs.len() > 1 {
-                        if ui.small_button("x").clicked() && index == active_index {
-                            self.shell_state.session.close_active_tab();
+                    for (index, tab) in tabs.iter().enumerate() {
+                        let is_active = index == active_index;
+                        let label = if tab.title.is_empty() {
+                            if tab.url.is_empty() { "New Tab".to_string() } else { tab.url.clone() }
+                        } else {
+                            tab.title.clone()
+                        };
+                        
+                        if ui.selectable_label(is_active, label).clicked() {
+                            self.shell_state.session.write().unwrap().set_active_tab(index);
                             self.sync_active_tab_from_session();
-                            self.shell_state.address_bar_input =
-                                self.shell_state.active_tab.current_url.clone();
+                            self.shell_state.address_bar_input = tab.url.clone();
+                        }
+                        
+                        if tabs.len() > 1 && is_active {
+                            if ui.small_button("x").clicked() {
+                                self.shell_state.session.write().unwrap().close_active_tab();
+                                self.sync_active_tab_from_session();
+                                self.shell_state.address_bar_input = self.shell_state.active_tab.current_url.clone();
+                            }
                         }
                     }
                 }
-                if ui.small_button("+").clicked() {
-                    self.shell_state
-                        .session
-                        .open_new_tab("about:blank", "New Tab");
-                    self.shell_state.session.active_tab_mut().zoom_level =
-                        self.config.engine.zoom_default;
+                if ui.button("+").clicked() {
+                    {
+                        let mut session = self.shell_state.session.write().unwrap();
+                        session.open_new_tab("about:blank", "New Tab");
+                        session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                    }
                     self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                     self.sync_active_tab_from_session();
-                    self.shell_state.address_bar_input =
-                        self.shell_state.active_tab.current_url.clone();
+                    self.shell_state.address_bar_input = self.shell_state.active_tab.current_url.clone();
                 }
             });
         });
@@ -2503,8 +2517,8 @@ impl BrazenApp {
             if ui.button("Sim Capture").clicked() {
                 let mut headers = std::collections::BTreeMap::new();
                 headers.insert("content-type".to_string(), "text/html".to_string());
-                let session_id = Some(self.shell_state.session.session_id.0.to_string());
-                let tab_id = Some(self.shell_state.session.active_tab_mut().id.0.to_string());
+                let session_id = Some(self.shell_state.session.read().unwrap().session_id.0.to_string());
+                let tab_id = Some(self.shell_state.session.read().unwrap().active_tab().unwrap().id.0.to_string());
                 let _ = self.cache_store.record_asset(
                     &self.shell_state.active_tab.current_url,
                     None,
@@ -2725,7 +2739,7 @@ impl eframe::App for BrazenApp {
                             self.engine.as_mut(),
                             AppCommand::GoBack,
                         );
-                        self.shell_state.session.go_back(Utc::now().to_rfc3339());
+                        self.shell_state.session.write().unwrap().go_back(Utc::now().to_rfc3339());
                     }
                 });
                 ui.add_enabled_ui(self.shell_state.can_go_forward, |ui| {
@@ -2735,7 +2749,7 @@ impl eframe::App for BrazenApp {
                             self.engine.as_mut(),
                             AppCommand::GoForward,
                         );
-                        self.shell_state.session.go_forward(Utc::now().to_rfc3339());
+                        self.shell_state.session.write().unwrap().go_forward(Utc::now().to_rfc3339());
                     }
                 });
                 let response = ui.text_edit_singleline(&mut self.shell_state.address_bar_input);
@@ -2833,33 +2847,33 @@ impl eframe::App for BrazenApp {
                     ui.heading("Workspace");
                     ui.horizontal(|ui| {
                         if ui.button("New Tab").clicked() {
-                            self.shell_state
-                                .session
-                                .open_new_tab("about:blank", "New Tab");
-                            self.shell_state.session.active_tab_mut().zoom_level =
-                                self.config.engine.zoom_default;
+                            {
+                                let mut session = self.shell_state.session.write().unwrap();
+                                session.open_new_tab("about:blank", "New Tab");
+                                session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                            }
                             self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
                         }
                         if ui.button("Duplicate").clicked() {
-                            self.shell_state.session.duplicate_active_tab();
+                            self.shell_state.session.write().unwrap().duplicate_active_tab();
                         }
                     });
                     ui.horizontal(|ui| {
                         if ui.button("Close").clicked() {
-                            self.shell_state.session.close_active_tab();
+                            self.shell_state.session.write().unwrap().close_active_tab();
                         }
                         if ui.button("Pin").clicked() {
-                            self.shell_state.session.toggle_pin_active_tab();
+                            self.shell_state.session.write().unwrap().toggle_pin_active_tab();
                         }
                         if ui.button("Mute").clicked() {
-                            self.shell_state.session.toggle_mute_active_tab();
+                            self.shell_state.session.write().unwrap().toggle_mute_active_tab();
                         }
                     });
                     ui.horizontal(|ui| {
                         if ui.button("Save Session").clicked()
                             && save_session(
                                 &self.shell_state.runtime_paths.session_path,
-                                &self.shell_state.session,
+                                &self.shell_state.session.read().unwrap(),
                             )
                             .is_ok()
                         {
@@ -2869,43 +2883,50 @@ impl eframe::App for BrazenApp {
                             && let Ok(session) =
                                 load_session(&self.shell_state.runtime_paths.session_path)
                         {
-                            self.shell_state.session = session;
-                            let tab = self.shell_state.session.active_tab_mut().clone();
+                            *self.shell_state.session.write().unwrap() = session;
+                            let tab = self.shell_state.session.read().unwrap().active_tab().unwrap().clone();
                             self.shell_state.address_bar_input = tab.url.clone();
                             self.shell_state.record_event("session loaded");
                         }
                     });
                     ui.label(format!(
                         "Session: {}",
-                        self.shell_state.session.session_id.0
+                        self.shell_state.session.read().unwrap().session_id.0
                     ));
-                    ui.label(format!("Profile: {}", self.shell_state.session.profile_id));
+                    ui.label(format!("Profile: {}", self.shell_state.session.read().unwrap().profile_id));
                     ui.label(format!(
                         "Crash recovery: {}",
-                        if self.shell_state.session.crash_recovery_pending {
+                        if self.shell_state.session.read().unwrap().crash_recovery_pending {
                             "pending"
                         } else {
                             "clear"
                         }
                     ));
                     ui.separator();
-                    let active_window = self.shell_state.session.active_window;
-                    if let Some(window) = self.shell_state.session.windows.get(active_window) {
-                        let active_index = window.active_tab;
-                        let tabs = window.tabs.clone();
-                        for (index, tab) in tabs.iter().enumerate() {
-                            let label = format!(
-                                "{}{} {}",
-                                if index == active_index { ">" } else { " " },
-                                if tab.pinned { "P" } else { " " },
-                                tab.title
-                            );
-                            if ui.selectable_label(index == active_index, label).clicked() {
-                                self.shell_state.session.set_active_tab(index);
-                                self.shell_state.address_bar_input = tab.url.clone();
-                                self.shell_state
-                                    .record_event(format!("active tab: {}", tab.url));
+                    let active_window = self.shell_state.session.read().unwrap().active_window;
+                    let (tabs, active_index) = {
+                        let session = self.shell_state.session.read().unwrap();
+                        if let Some(window) = session.windows.get(active_window) {
+                            (window.tabs.clone(), window.active_tab)
+                        } else {
+                            (Vec::new(), 0)
+                        }
+                    };
+                    for (index, tab) in tabs.iter().enumerate() {
+                        let label = format!(
+                            "{}{} {}",
+                            if index == active_index { ">" } else { " " },
+                            if tab.pinned { "P" } else { " " },
+                            tab.title
+                        );
+                        if ui.selectable_label(index == active_index, label).clicked() {
+                            {
+                                self.shell_state.session.write().unwrap().set_active_tab(index);
                             }
+                            self.shell_state.address_bar_input = tab.url.clone();
+                            let event_url = tab.url.clone();
+                            self.shell_state
+                                .record_event(format!("active tab: {}", event_url));
                         }
                     }
                     ui.label(format!("Title: {}", self.shell_state.active_tab.title));

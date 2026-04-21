@@ -365,9 +365,6 @@ pub trait BrowserEngine {
     fn health(&self) -> RenderHealth;
 }
 
-pub trait EngineFactory {
-    fn create(&self, config: &BrazenConfig, paths: &RuntimePaths, mount_manager: crate::mounts::MountManager) -> Box<dyn BrowserEngine>;
-}
 
 pub struct NullEngine {
     instance_id: EngineInstanceId,
@@ -597,14 +594,32 @@ impl BrowserEngine for NullEngine {
         Err("NullEngine does not support screenshots".to_string())
     }
 }
+use std::sync::{Arc, RwLock};
+use crate::session::SessionSnapshot;
+
+pub trait EngineFactory {
+    fn create(
+        &self,
+        config: &BrazenConfig,
+        paths: &RuntimePaths,
+        mount_manager: crate::mounts::MountManager,
+        session: Arc<RwLock<SessionSnapshot>>,
+    ) -> Box<dyn BrowserEngine>;
+}
 
 pub struct ServoEngineFactory;
 
 impl EngineFactory for ServoEngineFactory {
-    fn create(&self, _config: &BrazenConfig, _paths: &RuntimePaths, mount_manager: crate::mounts::MountManager) -> Box<dyn BrowserEngine> {
+    fn create(
+        &self,
+        _config: &BrazenConfig,
+        _paths: &RuntimePaths,
+        mount_manager: crate::mounts::MountManager,
+        _session: Arc<RwLock<SessionSnapshot>>,
+    ) -> Box<dyn BrowserEngine> {
         #[cfg(feature = "servo")]
         {
-            Box::new(ServoEngine::new(_config, mount_manager))
+            Box::new(ServoEngine::new(_config, mount_manager, _session))
         }
 
         #[cfg(not(feature = "servo"))]
@@ -644,7 +659,11 @@ pub struct ServoEngine {
 
 #[cfg(feature = "servo")]
 impl ServoEngine {
-    pub fn new(config: &BrazenConfig, mount_manager: crate::mounts::MountManager) -> Self {
+    pub fn new(
+        config: &BrazenConfig,
+        mount_manager: crate::mounts::MountManager,
+        session: Arc<RwLock<SessionSnapshot>>,
+    ) -> Self {
         tracing::info!("servo feature enabled with scaffold backend");
         let events = vec![
             EngineEvent::StatusChanged(EngineStatus::Initializing),
@@ -664,7 +683,7 @@ impl ServoEngine {
         };
 
         let embedder_config = ServoEmbedderConfig::from_brazen_config(config);
-        let mut embedder = ServoEmbedder::new(embedder_config, mount_manager);
+        let mut embedder = ServoEmbedder::new(embedder_config, mount_manager, session);
         let verbose_logging = config.engine.verbose_logging;
         embedder.set_verbose_logging(verbose_logging);
         if let Err(error) = embedder.init() {

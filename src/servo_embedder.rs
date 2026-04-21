@@ -1,5 +1,6 @@
 use std::net::TcpListener;
 use std::path::PathBuf;
+use std::sync::{Arc, RwLock};
 
 use crate::engine::{
     AlphaMode, ColorSpace, EngineFrame, FocusState, InputEvent, PixelFormat, RenderSurfaceHandle,
@@ -230,6 +231,7 @@ pub struct ServoEmbedder {
     pub upstream_event_tx: Option<std::sync::mpsc::Sender<crate::engine::EngineEvent>>,
     #[cfg(feature = "servo-upstream")]
     pub upstream_event_rx: Option<std::sync::mpsc::Receiver<crate::engine::EngineEvent>>,
+    pub session: Arc<RwLock<crate::session::SessionSnapshot>>,
 }
 
 impl std::fmt::Debug for ServoEmbedder {
@@ -243,7 +245,11 @@ impl std::fmt::Debug for ServoEmbedder {
 }
 
 impl ServoEmbedder {
-    pub fn new(config: ServoEmbedderConfig, mount_manager: crate::mounts::MountManager) -> Self {
+    pub fn new(
+        config: ServoEmbedderConfig,
+        mount_manager: crate::mounts::MountManager,
+        session: Arc<RwLock<crate::session::SessionSnapshot>>,
+    ) -> Self {
         Self {
             state: ServoEmbedderState::Uninitialized,
             verbose_logging: config.verbose_logging,
@@ -279,6 +285,7 @@ impl ServoEmbedder {
             upstream_event_tx: None,
             #[cfg(feature = "servo-upstream")]
             upstream_event_rx: None,
+            session,
         }
     }
 
@@ -738,6 +745,7 @@ impl ServoEmbedder {
             tx,
             self.mount_manager.clone(),
             self.permissions.clone(),
+            self.session.clone(),
         ) {
             Ok(runtime) => {
                 tracing::info!(

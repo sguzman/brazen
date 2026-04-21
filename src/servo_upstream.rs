@@ -25,6 +25,8 @@ use tracing_log::LogTracer;
 use http::HeaderMap;
 use crate::engine::EngineEvent;
 use crate::mounts::MountManager;
+use crate::session::SessionSnapshot;
+use std::sync::RwLock;
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -90,6 +92,7 @@ pub struct BrazenWebViewDelegate {
     frame_ready: Arc<AtomicBool>,
     mount_manager: MountManager,
     permissions: crate::permissions::PermissionPolicy,
+    session: Arc<RwLock<SessionSnapshot>>,
 }
 
 impl BrazenWebViewDelegate {
@@ -98,12 +101,14 @@ impl BrazenWebViewDelegate {
         frame_ready: Arc<AtomicBool>,
         mount_manager: MountManager,
         permissions: crate::permissions::PermissionPolicy,
+        session: Arc<RwLock<SessionSnapshot>>,
     ) -> Self {
         Self {
             snapshot,
             frame_ready,
             mount_manager,
             permissions,
+            session,
         }
     }
 }
@@ -175,8 +180,10 @@ impl WebViewDelegate for BrazenWebViewDelegate {
     }
 
     fn load_web_resource(&self, _webview: WebView, load: WebResourceLoad) {
-        if let Some((path, _read_only)) = self.mount_manager.resolve_fs_request(&load.request.url) {
-            tracing::info!(target: "brazen::mounts", url = %load.request.url, path = ?path, "intercepting virtual resource");
+        let url = load.request.url.clone();
+        
+        if let Some((path, _read_only)) = self.mount_manager.resolve_fs_request(&url) {
+            tracing::info!(target: "brazen::mounts", url = %url, path = ?path, "intercepting virtual resource");
             
             // Try to read the file
             match std::fs::read(&path) {
@@ -197,39 +204,133 @@ impl WebViewDelegate for BrazenWebViewDelegate {
                         headers.insert(http::header::CONTENT_TYPE, http::HeaderValue::from_static(mime));
                     }
                     
-                    // Check permissions for CORS
-                    let origin = load.request.headers.get("Origin")
-                        .and_then(|h| h.to_str().ok())
-                        .unwrap_or("null");
-                    
-                    let decision = if origin == "null" {
-                        // Likely a direct navigation or same-origin (if we were brazen://)
-                        // For now, allow if it's a direct navigation
-                        crate::permissions::PermissionDecision::Allow
-                    } else {
-                        let origin_url = Url::parse(origin).ok();
-                        let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
-                        self.permissions.decision_for_domain(host, &crate::permissions::Capability::VirtualResourceMount)
-                    };
-
-                    if decision == crate::permissions::PermissionDecision::Allow {
-                        headers.insert(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, http::HeaderValue::from_str(origin).unwrap_or(http::HeaderValue::from_static("*")));
-                    } else {
-                        tracing::warn!(target: "brazen::mounts", origin = %origin, "denying virtual resource access due to permissions");
-                        return;
-                    }
-
-                    let mut response = WebResourceResponse::new(load.request.url.clone());
-                    response.headers = headers;
-                    let intercepted = load.intercept(response);
-                    intercepted.send_body_data(data);
-                    intercepted.finish();
+                    self.send_intercepted_response(load, headers, data);
                 }
                 Err(e) => {
-                    tracing::error!(target: "brazen::mounts", url = %load.request.url, error = ?e, "failed to read virtual resource");
+                    tracing::error!(target: "brazen::mounts", url = %url, error = ?e, "failed to read virtual resource");
+                }
+            }
+        } else if self.mount_manager.resolve_terminal_request(&url) {
+            let host = url.host_str().unwrap_or("");
+            let path = url.path();
+            
+            if path == "/run" {
+                tracing::info!(target: "brazen::terminal", url = %url, "intercepting terminal run request");
+                
+                // Check permissions
+                let origin = load.request.headers.get("Origin")
+                    .and_then(|h| h.to_str().ok())
+                    .unwrap_or("null");
+                
+                let decision = if origin == "null" {
+                    crate::permissions::PermissionDecision::Allow
+                } else {
+                    let origin_url = Url::parse(origin).ok();
+                    let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
+                    self.permissions.decision_for_domain(host, &crate::permissions::Capability::TerminalExec)
+                };
+
+                if decision != crate::permissions::PermissionDecision::Allow {
+                    tracing::warn!(target: "brazen::terminal", origin = %origin, "denying terminal access due to permissions");
+                    return;
+                }
+
+                // Extract command and args from query
+                let mut cmd = String::new();
+                let mut args = Vec::new();
+                for (k, v) in url.query_pairs() {
+                    if k == "cmd" {
+                        cmd = v.into_owned();
+                    } else if k == "arg" {
+                        args.push(v.into_owned());
+                    }
+                }
+
+                if cmd.is_empty() {
+                    tracing::error!(target: "brazen::terminal", "missing 'cmd' parameter in terminal/run");
+                    return;
+                }
+
+                let intercepted = load.intercept(WebResourceResponse::new(url));
+                
+                // Run asynchronously
+                tokio::spawn(async move {
+                    let request = crate::terminal::TerminalRequest {
+                        cmd,
+                        args,
+                        cwd: None,
+                    };
+                    let response = crate::terminal::TerminalBroker::execute(request).await;
+                    if let Ok(data) = serde_json::to_vec(&response) {
+                        intercepted.send_body_data(data);
+                    }
+                    intercepted.finish();
+                });
+            }
+        } else if self.mount_manager.resolve_tabs_request(&url) {
+            tracing::info!(target: "brazen::tabs", url = %url, "intercepting tabs request");
+            
+            // Check permissions
+            let origin = load.request.headers.get("Origin")
+                .and_then(|h| h.to_str().ok())
+                .unwrap_or("null");
+            
+            let decision = if origin == "null" {
+                crate::permissions::PermissionDecision::Allow
+            } else {
+                let origin_url = Url::parse(origin).ok();
+                let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
+                self.permissions.decision_for_domain(host, &crate::permissions::Capability::TabInspect)
+            };
+
+            if decision != crate::permissions::PermissionDecision::Allow {
+                tracing::warn!(target: "brazen::tabs", origin = %origin, "denying tab access due to permissions");
+                return;
+            }
+
+            if url.path() == "/list" {
+                let session = self.session.read().unwrap();
+                let active_window_idx = session.active_window;
+                let tabs = session.windows.get(active_window_idx)
+                    .map(|w| &w.tabs)
+                    .cloned()
+                    .unwrap_or_default();
+                
+                if let Ok(data) = serde_json::to_vec(&tabs) {
+                    let mut headers = HeaderMap::new();
+                    headers.insert(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/json"));
+                    self.send_intercepted_response(load, headers, data);
                 }
             }
         }
+    }
+
+    fn send_intercepted_response(&self, load: WebResourceLoad, mut headers: HeaderMap, data: Vec<u8>) {
+        // Check permissions for CORS
+        let origin = load.request.headers.get("Origin")
+            .and_then(|h| h.to_str().ok())
+            .unwrap_or("null");
+        
+        let decision = if origin == "null" {
+            crate::permissions::PermissionDecision::Allow
+        } else {
+            let origin_url = Url::parse(origin).ok();
+            let host = origin_url.as_ref().and_then(|u| u.host_str()).unwrap_or(origin);
+            self.permissions.decision_for_domain(host, &crate::permissions::Capability::VirtualResourceMount)
+        };
+
+        if decision == crate::permissions::PermissionDecision::Allow {
+            headers.insert(http::header::ACCESS_CONTROL_ALLOW_ORIGIN, http::HeaderValue::from_str(origin).unwrap_or(http::HeaderValue::from_static("*")));
+        } else {
+            tracing::warn!(target: "brazen::mounts", origin = %origin, "denying virtual resource access due to permissions");
+            return;
+        }
+
+        let mut response = WebResourceResponse::new(load.request.url.clone());
+        response.headers = headers;
+        let intercepted = load.intercept(response);
+        intercepted.send_body_data(data);
+        intercepted.finish();
     }
 }
 
@@ -352,6 +453,7 @@ impl ServoUpstreamRuntime {
         event_sender: std::sync::mpsc::Sender<EngineEvent>,
         mount_manager: MountManager,
         permissions: crate::permissions::PermissionPolicy,
+        session: Arc<RwLock<SessionSnapshot>>,
     ) -> Result<Self, String> {
         let _ = LogTracer::init();
         let _ = rustls::crypto::ring::default_provider().install_default();
@@ -404,6 +506,7 @@ impl ServoUpstreamRuntime {
             frame_ready.clone(),
             mount_manager.clone(),
             permissions,
+            session,
         ));
         let servo_delegate = Rc::new(BrazenServoDelegate::new(
             devtools_endpoint.clone(),

@@ -244,20 +244,18 @@ impl AutomationHandle {
 
     pub fn update_snapshot(&self, shell_state: &ShellState, cache: &AssetStore) {
         let mut snapshot = self.snapshot.write().expect("automation snapshot lock");
-        snapshot.tabs = build_tab_list(&shell_state.session);
-        snapshot.active_tab_index = shell_state
-            .session
+        let session = shell_state.session.read().expect("session lock");
+        snapshot.tabs = build_tab_list(&session);
+        snapshot.active_tab_index = session
             .active_tab()
             .and_then(|tab| {
-                shell_state
-                    .session
+                session
                     .windows
-                    .get(shell_state.session.active_window)
+                    .get(session.active_window)
                     .and_then(|window| window.tabs.iter().position(|t| t.id == tab.id))
             })
             .unwrap_or(0);
-        snapshot.active_tab_id = shell_state
-            .session
+        snapshot.active_tab_id = session
             .active_tab()
             .map(|tab| tab.id.0.to_string());
         snapshot.address_bar = shell_state.address_bar_input.clone();
@@ -991,28 +989,39 @@ pub fn drain_automation_commands(
     while let Ok(command) = receiver.try_recv() {
         match command {
             AutomationCommand::ActivateTab { index } => {
-                shell_state.session.set_active_tab(index);
-                if let Some(tab) = shell_state.session.active_tab() {
-                    shell_state.address_bar_input = tab.url.clone();
-                    shell_state.record_event(format!("automation activate tab: {}", tab.url));
+                let url = {
+                    let mut session = shell_state.session.write().unwrap();
+                    session.set_active_tab(index);
+                    session.active_tab().map(|tab| tab.url.clone())
+                };
+                if let Some(url) = url {
+                    shell_state.address_bar_input = url.clone();
+                    shell_state.record_event(format!("automation activate tab: {}", url));
                 }
             }
             AutomationCommand::CloseTab { index } => {
-                if shell_state.session.active_window < shell_state.session.windows.len() {
-                    let window =
-                        &mut shell_state.session.windows[shell_state.session.active_window];
-                    if index < window.tabs.len() {
-                        window.tabs.remove(index);
-                        if window.active_tab >= window.tabs.len() {
-                            window.active_tab = window.tabs.len().saturating_sub(1);
+                let mut closed = false;
+                {
+                    let mut session = shell_state.session.write().unwrap();
+                    let active_window = session.active_window;
+                    if active_window < session.windows.len() {
+                        let window = &mut session.windows[active_window];
+                        if index < window.tabs.len() {
+                            window.tabs.remove(index);
+                            if window.active_tab >= window.tabs.len() {
+                                window.active_tab = window.tabs.len().saturating_sub(1);
+                            }
+                            closed = true;
                         }
-                        shell_state.record_event("automation close tab");
                     }
+                }
+                if closed {
+                    shell_state.record_event("automation close tab");
                 }
             }
             AutomationCommand::NewTab { url } => {
                 let target = url.unwrap_or_else(|| "about:blank".to_string());
-                shell_state.session.open_new_tab(&target, "New Tab");
+                shell_state.session.write().unwrap().open_new_tab(&target, "New Tab");
                 shell_state.address_bar_input = target.clone();
                 let _ = commands::dispatch_command(
                     shell_state,

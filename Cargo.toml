@@ -29,7 +29,7 @@ sha2 = "0.11.0-rc.5"
 globset = "0.4.15"
 thiserror = "2.0.18"
 toml = "1.0.6"
-tokio = { version = "1.50.0", features = ["rt-multi-thread", "macros", "sync", "time", "net"] }
+tokio = { version = "1.50.0", features = ["rt-multi-thread", "macros", "sync", "time", "net", "process"] }
 tracing = "0.1.44"
 tracing-appender = "0.2.4"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt"] }

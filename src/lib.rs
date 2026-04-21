@@ -17,6 +17,7 @@ pub mod servo_runtime;
 pub mod servo_upstream;
 pub mod mounts;
 pub mod session;
+pub mod terminal;
 pub mod tls;
 
 use std::path::{Path, PathBuf};
