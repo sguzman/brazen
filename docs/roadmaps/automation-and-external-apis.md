@@ -20,6 +20,7 @@ Tracks local sockets, WebSocket APIs, subscriptions, and browser-state access fo
 - [ ] TTS and reading-queue control API
 - [x] Tab / Window screenshot API (Base64/Raw)
 - [ ] Virtual Resource Mount control API
+- [ ] Log-stream access API for remote/CLI introspection
 
 ## Transport And Trust
 
@@ -34,3 +35,9 @@ Tracks local sockets, WebSocket APIs, subscriptions, and browser-state access fo
 - [x] Stable schema for request/response payloads
 - [x] Example CLI and scripting workflows
 - [x] API docs and local-debug tooling
+- [ ] CLI Introspection Suite (`brazen introspect ...`)
+      - [ ] `list-windows`: Show all running window IDs and titles
+      - [ ] `list-tabs`: Show tabs grouped by window
+      - [ ] `list-logs`: Stream or tail the internal application logs
+      - [ ] `get-dom`: Retrieve a serialized/A11y-tree view of a specific tab
+      - [ ] `interact-dom`: Send events (click, type, scroll) to DOM elements

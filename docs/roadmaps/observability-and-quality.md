@@ -23,6 +23,7 @@ Tracks tracing, diagnostics, testing, and verification quality across the platfo
 - [ ] Cache/extraction pipeline tracing
 - [ ] Diagnostics panel in the shell
 - [ ] Metrics and health summaries
+- [ ] CLI-based live log streaming and inspection
 
 ## Quality Gates
 
