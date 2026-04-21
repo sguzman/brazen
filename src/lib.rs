@@ -26,6 +26,7 @@ pub mod tls;
 pub mod audit_log;
 pub mod mcp;
 pub mod mcp_stdio;
+pub mod extraction;
 
 use std::path::{Path, PathBuf};
 

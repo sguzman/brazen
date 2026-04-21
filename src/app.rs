@@ -2626,6 +2626,13 @@ impl BrazenApp {
                             for entity in entities {
                                 ui.horizontal(|ui| {
                                     ui.label(&entity.label);
+                                    if !entity.metadata.is_empty() {
+                                        let meta_str = entity.metadata.iter()
+                                            .map(|(k, v)| format!("{}: {}", k, v))
+                                            .collect::<Vec<_>>()
+                                            .join(", ");
+                                        ui.weak(format!("({})", meta_str));
+                                    }
                                     if ui.button("📋").on_hover_text("Copy to clipboard").clicked() {
                                         ui.ctx().copy_text(entity.value.clone());
                                     }
@@ -4008,62 +4015,5 @@ mod tests {
 }
 
 fn extract_entities(html: &str) -> Vec<ExtractedEntity> {
-    let mut entities = Vec::new();
-    
-    // Simple links
-    let mut last = 0;
-    while let Some(start) = html[last..].find("<a ") {
-        let abs_start = last + start;
-        if let Some(end) = html[abs_start..].find(">") {
-            let tag = &html[abs_start..abs_start + end];
-            if let Some(href_start) = tag.find("href=\"") {
-                let href_val_start = href_start + 6;
-                if let Some(href_end) = tag[href_val_start..].find("\"") {
-                    let url = &tag[href_val_start..href_val_start + href_end];
-                    if !url.starts_with('#') && !url.is_empty() {
-                        entities.push(ExtractedEntity {
-                            kind: "link".to_string(),
-                            value: url.to_string(),
-                            label: url.to_string(),
-                            metadata: HashMap::new(),
-                        });
-                    }
-                }
-            }
-            last = abs_start + end;
-        } else {
-            break;
-        }
-    }
-    
-    // Simple images
-    last = 0;
-    while let Some(start) = html[last..].find("<img ") {
-        let abs_start = last + start;
-        if let Some(end) = html[abs_start..].find(">") {
-            let tag = &html[abs_start..abs_start + end];
-            if let Some(src_start) = tag.find("src=\"") {
-                let src_val_start = src_start + 5;
-                if let Some(src_end) = tag[src_val_start..].find("\"") {
-                    let url = &tag[src_val_start..src_val_start + src_end];
-                    entities.push(ExtractedEntity {
-                        kind: "image".to_string(),
-                        value: url.to_string(),
-                        label: url.to_string(),
-                        metadata: HashMap::new(),
-                    });
-                }
-            }
-            last = abs_start + end;
-        } else {
-            break;
-        }
-    }
-
-    // Deduplicate by value
-    let mut unique = HashMap::new();
-    for entity in entities {
-        unique.insert(entity.value.clone(), entity);
-    }
-    unique.into_values().collect()
+    crate::extraction::extract_entities(html)
 }
