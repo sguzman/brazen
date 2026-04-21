@@ -14,7 +14,7 @@ Tracks save-for-later, reader workflows, reading stats, and text-to-speech.
 - [x] Save-for-later queue for extracted articles
 - [x] Reader mode surface
 - [x] Reading-progress tracking
-- [ ] Reading stats and revisit metrics
+- [x] Reading stats and revisit metrics
 
 ## TTS
 

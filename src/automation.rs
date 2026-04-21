@@ -63,6 +63,9 @@ pub struct AutomationSnapshot {
     pub reader_mode_open: bool,
     pub reader_mode_source_url: Option<String>,
     pub reader_mode_text_len: usize,
+    pub visit_total: u64,
+    pub revisit_total: u64,
+    pub unique_visit_urls: usize,
 }
 
 impl Default for AutomationSnapshot {
@@ -104,6 +107,9 @@ impl Default for AutomationSnapshot {
             reader_mode_open: false,
             reader_mode_source_url: None,
             reader_mode_text_len: 0,
+            visit_total: 0,
+            revisit_total: 0,
+            unique_visit_urls: 0,
         }
     }
 }
@@ -509,6 +515,9 @@ impl AutomationHandle {
         snapshot.reader_mode_open = shell_state.reader_mode_open;
         snapshot.reader_mode_source_url = shell_state.reader_mode_source_url.clone();
         snapshot.reader_mode_text_len = shell_state.reader_mode_text.len();
+        snapshot.visit_total = shell_state.visit_total;
+        snapshot.revisit_total = shell_state.revisit_total;
+        snapshot.unique_visit_urls = shell_state.visit_counts.len();
     }
 
     pub fn publish_navigation(&self, event: AutomationNavigationEvent) {

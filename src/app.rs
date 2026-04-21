@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
@@ -75,6 +75,9 @@ pub struct ShellState {
     pub reader_mode_open: bool,
     pub reader_mode_source_url: Option<String>,
     pub reader_mode_text: String,
+    pub visit_counts: HashMap<String, u32>,
+    pub visit_total: u64,
+    pub revisit_total: u64,
     pub mount_manager: crate::mounts::MountManager,
     pub runtime_paths: RuntimePaths,
     pub pending_window_screenshot: Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<Result<crate::engine::EngineFrame, String>>>>>,
@@ -127,6 +130,12 @@ impl ShellState {
                         .map(|value| value != &state.url)
                         .unwrap_or(true)
                     {
+                        self.visit_total += 1;
+                        let entry = self.visit_counts.entry(state.url.clone()).or_insert(0);
+                        *entry += 1;
+                        if *entry > 1 {
+                            self.revisit_total += 1;
+                        }
                         self.history.push(state.url.clone());
                         self.last_committed_url = Some(state.url.clone());
                         let entry = NavigationEntry {
@@ -355,6 +364,9 @@ pub fn build_shell_state(
         reader_mode_open: false,
         reader_mode_source_url: None,
         reader_mode_text: String::new(),
+        visit_counts: HashMap::new(),
+        visit_total: 0,
+        revisit_total: 0,
         mount_manager: crate::mounts::MountManager::new(),
         runtime_paths: paths.clone(),
         pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
@@ -3654,6 +3666,9 @@ mod tests {
             reader_mode_open: false,
             reader_mode_source_url: None,
             reader_mode_text: String::new(),
+            visit_counts: HashMap::new(),
+            visit_total: 0,
+            revisit_total: 0,
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
@@ -3758,6 +3773,9 @@ mod tests {
             reader_mode_open: false,
             reader_mode_source_url: None,
             reader_mode_text: String::new(),
+            visit_counts: HashMap::new(),
+            visit_total: 0,
+            revisit_total: 0,
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),

@@ -2004,8 +2004,8 @@ id = "media-reading-and-tts.md:17:160f0ce119"
 file = "media-reading-and-tts.md"
 line = 17
 text = "Reading stats and revisit metrics"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::160f0ce119"]
 
 [[item]]

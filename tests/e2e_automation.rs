@@ -216,6 +216,14 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     let response = ws_roundtrip(&url, json!({"id":"t3","type":"tab-navigate","url":nav_url})).await;
     assert!(response["ok"].as_bool().unwrap_or(false), "tab navigate failed: {response}");
     wait_for_url(&url, "data:text/html").await;
+    // Navigate to the same url again; should count as a revisit.
+    let response = ws_roundtrip(&url, json!({"id":"t3b","type":"tab-navigate","url":nav_url})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "tab navigate failed: {response}");
+    wait_for_url(&url, "data:text/html").await;
+    let response = snapshot(&url).await;
+    assert!(response["result"]["visit_total"].as_u64().unwrap_or(0) >= 1);
+    assert!(response["result"]["unique_visit_urls"].as_u64().unwrap_or(0) >= 1);
+    assert!(response["result"]["revisit_total"].as_u64().unwrap_or(0) >= 1);
 
     // DOM query returns non-empty outerHTML.
     let response = ws_roundtrip(&url, json!({"id":"t4","type":"dom-query","selector":"body"})).await;

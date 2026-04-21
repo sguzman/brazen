@@ -102,6 +102,9 @@ fn create_mock_shell_state() -> ShellState {
         reader_mode_open: false,
         reader_mode_source_url: None,
         reader_mode_text: String::new(),
+        visit_counts: std::collections::HashMap::new(),
+        visit_total: 0,
+        revisit_total: 0,
         mount_manager: MountManager::new(),
         runtime_paths: RuntimePaths {
             config_path: root.join("brazen.toml"),
