@@ -19,6 +19,7 @@ pub mod servo_upstream;
 pub mod mounts;
 pub mod session;
 pub mod terminal;
+pub mod virtual_protocol;
 pub mod tls;
 pub mod audit_log;
 
