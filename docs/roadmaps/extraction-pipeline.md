@@ -4,7 +4,7 @@ Tracks turning page loads into structured extracted artifacts.
 
 ## Current State
 
-- [x] Extraction feature flags exist in config
+- [ ] Extraction feature flags exist in config
 - [ ] No extraction pipeline is implemented yet
 
 ## Page Extraction

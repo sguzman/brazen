@@ -4,8 +4,8 @@ Tracks the control plane that keeps Brazen from turning into an unbounded privil
 
 ## Current State
 
-- [x] Permissions are modeled as browser-mediated policy rather than raw OS access
-- [x] Logging hooks exist for startup and command activity
+- [ ] Permissions are modeled as browser-mediated policy rather than raw OS access
+- [ ] Logging hooks exist for startup and command activity
 
 ## Policy Layer
 

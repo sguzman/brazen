@@ -4,7 +4,7 @@ Tracks the brokered adapters between Brazen and local resources on the host mach
 
 ## Current State
 
-- [x] Connector-facing capability placeholders exist in config and permissions
+- [ ] Connector-facing capability placeholders exist in config and permissions
 - [ ] No live local connector is implemented yet
 
 ## Connector Families

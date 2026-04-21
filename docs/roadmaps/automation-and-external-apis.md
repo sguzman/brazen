@@ -4,37 +4,37 @@ Tracks local sockets, WebSocket APIs, subscriptions, and browser-state access fo
 
 ## Current State
 
-- [x] Automation endpoint config exists
-- [x] Tab and cache exposure flags exist in config
-- [x] Live automation server exists
+- [ ] Automation endpoint config exists
+- [ ] Tab and cache exposure flags exist in config
+- [ ] Live automation server exists
 
 ## API Surface
 
-- [x] Tab enumeration API
-- [x] Tab manipulation API
-- [x] DOM query API
+- [ ] Tab enumeration API
+- [ ] Tab manipulation API
+- [ ] DOM query API
 - [ ] Rendered-text / article-text API
-- [x] Cache metadata query API
-- [x] Cached asset body retrieval API
-- [x] Event subscription API for navigation and capability activity
+- [ ] Cache metadata query API
+- [ ] Cached asset body retrieval API
+- [ ] Event subscription API for navigation and capability activity
 - [ ] TTS and reading-queue control API
-- [x] Tab / Window screenshot API (Base64/Raw)
+- [ ] Tab / Window screenshot API (Base64/Raw)
 - [ ] Virtual Resource Mount control API
 - [ ] Log-stream access API for remote/CLI introspection
 
 ## Transport And Trust
 
-- [x] Localhost WebSocket server
-- [x] Unix-domain / named-pipe option
-- [x] Client authentication model
-- [x] Capability checks for API callers
-- [x] Rate limiting and subscription backpressure
+- [ ] Localhost WebSocket server
+- [ ] Unix-domain / named-pipe option
+- [ ] Client authentication model
+- [ ] Capability checks for API callers
+- [ ] Rate limiting and subscription backpressure
 
 ## Developer Experience
 
-- [x] Stable schema for request/response payloads
-- [x] Example CLI and scripting workflows
-- [x] API docs and local-debug tooling
+- [ ] Stable schema for request/response payloads
+- [ ] Example CLI and scripting workflows
+- [ ] API docs and local-debug tooling
 - [ ] CLI Introspection Suite (`brazen introspect ...`)
       - [ ] `list-windows`: Show all running window IDs and titles
       - [ ] `list-tabs`: Show tabs grouped by window

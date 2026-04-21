@@ -1,0 +1,5167 @@
+# Auto-generated. Each roadmap checkbox must have an entry here.
+# status: planned | done
+[[item]]
+id = "automation-and-external-apis.md:7:a185b9b55c"
+file = "automation-and-external-apis.md"
+line = 7
+text = "Automation endpoint config exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::a185b9b55c"]
+
+[[item]]
+id = "automation-and-external-apis.md:8:e95a071615"
+file = "automation-and-external-apis.md"
+line = 8
+text = "Tab and cache exposure flags exist in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::e95a071615"]
+
+[[item]]
+id = "automation-and-external-apis.md:9:1fec9f7894"
+file = "automation-and-external-apis.md"
+line = 9
+text = "Live automation server exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::1fec9f7894"]
+
+[[item]]
+id = "automation-and-external-apis.md:13:359bb44e3d"
+file = "automation-and-external-apis.md"
+line = 13
+text = "Tab enumeration API"
+status = "planned"
+tests = []
+planned_tests = ["todo::359bb44e3d"]
+
+[[item]]
+id = "automation-and-external-apis.md:14:0460e8defc"
+file = "automation-and-external-apis.md"
+line = 14
+text = "Tab manipulation API"
+status = "planned"
+tests = []
+planned_tests = ["todo::0460e8defc"]
+
+[[item]]
+id = "automation-and-external-apis.md:15:e1160a25b8"
+file = "automation-and-external-apis.md"
+line = 15
+text = "DOM query API"
+status = "planned"
+tests = []
+planned_tests = ["todo::e1160a25b8"]
+
+[[item]]
+id = "automation-and-external-apis.md:16:d2a6dd5fd9"
+file = "automation-and-external-apis.md"
+line = 16
+text = "Rendered-text / article-text API"
+status = "planned"
+tests = []
+planned_tests = ["todo::d2a6dd5fd9"]
+
+[[item]]
+id = "automation-and-external-apis.md:17:7c7eadb241"
+file = "automation-and-external-apis.md"
+line = 17
+text = "Cache metadata query API"
+status = "planned"
+tests = []
+planned_tests = ["todo::7c7eadb241"]
+
+[[item]]
+id = "automation-and-external-apis.md:18:15808eba86"
+file = "automation-and-external-apis.md"
+line = 18
+text = "Cached asset body retrieval API"
+status = "planned"
+tests = []
+planned_tests = ["todo::15808eba86"]
+
+[[item]]
+id = "automation-and-external-apis.md:19:e17f24b8c7"
+file = "automation-and-external-apis.md"
+line = 19
+text = "Event subscription API for navigation and capability activity"
+status = "planned"
+tests = []
+planned_tests = ["todo::e17f24b8c7"]
+
+[[item]]
+id = "automation-and-external-apis.md:20:63efacfc16"
+file = "automation-and-external-apis.md"
+line = 20
+text = "TTS and reading-queue control API"
+status = "planned"
+tests = []
+planned_tests = ["todo::63efacfc16"]
+
+[[item]]
+id = "automation-and-external-apis.md:21:2cfe01a4f5"
+file = "automation-and-external-apis.md"
+line = 21
+text = "Tab / Window screenshot API (Base64/Raw)"
+status = "planned"
+tests = []
+planned_tests = ["todo::2cfe01a4f5"]
+
+[[item]]
+id = "automation-and-external-apis.md:22:94dced34f2"
+file = "automation-and-external-apis.md"
+line = 22
+text = "Virtual Resource Mount control API"
+status = "planned"
+tests = []
+planned_tests = ["todo::94dced34f2"]
+
+[[item]]
+id = "automation-and-external-apis.md:23:e7a3f8b7c6"
+file = "automation-and-external-apis.md"
+line = 23
+text = "Log-stream access API for remote/CLI introspection"
+status = "planned"
+tests = []
+planned_tests = ["todo::e7a3f8b7c6"]
+
+[[item]]
+id = "automation-and-external-apis.md:27:535bda9413"
+file = "automation-and-external-apis.md"
+line = 27
+text = "Localhost WebSocket server"
+status = "planned"
+tests = []
+planned_tests = ["todo::535bda9413"]
+
+[[item]]
+id = "automation-and-external-apis.md:28:76314a86ac"
+file = "automation-and-external-apis.md"
+line = 28
+text = "Unix-domain / named-pipe option"
+status = "planned"
+tests = []
+planned_tests = ["todo::76314a86ac"]
+
+[[item]]
+id = "automation-and-external-apis.md:29:b5d546dd46"
+file = "automation-and-external-apis.md"
+line = 29
+text = "Client authentication model"
+status = "planned"
+tests = []
+planned_tests = ["todo::b5d546dd46"]
+
+[[item]]
+id = "automation-and-external-apis.md:30:c0faa28810"
+file = "automation-and-external-apis.md"
+line = 30
+text = "Capability checks for API callers"
+status = "planned"
+tests = []
+planned_tests = ["todo::c0faa28810"]
+
+[[item]]
+id = "automation-and-external-apis.md:31:c527351e60"
+file = "automation-and-external-apis.md"
+line = 31
+text = "Rate limiting and subscription backpressure"
+status = "planned"
+tests = []
+planned_tests = ["todo::c527351e60"]
+
+[[item]]
+id = "automation-and-external-apis.md:35:a8aca29940"
+file = "automation-and-external-apis.md"
+line = 35
+text = "Stable schema for request/response payloads"
+status = "planned"
+tests = []
+planned_tests = ["todo::a8aca29940"]
+
+[[item]]
+id = "automation-and-external-apis.md:36:f66b24efbf"
+file = "automation-and-external-apis.md"
+line = 36
+text = "Example CLI and scripting workflows"
+status = "planned"
+tests = []
+planned_tests = ["todo::f66b24efbf"]
+
+[[item]]
+id = "automation-and-external-apis.md:37:c8c80369d2"
+file = "automation-and-external-apis.md"
+line = 37
+text = "API docs and local-debug tooling"
+status = "planned"
+tests = []
+planned_tests = ["todo::c8c80369d2"]
+
+[[item]]
+id = "automation-and-external-apis.md:38:c893a60dca"
+file = "automation-and-external-apis.md"
+line = 38
+text = "CLI Introspection Suite (`brazen introspect ...`)"
+status = "planned"
+tests = []
+planned_tests = ["todo::c893a60dca"]
+
+[[item]]
+id = "automation-and-external-apis.md:39:c7e5d9b455"
+file = "automation-and-external-apis.md"
+line = 39
+text = "`list-windows`: Show all running window IDs and titles"
+status = "planned"
+tests = []
+planned_tests = ["todo::c7e5d9b455"]
+
+[[item]]
+id = "automation-and-external-apis.md:40:94eb36ab3f"
+file = "automation-and-external-apis.md"
+line = 40
+text = "`list-tabs`: Show tabs grouped by window"
+status = "planned"
+tests = []
+planned_tests = ["todo::94eb36ab3f"]
+
+[[item]]
+id = "automation-and-external-apis.md:41:c78285e647"
+file = "automation-and-external-apis.md"
+line = 41
+text = "`list-logs`: Stream or tail the internal application logs"
+status = "planned"
+tests = []
+planned_tests = ["todo::c78285e647"]
+
+[[item]]
+id = "automation-and-external-apis.md:42:7a22cb1050"
+file = "automation-and-external-apis.md"
+line = 42
+text = "`get-dom`: Retrieve a serialized/A11y-tree view of a specific tab"
+status = "planned"
+tests = []
+planned_tests = ["todo::7a22cb1050"]
+
+[[item]]
+id = "automation-and-external-apis.md:43:34dd5bf751"
+file = "automation-and-external-apis.md"
+line = 43
+text = "`interact-dom`: Send events (click, type, scroll) to DOM elements"
+status = "planned"
+tests = []
+planned_tests = ["todo::34dd5bf751"]
+
+[[item]]
+id = "automation-and-external-apis.md:44:28553aee80"
+file = "automation-and-external-apis.md"
+line = 44
+text = "`screenshot-tab`: Capture the current visual state of a tab"
+status = "planned"
+tests = []
+planned_tests = ["todo::28553aee80"]
+
+[[item]]
+id = "automation-and-external-apis.md:45:67876c5666"
+file = "automation-and-external-apis.md"
+line = 45
+text = "`screenshot-window`: Capture the entire window UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::67876c5666"]
+
+[[item]]
+id = "cache-and-asset-plane.md:7:ec7e1404b1"
+file = "cache-and-asset-plane.md"
+line = 7
+text = "Cache policy config exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::ec7e1404b1"]
+
+[[item]]
+id = "cache-and-asset-plane.md:8:cfa72764d3"
+file = "cache-and-asset-plane.md"
+line = 8
+text = "Metadata/body/archive mode knobs exist in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::cfa72764d3"]
+
+[[item]]
+id = "cache-and-asset-plane.md:9:9b28370f8f"
+file = "cache-and-asset-plane.md"
+line = 9
+text = "MIME allowlist and size threshold knobs exist in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::9b28370f8f"]
+
+[[item]]
+id = "cache-and-asset-plane.md:10:466aac58de"
+file = "cache-and-asset-plane.md"
+line = 10
+text = "Basic capture and indexing implementation exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::466aac58de"]
+
+[[item]]
+id = "cache-and-asset-plane.md:14:d73829374a"
+file = "cache-and-asset-plane.md"
+line = 14
+text = "Metadata-only capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::d73829374a"]
+
+[[item]]
+id = "cache-and-asset-plane.md:15:1c1fbc2903"
+file = "cache-and-asset-plane.md"
+line = 15
+text = "Selective body capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::1c1fbc2903"]
+
+[[item]]
+id = "cache-and-asset-plane.md:16:3ea21b9154"
+file = "cache-and-asset-plane.md"
+line = 16
+text = "Full archival replay capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::3ea21b9154"]
+
+[[item]]
+id = "cache-and-asset-plane.md:17:25a22fe300"
+file = "cache-and-asset-plane.md"
+line = 17
+text = "First-party vs third-party capture policy"
+status = "planned"
+tests = []
+planned_tests = ["todo::25a22fe300"]
+
+[[item]]
+id = "cache-and-asset-plane.md:18:b5127555ec"
+file = "cache-and-asset-plane.md"
+line = 18
+text = "Authenticated-page capture policy"
+status = "planned"
+tests = []
+planned_tests = ["todo::b5127555ec"]
+
+[[item]]
+id = "cache-and-asset-plane.md:19:21a4dcab22"
+file = "cache-and-asset-plane.md"
+line = 19
+text = "Request/response timing capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::21a4dcab22"]
+
+[[item]]
+id = "cache-and-asset-plane.md:20:60a23c97c2"
+file = "cache-and-asset-plane.md"
+line = 20
+text = "Response header storage and normalization"
+status = "planned"
+tests = []
+planned_tests = ["todo::60a23c97c2"]
+
+[[item]]
+id = "cache-and-asset-plane.md:21:e19b53d976"
+file = "cache-and-asset-plane.md"
+line = 21
+text = "Capture policy evaluation logging"
+status = "planned"
+tests = []
+planned_tests = ["todo::e19b53d976"]
+
+[[item]]
+id = "cache-and-asset-plane.md:22:11e626c674"
+file = "cache-and-asset-plane.md"
+line = 22
+text = "Capture denylist and allowlist by host"
+status = "planned"
+tests = []
+planned_tests = ["todo::11e626c674"]
+
+[[item]]
+id = "cache-and-asset-plane.md:23:34d72a2f8c"
+file = "cache-and-asset-plane.md"
+line = 23
+text = "Size-based body truncation with audit marker"
+status = "planned"
+tests = []
+planned_tests = ["todo::34d72a2f8c"]
+
+[[item]]
+id = "cache-and-asset-plane.md:24:8630d198e6"
+file = "cache-and-asset-plane.md"
+line = 24
+text = "Capture for HTML/JSON/CSS/JS defaults"
+status = "planned"
+tests = []
+planned_tests = ["todo::8630d198e6"]
+
+[[item]]
+id = "cache-and-asset-plane.md:25:f6faec7d9b"
+file = "cache-and-asset-plane.md"
+line = 25
+text = "Capture for images/fonts/media defaults"
+status = "planned"
+tests = []
+planned_tests = ["todo::f6faec7d9b"]
+
+[[item]]
+id = "cache-and-asset-plane.md:29:6005c6733f"
+file = "cache-and-asset-plane.md"
+line = 29
+text = "Content hashing and deduplication"
+status = "planned"
+tests = []
+planned_tests = ["todo::6005c6733f"]
+
+[[item]]
+id = "cache-and-asset-plane.md:30:e1a145530d"
+file = "cache-and-asset-plane.md"
+line = 30
+text = "On-disk asset indexing"
+status = "planned"
+tests = []
+planned_tests = ["todo::e1a145530d"]
+
+[[item]]
+id = "cache-and-asset-plane.md:31:a18cbd3682"
+file = "cache-and-asset-plane.md"
+line = 31
+text = "Link assets to tab/session/article entities"
+status = "planned"
+tests = []
+planned_tests = ["todo::a18cbd3682"]
+
+[[item]]
+id = "cache-and-asset-plane.md:32:144f91f6fe"
+file = "cache-and-asset-plane.md"
+line = 32
+text = "Pin important assets to long-term storage"
+status = "planned"
+tests = []
+planned_tests = ["todo::144f91f6fe"]
+
+[[item]]
+id = "cache-and-asset-plane.md:33:549b716a94"
+file = "cache-and-asset-plane.md"
+line = 33
+text = "Memory-cache vs disk-cache vs archive-store controls"
+status = "planned"
+tests = []
+planned_tests = ["todo::549b716a94"]
+
+[[item]]
+id = "cache-and-asset-plane.md:34:8d0e83b04d"
+file = "cache-and-asset-plane.md"
+line = 34
+text = "Asset metadata schema (url, mime, size, hash, timestamps)"
+status = "planned"
+tests = []
+planned_tests = ["todo::8d0e83b04d"]
+
+[[item]]
+id = "cache-and-asset-plane.md:35:06f1f5eaed"
+file = "cache-and-asset-plane.md"
+line = 35
+text = "Store content-addressed bodies under hash paths"
+status = "planned"
+tests = []
+planned_tests = ["todo::06f1f5eaed"]
+
+[[item]]
+id = "cache-and-asset-plane.md:36:938c62562a"
+file = "cache-and-asset-plane.md"
+line = 36
+text = "Separate index for headers and metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::938c62562a"]
+
+[[item]]
+id = "cache-and-asset-plane.md:37:d7ef1bb132"
+file = "cache-and-asset-plane.md"
+line = 37
+text = "Garbage-collection policy for expired assets"
+status = "planned"
+tests = []
+planned_tests = ["todo::d7ef1bb132"]
+
+[[item]]
+id = "cache-and-asset-plane.md:38:9a8d35f0dd"
+file = "cache-and-asset-plane.md"
+line = 38
+text = "Per-profile asset roots"
+status = "planned"
+tests = []
+planned_tests = ["todo::9a8d35f0dd"]
+
+[[item]]
+id = "cache-and-asset-plane.md:39:e845abc6ed"
+file = "cache-and-asset-plane.md"
+line = 39
+text = "Asset provenance (tab/session/request ids)"
+status = "planned"
+tests = []
+planned_tests = ["todo::e845abc6ed"]
+
+[[item]]
+id = "cache-and-asset-plane.md:40:c1d5c3ded8"
+file = "cache-and-asset-plane.md"
+line = 40
+text = "Asset integrity verification on read"
+status = "planned"
+tests = []
+planned_tests = ["todo::c1d5c3ded8"]
+
+[[item]]
+id = "cache-and-asset-plane.md:44:4f1ec3a426"
+file = "cache-and-asset-plane.md"
+line = 44
+text = "Cache inspector UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::4f1ec3a426"]
+
+[[item]]
+id = "cache-and-asset-plane.md:45:eb2ace6eaa"
+file = "cache-and-asset-plane.md"
+line = 45
+text = "Query assets by URL, MIME, hash, or session"
+status = "planned"
+tests = []
+planned_tests = ["todo::eb2ace6eaa"]
+
+[[item]]
+id = "cache-and-asset-plane.md:46:c1631cd7e1"
+file = "cache-and-asset-plane.md"
+line = 46
+text = "Reconstruct captured sessions for replay/debugging"
+status = "planned"
+tests = []
+planned_tests = ["todo::c1631cd7e1"]
+
+[[item]]
+id = "cache-and-asset-plane.md:47:fe916a5581"
+file = "cache-and-asset-plane.md"
+line = 47
+text = "Export/import captured asset sets"
+status = "planned"
+tests = []
+planned_tests = ["todo::fe916a5581"]
+
+[[item]]
+id = "cache-and-asset-plane.md:48:fd5023093a"
+file = "cache-and-asset-plane.md"
+line = 48
+text = "Minimal CLI for asset queries"
+status = "planned"
+tests = []
+planned_tests = ["todo::fd5023093a"]
+
+[[item]]
+id = "cache-and-asset-plane.md:49:49d35f8f71"
+file = "cache-and-asset-plane.md"
+line = 49
+text = "CLI cache fetch + stats for on-demand captures"
+status = "planned"
+tests = []
+planned_tests = ["todo::49d35f8f71"]
+
+[[item]]
+id = "cache-and-asset-plane.md:50:2936562871"
+file = "cache-and-asset-plane.md"
+line = 50
+text = "JSON export format for assets and metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::2936562871"]
+
+[[item]]
+id = "cache-and-asset-plane.md:51:ccc2c07985"
+file = "cache-and-asset-plane.md"
+line = 51
+text = "Asset replay manifest format"
+status = "planned"
+tests = []
+planned_tests = ["todo::ccc2c07985"]
+
+[[item]]
+id = "cache-capture-and-query.md:7:0cfa8ebbda"
+file = "cache-capture-and-query.md"
+line = 7
+text = "Tap Servo network events to receive request/response metadata."
+status = "planned"
+tests = []
+planned_tests = ["todo::0cfa8ebbda"]
+
+[[item]]
+id = "cache-capture-and-query.md:8:d44c5a127d"
+file = "cache-capture-and-query.md"
+line = 8
+text = "Map Servo request IDs to tab/session IDs."
+status = "planned"
+tests = []
+planned_tests = ["todo::d44c5a127d"]
+
+[[item]]
+id = "cache-capture-and-query.md:9:da3f5f53a9"
+file = "cache-capture-and-query.md"
+line = 9
+text = "Capture response headers and status codes for each asset."
+status = "planned"
+tests = []
+planned_tests = ["todo::da3f5f53a9"]
+
+[[item]]
+id = "cache-capture-and-query.md:10:cb409b1d51"
+file = "cache-capture-and-query.md"
+line = 10
+text = "Normalize MIME types (content-type parsing + fallbacks)."
+status = "planned"
+tests = []
+planned_tests = ["todo::cb409b1d51"]
+
+[[item]]
+id = "cache-capture-and-query.md:11:9eeaf4c8bc"
+file = "cache-capture-and-query.md"
+line = 11
+text = "Record every request as a distinct asset entry."
+status = "planned"
+tests = []
+planned_tests = ["todo::9eeaf4c8bc"]
+
+[[item]]
+id = "cache-capture-and-query.md:12:42b4aa064a"
+file = "cache-capture-and-query.md"
+line = 12
+text = "Support empty-body assets (e.g., 204/304) with metadata only."
+status = "planned"
+tests = []
+planned_tests = ["todo::42b4aa064a"]
+
+[[item]]
+id = "cache-capture-and-query.md:13:986738679d"
+file = "cache-capture-and-query.md"
+line = 13
+text = "Track request start/finish timestamps for duration metrics."
+status = "planned"
+tests = []
+planned_tests = ["todo::986738679d"]
+
+[[item]]
+id = "cache-capture-and-query.md:14:3191ce093f"
+file = "cache-capture-and-query.md"
+line = 14
+text = "Capture body bytes for HTML, CSS, JS, JSON, images, SVG, fonts, audio, video."
+status = "planned"
+tests = []
+planned_tests = ["todo::3191ce093f"]
+
+[[item]]
+id = "cache-capture-and-query.md:15:1cd2dfdbe9"
+file = "cache-capture-and-query.md"
+line = 15
+text = "Respect cache policy controls for third-party and authenticated assets."
+status = "planned"
+tests = []
+planned_tests = ["todo::1cd2dfdbe9"]
+
+[[item]]
+id = "cache-capture-and-query.md:16:f7ce04d2db"
+file = "cache-capture-and-query.md"
+line = 16
+text = "Enforce per-asset size caps with truncated flagging."
+status = "planned"
+tests = []
+planned_tests = ["todo::f7ce04d2db"]
+
+[[item]]
+id = "cache-capture-and-query.md:17:8f7cd8c9b0"
+file = "cache-capture-and-query.md"
+line = 17
+text = "Record redirection chain metadata as separate assets."
+status = "planned"
+tests = []
+planned_tests = ["todo::8f7cd8c9b0"]
+
+[[item]]
+id = "cache-capture-and-query.md:18:8b51a90f88"
+file = "cache-capture-and-query.md"
+line = 18
+text = "Deduplicate bodies by hash while preserving per-asset entries."
+status = "planned"
+tests = []
+planned_tests = ["todo::8b51a90f88"]
+
+[[item]]
+id = "cache-capture-and-query.md:19:db14db473d"
+file = "cache-capture-and-query.md"
+line = 19
+text = "Persist request/response headers alongside metadata records."
+status = "planned"
+tests = []
+planned_tests = ["todo::db14db473d"]
+
+[[item]]
+id = "cache-capture-and-query.md:20:14974ad8cb"
+file = "cache-capture-and-query.md"
+line = 20
+text = "Add explicit storage mode (memory/disk/archive) per asset record."
+status = "planned"
+tests = []
+planned_tests = ["todo::14974ad8cb"]
+
+[[item]]
+id = "cache-capture-and-query.md:21:7d7b124ed6"
+file = "cache-capture-and-query.md"
+line = 21
+text = "Emit structured tracing for capture decisions and outcomes."
+status = "planned"
+tests = []
+planned_tests = ["todo::7d7b124ed6"]
+
+[[item]]
+id = "cache-capture-and-query.md:25:03def2b625"
+file = "cache-capture-and-query.md"
+line = 25
+text = "Expose cache stats (entries, total bytes, unique blobs, capture ratio)."
+status = "planned"
+tests = []
+planned_tests = ["todo::03def2b625"]
+
+[[item]]
+id = "cache-capture-and-query.md:26:12340a499a"
+file = "cache-capture-and-query.md"
+line = 26
+text = "Add query filters for URL, MIME, session, tab, and status."
+status = "planned"
+tests = []
+planned_tests = ["todo::12340a499a"]
+
+[[item]]
+id = "cache-capture-and-query.md:27:277681ba05"
+file = "cache-capture-and-query.md"
+line = 27
+text = "Add “asset detail” view (headers, timings, hash, storage path)."
+status = "planned"
+tests = []
+planned_tests = ["todo::277681ba05"]
+
+[[item]]
+id = "cache-capture-and-query.md:28:70db2a5287"
+file = "cache-capture-and-query.md"
+line = 28
+text = "Add “recent assets” timeline view."
+status = "planned"
+tests = []
+planned_tests = ["todo::70db2a5287"]
+
+[[item]]
+id = "cache-capture-and-query.md:29:4e6e121635"
+file = "cache-capture-and-query.md"
+line = 29
+text = "Add search by content hash for dedupe visibility."
+status = "planned"
+tests = []
+planned_tests = ["todo::4e6e121635"]
+
+[[item]]
+id = "cache-capture-and-query.md:30:27cbca4a85"
+file = "cache-capture-and-query.md"
+line = 30
+text = "Surface cache state in the status panel (last capture, last error)."
+status = "planned"
+tests = []
+planned_tests = ["todo::27cbca4a85"]
+
+[[item]]
+id = "cache-capture-and-query.md:34:e14e32128d"
+file = "cache-capture-and-query.md"
+line = 34
+text = "Extend `brazen cache` to print capture summary per asset."
+status = "planned"
+tests = []
+planned_tests = ["todo::e14e32128d"]
+
+[[item]]
+id = "cache-capture-and-query.md:35:edfb933f97"
+file = "cache-capture-and-query.md"
+line = 35
+text = "Add `brazen cache --list` with filters (URL/MIME/session)."
+status = "planned"
+tests = []
+planned_tests = ["todo::edfb933f97"]
+
+[[item]]
+id = "cache-capture-and-query.md:36:0df20217bd"
+file = "cache-capture-and-query.md"
+line = 36
+text = "Add `brazen cache --show <asset_id|hash>` for full metadata."
+status = "planned"
+tests = []
+planned_tests = ["todo::0df20217bd"]
+
+[[item]]
+id = "cache-capture-and-query.md:37:daab06c546"
+file = "cache-capture-and-query.md"
+line = 37
+text = "Add export to JSONL and a compact summary report."
+status = "planned"
+tests = []
+planned_tests = ["todo::daab06c546"]
+
+[[item]]
+id = "cache-capture-and-query.md:38:ebdd663ce0"
+file = "cache-capture-and-query.md"
+line = 38
+text = "Add import/merge with collision handling."
+status = "planned"
+tests = []
+planned_tests = ["todo::ebdd663ce0"]
+
+[[item]]
+id = "cache-capture-and-query.md:42:d1c1bcd3e7"
+file = "cache-capture-and-query.md"
+line = 42
+text = "Add config for capture-all vs selective modes."
+status = "planned"
+tests = []
+planned_tests = ["todo::d1c1bcd3e7"]
+
+[[item]]
+id = "cache-capture-and-query.md:43:435762b134"
+file = "cache-capture-and-query.md"
+line = 43
+text = "Add explicit MIME allow/deny lists with glob support."
+status = "planned"
+tests = []
+planned_tests = ["todo::435762b134"]
+
+[[item]]
+id = "cache-capture-and-query.md:44:bfdb405343"
+file = "cache-capture-and-query.md"
+line = 44
+text = "Add per-host capture policy overrides."
+status = "planned"
+tests = []
+planned_tests = ["todo::bfdb405343"]
+
+[[item]]
+id = "cache-capture-and-query.md:45:0a0f3d4d45"
+file = "cache-capture-and-query.md"
+line = 45
+text = "Add config for “store bodies always” vs “metadata-only”."
+status = "planned"
+tests = []
+planned_tests = ["todo::0a0f3d4d45"]
+
+[[item]]
+id = "cache-capture-and-query.md:46:c4562bdb9b"
+file = "cache-capture-and-query.md"
+line = 46
+text = "Add config for max total cache size with GC strategy."
+status = "planned"
+tests = []
+planned_tests = ["todo::c4562bdb9b"]
+
+[[item]]
+id = "cache-capture-and-query.md:47:8b07be8067"
+file = "cache-capture-and-query.md"
+line = 47
+text = "Add config for “no-dedupe” mode for strict per-asset storage."
+status = "planned"
+tests = []
+planned_tests = ["todo::8b07be8067"]
+
+[[item]]
+id = "cache-capture-and-query.md:51:a434f86258"
+file = "cache-capture-and-query.md"
+line = 51
+text = "Unit tests for MIME parsing and policy decisions."
+status = "planned"
+tests = []
+planned_tests = ["todo::a434f86258"]
+
+[[item]]
+id = "cache-capture-and-query.md:52:1f8c4c05e8"
+file = "cache-capture-and-query.md"
+line = 52
+text = "Unit tests for body dedupe with distinct asset entries."
+status = "planned"
+tests = []
+planned_tests = ["todo::1f8c4c05e8"]
+
+[[item]]
+id = "cache-capture-and-query.md:53:79811b6e04"
+file = "cache-capture-and-query.md"
+line = 53
+text = "Integration test: local server with HTML + CSS + JS + images; verify per-asset records."
+status = "planned"
+tests = []
+planned_tests = ["todo::79811b6e04"]
+
+[[item]]
+id = "cache-capture-and-query.md:54:e6f802108d"
+file = "cache-capture-and-query.md"
+line = 54
+text = "Integration test: redirect chain produces multiple assets."
+status = "planned"
+tests = []
+planned_tests = ["todo::e6f802108d"]
+
+[[item]]
+id = "cache-capture-and-query.md:55:e07f8282fb"
+file = "cache-capture-and-query.md"
+line = 55
+text = "CLI tests for list/show/export commands."
+status = "planned"
+tests = []
+planned_tests = ["todo::e07f8282fb"]
+
+[[item]]
+id = "capability-permissions.md:7:6a32bde847"
+file = "capability-permissions.md"
+line = 7
+text = "Capability-oriented permission policy exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::6a32bde847"]
+
+[[item]]
+id = "capability-permissions.md:8:b86c24dc06"
+file = "capability-permissions.md"
+line = 8
+text = "Default decision model supports `allow`, `ask`, and `deny`"
+status = "planned"
+tests = []
+planned_tests = ["todo::b86c24dc06"]
+
+[[item]]
+id = "capability-permissions.md:9:d8af74b4d5"
+file = "capability-permissions.md"
+line = 9
+text = "Capability defaults are configurable in TOML"
+status = "planned"
+tests = []
+planned_tests = ["todo::d8af74b4d5"]
+
+[[item]]
+id = "capability-permissions.md:10:df97e41576"
+file = "capability-permissions.md"
+line = 10
+text = "Permission state is visible in the shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::df97e41576"]
+
+[[item]]
+id = "capability-permissions.md:14:1b69086988"
+file = "capability-permissions.md"
+line = 14
+text = "Terminal execution capability placeholder exists in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::1b69086988"]
+
+[[item]]
+id = "capability-permissions.md:15:1d50caa266"
+file = "capability-permissions.md"
+line = 15
+text = "DOM read capability placeholder exists in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::1d50caa266"]
+
+[[item]]
+id = "capability-permissions.md:16:a3efae5655"
+file = "capability-permissions.md"
+line = 16
+text = "Cache read capability placeholder exists in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::a3efae5655"]
+
+[[item]]
+id = "capability-permissions.md:17:ad0e16cb18"
+file = "capability-permissions.md"
+line = 17
+text = "Tab inspection capability placeholder exists in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::ad0e16cb18"]
+
+[[item]]
+id = "capability-permissions.md:18:eaa8a4aeb0"
+file = "capability-permissions.md"
+line = 18
+text = "AI tool usage capability placeholder exists in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::eaa8a4aeb0"]
+
+[[item]]
+id = "capability-permissions.md:19:f63573fe80"
+file = "capability-permissions.md"
+line = 19
+text = "Terminal output-read capability"
+status = "planned"
+tests = []
+planned_tests = ["todo::f63573fe80"]
+
+[[item]]
+id = "capability-permissions.md:20:fe2c9fc9cd"
+file = "capability-permissions.md"
+line = 20
+text = "File / workspace access capabilities"
+status = "planned"
+tests = []
+planned_tests = ["todo::fe2c9fc9cd"]
+
+[[item]]
+id = "capability-permissions.md:21:1f8459c10d"
+file = "capability-permissions.md"
+line = 21
+text = "Database / notes-vault capabilities"
+status = "planned"
+tests = []
+planned_tests = ["todo::1f8459c10d"]
+
+[[item]]
+id = "capability-permissions.md:22:ca2bbb350a"
+file = "capability-permissions.md"
+line = 22
+text = "OCR and media-transcript capabilities"
+status = "planned"
+tests = []
+planned_tests = ["todo::ca2bbb350a"]
+
+[[item]]
+id = "capability-permissions.md:26:76e82305c3"
+file = "capability-permissions.md"
+line = 26
+text = "Origin-scoped grants"
+status = "planned"
+tests = []
+planned_tests = ["todo::76e82305c3"]
+
+[[item]]
+id = "capability-permissions.md:27:005c8dabe7"
+file = "capability-permissions.md"
+line = 27
+text = "Session-scoped grants"
+status = "planned"
+tests = []
+planned_tests = ["todo::005c8dabe7"]
+
+[[item]]
+id = "capability-permissions.md:28:0e31b7b468"
+file = "capability-permissions.md"
+line = 28
+text = "Profile-scoped grants"
+status = "planned"
+tests = []
+planned_tests = ["todo::0e31b7b468"]
+
+[[item]]
+id = "capability-permissions.md:29:276fa01724"
+file = "capability-permissions.md"
+line = 29
+text = "One-shot approval prompts"
+status = "planned"
+tests = []
+planned_tests = ["todo::276fa01724"]
+
+[[item]]
+id = "capability-permissions.md:30:564833a386"
+file = "capability-permissions.md"
+line = 30
+text = "Revocation and deny-remembering rules"
+status = "planned"
+tests = []
+planned_tests = ["todo::564833a386"]
+
+[[item]]
+id = "capability-permissions.md:31:3610f9243c"
+file = "capability-permissions.md"
+line = 31
+text = "Dry-run and preview execution modes"
+status = "planned"
+tests = []
+planned_tests = ["todo::3610f9243c"]
+
+[[item]]
+id = "capability-permissions.md:32:8de5db5d32"
+file = "capability-permissions.md"
+line = 32
+text = "Capability-specific argument constraints"
+status = "planned"
+tests = []
+planned_tests = ["todo::8de5db5d32"]
+
+[[item]]
+id = "capability-permissions.md:36:ce5746b33c"
+file = "capability-permissions.md"
+line = 36
+text = "Runtime prompt UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::ce5746b33c"]
+
+[[item]]
+id = "capability-permissions.md:37:f4898d82c6"
+file = "capability-permissions.md"
+line = 37
+text = "Grant history UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::f4898d82c6"]
+
+[[item]]
+id = "capability-permissions.md:38:e6df5f1340"
+file = "capability-permissions.md"
+line = 38
+text = "Capability policy editor UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::e6df5f1340"]
+
+[[item]]
+id = "capability-permissions.md:39:dab3e8f940"
+file = "capability-permissions.md"
+line = 39
+text = "Programmatic checks for automation / API clients"
+status = "planned"
+tests = []
+planned_tests = ["todo::dab3e8f940"]
+
+[[item]]
+id = "extraction-pipeline.md:7:682ae7f11d"
+file = "extraction-pipeline.md"
+line = 7
+text = "Extraction feature flags exist in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::682ae7f11d"]
+
+[[item]]
+id = "extraction-pipeline.md:8:d21fc11cea"
+file = "extraction-pipeline.md"
+line = 8
+text = "No extraction pipeline is implemented yet"
+status = "planned"
+tests = []
+planned_tests = ["todo::d21fc11cea"]
+
+[[item]]
+id = "extraction-pipeline.md:12:cdc8793e8e"
+file = "extraction-pipeline.md"
+line = 12
+text = "Raw URL and redirect-chain capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::cdc8793e8e"]
+
+[[item]]
+id = "extraction-pipeline.md:13:92c0c90180"
+file = "extraction-pipeline.md"
+line = 13
+text = "DOM snapshot capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::92c0c90180"]
+
+[[item]]
+id = "extraction-pipeline.md:14:32777a582f"
+file = "extraction-pipeline.md"
+line = 14
+text = "Readability / article extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::32777a582f"]
+
+[[item]]
+id = "extraction-pipeline.md:15:6eb7a15f42"
+file = "extraction-pipeline.md"
+line = 15
+text = "JSON-LD extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::6eb7a15f42"]
+
+[[item]]
+id = "extraction-pipeline.md:16:5f4e8da6d0"
+file = "extraction-pipeline.md"
+line = 16
+text = "Microdata extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::5f4e8da6d0"]
+
+[[item]]
+id = "extraction-pipeline.md:17:3d48a87eda"
+file = "extraction-pipeline.md"
+line = 17
+text = "RDFa extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::3d48a87eda"]
+
+[[item]]
+id = "extraction-pipeline.md:18:1323ec281a"
+file = "extraction-pipeline.md"
+line = 18
+text = "Open Graph / metadata extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::1323ec281a"]
+
+[[item]]
+id = "extraction-pipeline.md:19:66843dabc4"
+file = "extraction-pipeline.md"
+line = 19
+text = "Canonical URL, author, and publish-date extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::66843dabc4"]
+
+[[item]]
+id = "extraction-pipeline.md:23:b577f25419"
+file = "extraction-pipeline.md"
+line = 23
+text = "Outbound link extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::b577f25419"]
+
+[[item]]
+id = "extraction-pipeline.md:24:70184e3dac"
+file = "extraction-pipeline.md"
+line = 24
+text = "Image/media candidate extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::70184e3dac"]
+
+[[item]]
+id = "extraction-pipeline.md:25:414fd9e059"
+file = "extraction-pipeline.md"
+line = 25
+text = "Transcript candidate extraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::414fd9e059"]
+
+[[item]]
+id = "extraction-pipeline.md:26:6ee278882c"
+file = "extraction-pipeline.md"
+line = 26
+text = "Site-specific adapters for difficult pages"
+status = "planned"
+tests = []
+planned_tests = ["todo::6ee278882c"]
+
+[[item]]
+id = "extraction-pipeline.md:30:c3301ba9b2"
+file = "extraction-pipeline.md"
+line = 30
+text = "Trigger extraction on navigation commit"
+status = "planned"
+tests = []
+planned_tests = ["todo::c3301ba9b2"]
+
+[[item]]
+id = "extraction-pipeline.md:31:844fce217f"
+file = "extraction-pipeline.md"
+line = 31
+text = "Queue background extraction work"
+status = "planned"
+tests = []
+planned_tests = ["todo::844fce217f"]
+
+[[item]]
+id = "extraction-pipeline.md:32:76194fe635"
+file = "extraction-pipeline.md"
+line = 32
+text = "Retry and failure handling"
+status = "planned"
+tests = []
+planned_tests = ["todo::76194fe635"]
+
+[[item]]
+id = "extraction-pipeline.md:33:2b5bac44ce"
+file = "extraction-pipeline.md"
+line = 33
+text = "Store extraction provenance and timestamps"
+status = "planned"
+tests = []
+planned_tests = ["todo::2b5bac44ce"]
+
+[[item]]
+id = "interaction-and-input.md:7:155ad5b4a7"
+file = "interaction-and-input.md"
+line = 7
+text = "Normalize pointer coordinates across scale factors and viewports."
+status = "planned"
+tests = []
+planned_tests = ["todo::155ad5b4a7"]
+
+[[item]]
+id = "interaction-and-input.md:8:0655620a08"
+file = "interaction-and-input.md"
+line = 8
+text = "Track hover/enter/leave events reliably for Servo."
+status = "planned"
+tests = []
+planned_tests = ["todo::0655620a08"]
+
+[[item]]
+id = "interaction-and-input.md:9:032c8b49e4"
+file = "interaction-and-input.md"
+line = 9
+text = "Support left/right/middle click with correct button mapping."
+status = "planned"
+tests = []
+planned_tests = ["todo::032c8b49e4"]
+
+[[item]]
+id = "interaction-and-input.md:10:d3268707a3"
+file = "interaction-and-input.md"
+line = 10
+text = "Support double-click and click count."
+status = "planned"
+tests = []
+planned_tests = ["todo::d3268707a3"]
+
+[[item]]
+id = "interaction-and-input.md:11:2584ca4aea"
+file = "interaction-and-input.md"
+line = 11
+text = "Add pointer capture for drag operations."
+status = "planned"
+tests = []
+planned_tests = ["todo::2584ca4aea"]
+
+[[item]]
+id = "interaction-and-input.md:12:a6d8ab4c2d"
+file = "interaction-and-input.md"
+line = 12
+text = "Fix cursor updates (text, pointer, resize, grab, etc)."
+status = "planned"
+tests = []
+planned_tests = ["todo::a6d8ab4c2d"]
+
+[[item]]
+id = "interaction-and-input.md:16:c9e4fc3c14"
+file = "interaction-and-input.md"
+line = 16
+text = "Wire Ctrl + mouse wheel to zoom (browser zoom, not page scale only)."
+status = "planned"
+tests = []
+planned_tests = ["todo::c9e4fc3c14"]
+
+[[item]]
+id = "interaction-and-input.md:17:17fd1a54b9"
+file = "interaction-and-input.md"
+line = 17
+text = "Add configurable zoom step and min/max bounds."
+status = "planned"
+tests = []
+planned_tests = ["todo::17fd1a54b9"]
+
+[[item]]
+id = "interaction-and-input.md:18:d4ffe96ac9"
+file = "interaction-and-input.md"
+line = 18
+text = "Persist per-tab zoom level."
+status = "planned"
+tests = []
+planned_tests = ["todo::d4ffe96ac9"]
+
+[[item]]
+id = "interaction-and-input.md:19:9ddbd103b5"
+file = "interaction-and-input.md"
+line = 19
+text = "Render UI zoom indicator and reset button."
+status = "planned"
+tests = []
+planned_tests = ["todo::9ddbd103b5"]
+
+[[item]]
+id = "interaction-and-input.md:20:205657fc75"
+file = "interaction-and-input.md"
+line = 20
+text = "Distinguish trackpad vs wheel scrolling."
+status = "planned"
+tests = []
+planned_tests = ["todo::205657fc75"]
+
+[[item]]
+id = "interaction-and-input.md:21:2af56a940f"
+file = "interaction-and-input.md"
+line = 21
+text = "Allow Shift + wheel to horizontal scroll."
+status = "planned"
+tests = []
+planned_tests = ["todo::2af56a940f"]
+
+[[item]]
+id = "interaction-and-input.md:25:0fe16bb913"
+file = "interaction-and-input.md"
+line = 25
+text = "Fix key mapping for common navigation keys (Backspace, Enter, Tab, Esc)."
+status = "planned"
+tests = []
+planned_tests = ["todo::0fe16bb913"]
+
+[[item]]
+id = "interaction-and-input.md:26:28b0e32347"
+file = "interaction-and-input.md"
+line = 26
+text = "Support Ctrl/Cmd shortcuts (Copy/Paste/Select All/Find)."
+status = "planned"
+tests = []
+planned_tests = ["todo::28b0e32347"]
+
+[[item]]
+id = "interaction-and-input.md:27:261ee507ef"
+file = "interaction-and-input.md"
+line = 27
+text = "Ensure key repeat and modifiers are delivered correctly."
+status = "planned"
+tests = []
+planned_tests = ["todo::261ee507ef"]
+
+[[item]]
+id = "interaction-and-input.md:28:a8044c38cb"
+file = "interaction-and-input.md"
+line = 28
+text = "Integrate IME composition start/update/end with Servo."
+status = "planned"
+tests = []
+planned_tests = ["todo::a8044c38cb"]
+
+[[item]]
+id = "interaction-and-input.md:32:acd43662e7"
+file = "interaction-and-input.md"
+line = 32
+text = "Handle right-click events in Servo input pipeline."
+status = "planned"
+tests = []
+planned_tests = ["todo::acd43662e7"]
+
+[[item]]
+id = "interaction-and-input.md:33:bc2c48a8f7"
+file = "interaction-and-input.md"
+line = 33
+text = "Surface Servo context menu requests in UI."
+status = "planned"
+tests = []
+planned_tests = ["todo::bc2c48a8f7"]
+
+[[item]]
+id = "interaction-and-input.md:34:8787dca142"
+file = "interaction-and-input.md"
+line = 34
+text = "Render custom context menu in egui (copy link, open in new tab, inspect)."
+status = "planned"
+tests = []
+planned_tests = ["todo::8787dca142"]
+
+[[item]]
+id = "interaction-and-input.md:35:ff3d063cb8"
+file = "interaction-and-input.md"
+line = 35
+text = "Map context menu actions back to Servo."
+status = "planned"
+tests = []
+planned_tests = ["todo::ff3d063cb8"]
+
+[[item]]
+id = "interaction-and-input.md:39:bb45011f0e"
+file = "interaction-and-input.md"
+line = 39
+text = "Bridge clipboard read/write requests (text)."
+status = "planned"
+tests = []
+planned_tests = ["todo::bb45011f0e"]
+
+[[item]]
+id = "interaction-and-input.md:40:187484be7d"
+file = "interaction-and-input.md"
+line = 40
+text = "Add drag-and-drop for URLs into the address bar."
+status = "planned"
+tests = []
+planned_tests = ["todo::187484be7d"]
+
+[[item]]
+id = "interaction-and-input.md:41:c89fe52655"
+file = "interaction-and-input.md"
+line = 41
+text = "Support image drag‑out to file (future)."
+status = "planned"
+tests = []
+planned_tests = ["todo::c89fe52655"]
+
+[[item]]
+id = "interaction-and-input.md:45:91db924573"
+file = "interaction-and-input.md"
+line = 45
+text = "Add input event logging toggle with timestamps."
+status = "planned"
+tests = []
+planned_tests = ["todo::91db924573"]
+
+[[item]]
+id = "interaction-and-input.md:46:379fce6eae"
+file = "interaction-and-input.md"
+line = 46
+text = "Add a manual input test page (data URL) with buttons/inputs."
+status = "planned"
+tests = []
+planned_tests = ["todo::379fce6eae"]
+
+[[item]]
+id = "interaction-and-input.md:47:ce122ff452"
+file = "interaction-and-input.md"
+line = 47
+text = "Add regression test for zoom behavior (Ctrl+wheel)."
+status = "planned"
+tests = []
+planned_tests = ["todo::ce122ff452"]
+
+[[item]]
+id = "interaction-and-input.md:48:f4777eb300"
+file = "interaction-and-input.md"
+line = 48
+text = "Add regression test for right-click context menu event."
+status = "planned"
+tests = []
+planned_tests = ["todo::f4777eb300"]
+
+[[item]]
+id = "interaction-and-input.md:52:86f466761d"
+file = "interaction-and-input.md"
+line = 52
+text = "Route plain text input to IME composition end events."
+status = "planned"
+tests = []
+planned_tests = ["todo::86f466761d"]
+
+[[item]]
+id = "interaction-and-input.md:53:7c4fafce9d"
+file = "interaction-and-input.md"
+line = 53
+text = "Forward IME dismissals explicitly to Servo."
+status = "planned"
+tests = []
+planned_tests = ["todo::7c4fafce9d"]
+
+[[item]]
+id = "knowledge-plane.md:7:5f98f78ddc"
+file = "knowledge-plane.md"
+line = 7
+text = "Ontology and article-related feature flags exist in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::5f98f78ddc"]
+
+[[item]]
+id = "knowledge-plane.md:8:76333cec65"
+file = "knowledge-plane.md"
+line = 8
+text = "No knowledge-plane storage or workflows are implemented yet"
+status = "planned"
+tests = []
+planned_tests = ["todo::76333cec65"]
+
+[[item]]
+id = "knowledge-plane.md:12:a3a2eb7ec1"
+file = "knowledge-plane.md"
+line = 12
+text = "Pages"
+status = "planned"
+tests = []
+planned_tests = ["todo::a3a2eb7ec1"]
+
+[[item]]
+id = "knowledge-plane.md:13:3c173752bd"
+file = "knowledge-plane.md"
+line = 13
+text = "Assets"
+status = "planned"
+tests = []
+planned_tests = ["todo::3c173752bd"]
+
+[[item]]
+id = "knowledge-plane.md:14:0887a9c03b"
+file = "knowledge-plane.md"
+line = 14
+text = "Entities"
+status = "planned"
+tests = []
+planned_tests = ["todo::0887a9c03b"]
+
+[[item]]
+id = "knowledge-plane.md:15:2321629d68"
+file = "knowledge-plane.md"
+line = 15
+text = "Claims"
+status = "planned"
+tests = []
+planned_tests = ["todo::2321629d68"]
+
+[[item]]
+id = "knowledge-plane.md:16:435549a135"
+file = "knowledge-plane.md"
+line = 16
+text = "Ontology edges"
+status = "planned"
+tests = []
+planned_tests = ["todo::435549a135"]
+
+[[item]]
+id = "knowledge-plane.md:17:0dd7c8b0f7"
+file = "knowledge-plane.md"
+line = 17
+text = "Summaries"
+status = "planned"
+tests = []
+planned_tests = ["todo::0dd7c8b0f7"]
+
+[[item]]
+id = "knowledge-plane.md:18:d3f0d4f33f"
+file = "knowledge-plane.md"
+line = 18
+text = "Embeddings"
+status = "planned"
+tests = []
+planned_tests = ["todo::d3f0d4f33f"]
+
+[[item]]
+id = "knowledge-plane.md:19:a38e468fb7"
+file = "knowledge-plane.md"
+line = 19
+text = "Reading events"
+status = "planned"
+tests = []
+planned_tests = ["todo::a38e468fb7"]
+
+[[item]]
+id = "knowledge-plane.md:20:4d00802f96"
+file = "knowledge-plane.md"
+line = 20
+text = "RSS item linkage"
+status = "planned"
+tests = []
+planned_tests = ["todo::4d00802f96"]
+
+[[item]]
+id = "knowledge-plane.md:21:c4f79a933c"
+file = "knowledge-plane.md"
+line = 21
+text = "Tab lineage / revisit history"
+status = "planned"
+tests = []
+planned_tests = ["todo::c4f79a933c"]
+
+[[item]]
+id = "knowledge-plane.md:25:89ad6177a3"
+file = "knowledge-plane.md"
+line = 25
+text = "Automatic article processing"
+status = "planned"
+tests = []
+planned_tests = ["todo::89ad6177a3"]
+
+[[item]]
+id = "knowledge-plane.md:26:a033e5e852"
+file = "knowledge-plane.md"
+line = 26
+text = "Ontology building from pages"
+status = "planned"
+tests = []
+planned_tests = ["todo::a033e5e852"]
+
+[[item]]
+id = "knowledge-plane.md:27:3263d46907"
+file = "knowledge-plane.md"
+line = 27
+text = "Knowledge schema scraping"
+status = "planned"
+tests = []
+planned_tests = ["todo::3263d46907"]
+
+[[item]]
+id = "knowledge-plane.md:28:d9478ab521"
+file = "knowledge-plane.md"
+line = 28
+text = "Search and query surfaces over extracted knowledge"
+status = "planned"
+tests = []
+planned_tests = ["todo::d9478ab521"]
+
+[[item]]
+id = "knowledge-plane.md:29:41498e3939"
+file = "knowledge-plane.md"
+line = 29
+text = "Cross-linking browser history with saved knowledge artifacts"
+status = "planned"
+tests = []
+planned_tests = ["todo::41498e3939"]
+
+[[item]]
+id = "knowledge-plane.md:33:5826ca89aa"
+file = "knowledge-plane.md"
+line = 33
+text = "Knowledge inspector UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::5826ca89aa"]
+
+[[item]]
+id = "knowledge-plane.md:34:350ab30256"
+file = "knowledge-plane.md"
+line = 34
+text = "Ontology browser UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::350ab30256"]
+
+[[item]]
+id = "knowledge-plane.md:35:5e5977bb5d"
+file = "knowledge-plane.md"
+line = 35
+text = "Query tools for terminal / local API clients"
+status = "planned"
+tests = []
+planned_tests = ["todo::5e5977bb5d"]
+
+[[item]]
+id = "local-connectors.md:7:1766f63557"
+file = "local-connectors.md"
+line = 7
+text = "Connector-facing capability placeholders exist in config and permissions"
+status = "planned"
+tests = []
+planned_tests = ["todo::1766f63557"]
+
+[[item]]
+id = "local-connectors.md:8:da46dee23a"
+file = "local-connectors.md"
+line = 8
+text = "No live local connector is implemented yet"
+status = "planned"
+tests = []
+planned_tests = ["todo::da46dee23a"]
+
+[[item]]
+id = "local-connectors.md:12:ccc0c50e77"
+file = "local-connectors.md"
+line = 12
+text = "Terminal / shell broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::ccc0c50e77"]
+
+[[item]]
+id = "local-connectors.md:13:1620f2ea34"
+file = "local-connectors.md"
+line = 13
+text = "File and workspace broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::1620f2ea34"]
+
+[[item]]
+id = "local-connectors.md:14:7dbeb65ce5"
+file = "local-connectors.md"
+line = 14
+text = "SQLite / Postgres broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::7dbeb65ce5"]
+
+[[item]]
+id = "local-connectors.md:15:17bafe5e5d"
+file = "local-connectors.md"
+line = 15
+text = "Notes-vault broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::17bafe5e5d"]
+
+[[item]]
+id = "local-connectors.md:16:8384dcdb05"
+file = "local-connectors.md"
+line = 16
+text = "Document corpus / archive broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::8384dcdb05"]
+
+[[item]]
+id = "local-connectors.md:17:195da10739"
+file = "local-connectors.md"
+line = 17
+text = "OCR broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::195da10739"]
+
+[[item]]
+id = "local-connectors.md:18:52a7482f13"
+file = "local-connectors.md"
+line = 18
+text = "Git repository broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::52a7482f13"]
+
+[[item]]
+id = "local-connectors.md:19:a1dc74b66b"
+file = "local-connectors.md"
+line = 19
+text = "Media / transcript broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::a1dc74b66b"]
+
+[[item]]
+id = "local-connectors.md:20:172bae9248"
+file = "local-connectors.md"
+line = 20
+text = "AI tool / MCP broker"
+status = "planned"
+tests = []
+planned_tests = ["todo::172bae9248"]
+
+[[item]]
+id = "local-connectors.md:21:53734ba62a"
+file = "local-connectors.md"
+line = 21
+text = "Screen / Window capture broker (AI Vision)"
+status = "planned"
+tests = []
+planned_tests = ["todo::53734ba62a"]
+
+[[item]]
+id = "local-connectors.md:22:b76930f101"
+file = "local-connectors.md"
+line = 22
+text = "Terminal-to-Chatbox bridge (e.g. bridging local CLI to web-agent inputs)"
+status = "planned"
+tests = []
+planned_tests = ["todo::b76930f101"]
+
+[[item]]
+id = "local-connectors.md:26:6659407557"
+file = "local-connectors.md"
+line = 26
+text = "Narrow request/response contracts per connector"
+status = "planned"
+tests = []
+planned_tests = ["todo::6659407557"]
+
+[[item]]
+id = "local-connectors.md:27:924bc24a23"
+file = "local-connectors.md"
+line = 27
+text = "Capability checks before broker execution"
+status = "planned"
+tests = []
+planned_tests = ["todo::924bc24a23"]
+
+[[item]]
+id = "local-connectors.md:28:db7216474d"
+file = "local-connectors.md"
+line = 28
+text = "Timeouts, cancellation, and streaming behavior"
+status = "planned"
+tests = []
+planned_tests = ["todo::db7216474d"]
+
+[[item]]
+id = "local-connectors.md:29:90012c1c3c"
+file = "local-connectors.md"
+line = 29
+text = "Structured errors and user-facing failure surfacing"
+status = "planned"
+tests = []
+planned_tests = ["todo::90012c1c3c"]
+
+[[item]]
+id = "local-connectors.md:30:560705ff12"
+file = "local-connectors.md"
+line = 30
+text = "Connector health/status reporting"
+status = "planned"
+tests = []
+planned_tests = ["todo::560705ff12"]
+
+[[item]]
+id = "local-connectors.md:34:2478c2df71"
+file = "local-connectors.md"
+line = 34
+text = "Connector registration and lifecycle management"
+status = "planned"
+tests = []
+planned_tests = ["todo::2478c2df71"]
+
+[[item]]
+id = "local-connectors.md:35:cadf2a93b6"
+file = "local-connectors.md"
+line = 35
+text = "Per-profile connector policies"
+status = "planned"
+tests = []
+planned_tests = ["todo::cadf2a93b6"]
+
+[[item]]
+id = "local-connectors.md:36:47035e5a5c"
+file = "local-connectors.md"
+line = 36
+text = "Test doubles for connector-heavy workflows"
+status = "planned"
+tests = []
+planned_tests = ["todo::47035e5a5c"]
+
+[[item]]
+id = "media-reading-and-tts.md:7:a41a024077"
+file = "media-reading-and-tts.md"
+line = 7
+text = "TTS provider config exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::a41a024077"]
+
+[[item]]
+id = "media-reading-and-tts.md:8:fbb15cbbb2"
+file = "media-reading-and-tts.md"
+line = 8
+text = "Reader-mode autoplay toggle exists in config"
+status = "planned"
+tests = []
+planned_tests = ["todo::fbb15cbbb2"]
+
+[[item]]
+id = "media-reading-and-tts.md:9:ad22bc021e"
+file = "media-reading-and-tts.md"
+line = 9
+text = "No reading or TTS pipeline is implemented yet"
+status = "planned"
+tests = []
+planned_tests = ["todo::ad22bc021e"]
+
+[[item]]
+id = "media-reading-and-tts.md:13:98c918ae84"
+file = "media-reading-and-tts.md"
+line = 13
+text = "Save-for-later queue for links"
+status = "planned"
+tests = []
+planned_tests = ["todo::98c918ae84"]
+
+[[item]]
+id = "media-reading-and-tts.md:14:d8ef9d2cf6"
+file = "media-reading-and-tts.md"
+line = 14
+text = "Save-for-later queue for extracted articles"
+status = "planned"
+tests = []
+planned_tests = ["todo::d8ef9d2cf6"]
+
+[[item]]
+id = "media-reading-and-tts.md:15:23221a019e"
+file = "media-reading-and-tts.md"
+line = 15
+text = "Reader mode surface"
+status = "planned"
+tests = []
+planned_tests = ["todo::23221a019e"]
+
+[[item]]
+id = "media-reading-and-tts.md:16:41680e11ca"
+file = "media-reading-and-tts.md"
+line = 16
+text = "Reading-progress tracking"
+status = "planned"
+tests = []
+planned_tests = ["todo::41680e11ca"]
+
+[[item]]
+id = "media-reading-and-tts.md:17:160f0ce119"
+file = "media-reading-and-tts.md"
+line = 17
+text = "Reading stats and revisit metrics"
+status = "planned"
+tests = []
+planned_tests = ["todo::160f0ce119"]
+
+[[item]]
+id = "media-reading-and-tts.md:21:5db0231fab"
+file = "media-reading-and-tts.md"
+line = 21
+text = "TTS queue"
+status = "planned"
+tests = []
+planned_tests = ["todo::5db0231fab"]
+
+[[item]]
+id = "media-reading-and-tts.md:22:434ac39e72"
+file = "media-reading-and-tts.md"
+line = 22
+text = "Multiple provider integration"
+status = "planned"
+tests = []
+planned_tests = ["todo::434ac39e72"]
+
+[[item]]
+id = "media-reading-and-tts.md:23:f267fe246a"
+file = "media-reading-and-tts.md"
+line = 23
+text = "Voice/profile preferences"
+status = "planned"
+tests = []
+planned_tests = ["todo::f267fe246a"]
+
+[[item]]
+id = "media-reading-and-tts.md:24:56ce78317a"
+file = "media-reading-and-tts.md"
+line = 24
+text = "Synchronize TTS with article extraction output"
+status = "planned"
+tests = []
+planned_tests = ["todo::56ce78317a"]
+
+[[item]]
+id = "media-reading-and-tts.md:25:3ed132922f"
+file = "media-reading-and-tts.md"
+line = 25
+text = "Playback controls in the shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::3ed132922f"]
+
+[[item]]
+id = "media-reading-and-tts.md:29:c5890c3ec4"
+file = "media-reading-and-tts.md"
+line = 29
+text = "RSS daemon integration"
+status = "planned"
+tests = []
+planned_tests = ["todo::c5890c3ec4"]
+
+[[item]]
+id = "media-reading-and-tts.md:30:59ac89f362"
+file = "media-reading-and-tts.md"
+line = 30
+text = "Rehydrate feeds from browsing and extraction data"
+status = "planned"
+tests = []
+planned_tests = ["todo::59ac89f362"]
+
+[[item]]
+id = "media-reading-and-tts.md:31:edc6e5d05b"
+file = "media-reading-and-tts.md"
+line = 31
+text = "Link saved items to RSS-origin metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::edc6e5d05b"]
+
+[[item]]
+id = "navigation-and-session-model.md:7:cbc544fe3d"
+file = "navigation-and-session-model.md"
+line = 7
+text = "Active tab model exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::cbc544fe3d"]
+
+[[item]]
+id = "navigation-and-session-model.md:8:43367ebec6"
+file = "navigation-and-session-model.md"
+line = 8
+text = "URL/title state exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::43367ebec6"]
+
+[[item]]
+id = "navigation-and-session-model.md:9:2c3f7b08ff"
+file = "navigation-and-session-model.md"
+line = 9
+text = "Navigation command dispatch exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::2c3f7b08ff"]
+
+[[item]]
+id = "navigation-and-session-model.md:10:3afe6acd0b"
+file = "navigation-and-session-model.md"
+line = 10
+text = "Reload command exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::3afe6acd0b"]
+
+[[item]]
+id = "navigation-and-session-model.md:11:0c2c7225b0"
+file = "navigation-and-session-model.md"
+line = 11
+text = "Engine-originated events are surfaced into shell state"
+status = "planned"
+tests = []
+planned_tests = ["todo::0c2c7225b0"]
+
+[[item]]
+id = "navigation-and-session-model.md:12:c3621a81de"
+file = "navigation-and-session-model.md"
+line = 12
+text = "Back/forward commands are modeled in the shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::c3621a81de"]
+
+[[item]]
+id = "navigation-and-session-model.md:16:71107389b4"
+file = "navigation-and-session-model.md"
+line = 16
+text = "Back/forward navigation stacks"
+status = "planned"
+tests = []
+planned_tests = ["todo::71107389b4"]
+
+[[item]]
+id = "navigation-and-session-model.md:17:ecf7fc3c3e"
+file = "navigation-and-session-model.md"
+line = 17
+text = "Pending vs committed navigation state"
+status = "planned"
+tests = []
+planned_tests = ["todo::ecf7fc3c3e"]
+
+[[item]]
+id = "navigation-and-session-model.md:18:4ed713da5d"
+file = "navigation-and-session-model.md"
+line = 18
+text = "Redirect chain capture"
+status = "planned"
+tests = []
+planned_tests = ["todo::4ed713da5d"]
+
+[[item]]
+id = "navigation-and-session-model.md:19:618b917df2"
+file = "navigation-and-session-model.md"
+line = 19
+text = "Window and tab lineage model"
+status = "planned"
+tests = []
+planned_tests = ["todo::618b917df2"]
+
+[[item]]
+id = "navigation-and-session-model.md:20:d85d7c1312"
+file = "navigation-and-session-model.md"
+line = 20
+text = "Session restore"
+status = "planned"
+tests = []
+planned_tests = ["todo::d85d7c1312"]
+
+[[item]]
+id = "navigation-and-session-model.md:21:8076d552c6"
+file = "navigation-and-session-model.md"
+line = 21
+text = "Crash recovery state"
+status = "planned"
+tests = []
+planned_tests = ["todo::8076d552c6"]
+
+[[item]]
+id = "navigation-and-session-model.md:22:3114ffedc9"
+file = "navigation-and-session-model.md"
+line = 22
+text = "Profile-bound session separation"
+status = "planned"
+tests = []
+planned_tests = ["todo::3114ffedc9"]
+
+[[item]]
+id = "navigation-and-session-model.md:23:c41ae70c93"
+file = "navigation-and-session-model.md"
+line = 23
+text = "Session file format versioning"
+status = "planned"
+tests = []
+planned_tests = ["todo::c41ae70c93"]
+
+[[item]]
+id = "navigation-and-session-model.md:24:4c00d40cda"
+file = "navigation-and-session-model.md"
+line = 24
+text = "Session JSON persistence"
+status = "planned"
+tests = []
+planned_tests = ["todo::4c00d40cda"]
+
+[[item]]
+id = "navigation-and-session-model.md:28:1dd804dbb5"
+file = "navigation-and-session-model.md"
+line = 28
+text = "Structured models for windows, tabs, frames, and documents"
+status = "planned"
+tests = []
+planned_tests = ["todo::1dd804dbb5"]
+
+[[item]]
+id = "navigation-and-session-model.md:29:60d5a6a2af"
+file = "navigation-and-session-model.md"
+line = 29
+text = "Selection and focused-element state"
+status = "planned"
+tests = []
+planned_tests = ["todo::60d5a6a2af"]
+
+[[item]]
+id = "navigation-and-session-model.md:30:4e2e210f39"
+file = "navigation-and-session-model.md"
+line = 30
+text = "Download and permission-grant linkage to sessions"
+status = "planned"
+tests = []
+planned_tests = ["todo::4e2e210f39"]
+
+[[item]]
+id = "navigation-and-session-model.md:31:4aa22082cd"
+file = "navigation-and-session-model.md"
+line = 31
+text = "Browsing-session identifiers stable across subsystems"
+status = "planned"
+tests = []
+planned_tests = ["todo::4aa22082cd"]
+
+[[item]]
+id = "navigation-and-session-model.md:32:ec90207779"
+file = "navigation-and-session-model.md"
+line = 32
+text = "Revisit history and tab lineage metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::ec90207779"]
+
+[[item]]
+id = "navigation-and-session-model.md:33:29b21f98c4"
+file = "navigation-and-session-model.md"
+line = 33
+text = "Navigation history stored per tab"
+status = "planned"
+tests = []
+planned_tests = ["todo::29b21f98c4"]
+
+[[item]]
+id = "navigation-and-session-model.md:37:004e741e64"
+file = "navigation-and-session-model.md"
+line = 37
+text = "Open in new tab/window flows"
+status = "planned"
+tests = []
+planned_tests = ["todo::004e741e64"]
+
+[[item]]
+id = "navigation-and-session-model.md:38:1d537a26e2"
+file = "navigation-and-session-model.md"
+line = 38
+text = "Duplicate, pin, mute, and close behaviors"
+status = "planned"
+tests = []
+planned_tests = ["todo::1d537a26e2"]
+
+[[item]]
+id = "navigation-and-session-model.md:39:053d75e87a"
+file = "navigation-and-session-model.md"
+line = 39
+text = "Session snapshot export/import"
+status = "planned"
+tests = []
+planned_tests = ["todo::053d75e87a"]
+
+[[item]]
+id = "navigation-and-session-model.md:40:e6e0614487"
+file = "navigation-and-session-model.md"
+line = 40
+text = "Active tab switching UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::e6e0614487"]
+
+[[item]]
+id = "navigation-and-session-model.md:41:5870dcd029"
+file = "navigation-and-session-model.md"
+line = 41
+text = "Profile-based session path usage"
+status = "planned"
+tests = []
+planned_tests = ["todo::5870dcd029"]
+
+[[item]]
+id = "navigation-and-session-model.md:42:120cc3c264"
+file = "navigation-and-session-model.md"
+line = 42
+text = "Crash recovery flag persisted in snapshots"
+status = "planned"
+tests = []
+planned_tests = ["todo::120cc3c264"]
+
+[[item]]
+id = "observability-and-quality.md:7:3fe41fe903"
+file = "observability-and-quality.md"
+line = 7
+text = "Tracing bootstrap exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::3fe41fe903"]
+
+[[item]]
+id = "observability-and-quality.md:8:344069df48"
+file = "observability-and-quality.md"
+line = 8
+text = "Console and rolling-file filters are configurable"
+status = "planned"
+tests = []
+planned_tests = ["todo::344069df48"]
+
+[[item]]
+id = "observability-and-quality.md:9:a2ca016617"
+file = "observability-and-quality.md"
+line = 9
+text = "Startup and command activity are logged"
+status = "planned"
+tests = []
+planned_tests = ["todo::a2ca016617"]
+
+[[item]]
+id = "observability-and-quality.md:10:fa2a68df1a"
+file = "observability-and-quality.md"
+line = 10
+text = "Config parsing tests exist"
+status = "planned"
+tests = []
+planned_tests = ["todo::fa2a68df1a"]
+
+[[item]]
+id = "observability-and-quality.md:11:f09748c5f8"
+file = "observability-and-quality.md"
+line = 11
+text = "Path resolution tests exist"
+status = "planned"
+tests = []
+planned_tests = ["todo::f09748c5f8"]
+
+[[item]]
+id = "observability-and-quality.md:12:b694ac437e"
+file = "observability-and-quality.md"
+line = 12
+text = "Command dispatch tests exist"
+status = "planned"
+tests = []
+planned_tests = ["todo::b694ac437e"]
+
+[[item]]
+id = "observability-and-quality.md:13:d5d5c2619b"
+file = "observability-and-quality.md"
+line = 13
+text = "Engine-state synchronization tests exist"
+status = "planned"
+tests = []
+planned_tests = ["todo::d5d5c2619b"]
+
+[[item]]
+id = "observability-and-quality.md:14:9d1f01d0b3"
+file = "observability-and-quality.md"
+line = 14
+text = "Bootstrap integration tests exist"
+status = "planned"
+tests = []
+planned_tests = ["todo::9d1f01d0b3"]
+
+[[item]]
+id = "observability-and-quality.md:18:bba868d620"
+file = "observability-and-quality.md"
+line = 18
+text = "Per-launch timestamped log files"
+status = "planned"
+tests = []
+planned_tests = ["todo::bba868d620"]
+
+[[item]]
+id = "observability-and-quality.md:19:11522ba1ae"
+file = "observability-and-quality.md"
+line = 19
+text = "Engine lifecycle spans around real Servo integration"
+status = "planned"
+tests = []
+planned_tests = ["todo::11522ba1ae"]
+
+[[item]]
+id = "observability-and-quality.md:20:00d7f359f0"
+file = "observability-and-quality.md"
+line = 20
+text = "Capability decision tracing"
+status = "planned"
+tests = []
+planned_tests = ["todo::00d7f359f0"]
+
+[[item]]
+id = "observability-and-quality.md:21:19a5d609e2"
+file = "observability-and-quality.md"
+line = 21
+text = "Connector activity tracing"
+status = "planned"
+tests = []
+planned_tests = ["todo::19a5d609e2"]
+
+[[item]]
+id = "observability-and-quality.md:22:4806c526cc"
+file = "observability-and-quality.md"
+line = 22
+text = "Automation/API request tracing"
+status = "planned"
+tests = []
+planned_tests = ["todo::4806c526cc"]
+
+[[item]]
+id = "observability-and-quality.md:23:2b69e56dcc"
+file = "observability-and-quality.md"
+line = 23
+text = "Cache/extraction pipeline tracing"
+status = "planned"
+tests = []
+planned_tests = ["todo::2b69e56dcc"]
+
+[[item]]
+id = "observability-and-quality.md:24:782238bae8"
+file = "observability-and-quality.md"
+line = 24
+text = "Diagnostics panel in the shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::782238bae8"]
+
+[[item]]
+id = "observability-and-quality.md:25:78bc1d534e"
+file = "observability-and-quality.md"
+line = 25
+text = "Metrics and health summaries"
+status = "planned"
+tests = []
+planned_tests = ["todo::78bc1d534e"]
+
+[[item]]
+id = "observability-and-quality.md:26:d2c91b9826"
+file = "observability-and-quality.md"
+line = 26
+text = "CLI-based live log streaming and inspection"
+status = "planned"
+tests = []
+planned_tests = ["todo::d2c91b9826"]
+
+[[item]]
+id = "observability-and-quality.md:30:f902384dd8"
+file = "observability-and-quality.md"
+line = 30
+text = "GUI interaction smoke tests"
+status = "planned"
+tests = []
+planned_tests = ["todo::f902384dd8"]
+
+[[item]]
+id = "observability-and-quality.md:31:290d97a58b"
+file = "observability-and-quality.md"
+line = 31
+text = "Servo-enabled integration checks on a prepared machine"
+status = "planned"
+tests = []
+planned_tests = ["todo::290d97a58b"]
+
+[[item]]
+id = "observability-and-quality.md:32:6e4ed7c651"
+file = "observability-and-quality.md"
+line = 32
+text = "Cross-platform CI matrix"
+status = "planned"
+tests = []
+planned_tests = ["todo::6e4ed7c651"]
+
+[[item]]
+id = "observability-and-quality.md:33:e97d8ddbe2"
+file = "observability-and-quality.md"
+line = 33
+text = "Performance baselines for shell and engine startup"
+status = "planned"
+tests = []
+planned_tests = ["todo::e97d8ddbe2"]
+
+[[item]]
+id = "observability-and-quality.md:34:8a697f4b96"
+file = "observability-and-quality.md"
+line = 34
+text = "Failure-injection tests for connector and automation paths"
+status = "planned"
+tests = []
+planned_tests = ["todo::8a697f4b96"]
+
+[[item]]
+id = "persistence-and-profiles.md:7:9779fa000b"
+file = "persistence-and-profiles.md"
+line = 7
+text = "Platform config path resolution exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::9779fa000b"]
+
+[[item]]
+id = "persistence-and-profiles.md:8:389e2f189b"
+file = "persistence-and-profiles.md"
+line = 8
+text = "Platform data/log/cache/profile roots are resolved"
+status = "planned"
+tests = []
+planned_tests = ["todo::389e2f189b"]
+
+[[item]]
+id = "persistence-and-profiles.md:9:1ea3f20a46"
+file = "persistence-and-profiles.md"
+line = 9
+text = "Default config generation exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::1ea3f20a46"]
+
+[[item]]
+id = "persistence-and-profiles.md:10:b2c90282a9"
+file = "persistence-and-profiles.md"
+line = 10
+text = "File-based persistence is the current baseline"
+status = "planned"
+tests = []
+planned_tests = ["todo::b2c90282a9"]
+
+[[item]]
+id = "persistence-and-profiles.md:14:ff9c817744"
+file = "persistence-and-profiles.md"
+line = 14
+text = "Structured browser-state persistence beyond config/logs"
+status = "planned"
+tests = []
+planned_tests = ["todo::ff9c817744"]
+
+[[item]]
+id = "persistence-and-profiles.md:15:f4aec01b49"
+file = "persistence-and-profiles.md"
+line = 15
+text = "Session persistence"
+status = "planned"
+tests = []
+planned_tests = ["todo::f4aec01b49"]
+
+[[item]]
+id = "persistence-and-profiles.md:16:fd6f1197d1"
+file = "persistence-and-profiles.md"
+line = 16
+text = "History persistence"
+status = "planned"
+tests = []
+planned_tests = ["todo::fd6f1197d1"]
+
+[[item]]
+id = "persistence-and-profiles.md:17:c8cf35f0c2"
+file = "persistence-and-profiles.md"
+line = 17
+text = "Permission-grant persistence"
+status = "planned"
+tests = []
+planned_tests = ["todo::c8cf35f0c2"]
+
+[[item]]
+id = "persistence-and-profiles.md:18:e9c6492c2a"
+file = "persistence-and-profiles.md"
+line = 18
+text = "Cache index persistence"
+status = "planned"
+tests = []
+planned_tests = ["todo::e9c6492c2a"]
+
+[[item]]
+id = "persistence-and-profiles.md:19:0a1e2bf0ac"
+file = "persistence-and-profiles.md"
+line = 19
+text = "Reading and knowledge persistence"
+status = "planned"
+tests = []
+planned_tests = ["todo::0a1e2bf0ac"]
+
+[[item]]
+id = "persistence-and-profiles.md:23:37aaa2e138"
+file = "persistence-and-profiles.md"
+line = 23
+text = "Profile creation and switching"
+status = "planned"
+tests = []
+planned_tests = ["todo::37aaa2e138"]
+
+[[item]]
+id = "persistence-and-profiles.md:24:35eeb65d84"
+file = "persistence-and-profiles.md"
+line = 24
+text = "Per-profile cache roots"
+status = "planned"
+tests = []
+planned_tests = ["todo::35eeb65d84"]
+
+[[item]]
+id = "persistence-and-profiles.md:25:e3bee80fae"
+file = "persistence-and-profiles.md"
+line = 25
+text = "Per-profile connector policies"
+status = "planned"
+tests = []
+planned_tests = ["todo::e3bee80fae"]
+
+[[item]]
+id = "persistence-and-profiles.md:26:12d14f4e29"
+file = "persistence-and-profiles.md"
+line = 26
+text = "Per-profile automation/API settings"
+status = "planned"
+tests = []
+planned_tests = ["todo::12d14f4e29"]
+
+[[item]]
+id = "persistence-and-profiles.md:27:0d32663326"
+file = "persistence-and-profiles.md"
+line = 27
+text = "Import/export profile bundles"
+status = "planned"
+tests = []
+planned_tests = ["todo::0d32663326"]
+
+[[item]]
+id = "persistence-and-profiles.md:31:c9da83643f"
+file = "persistence-and-profiles.md"
+line = 31
+text = "Config migration strategy"
+status = "planned"
+tests = []
+planned_tests = ["todo::c9da83643f"]
+
+[[item]]
+id = "persistence-and-profiles.md:32:bf25f6a02c"
+file = "persistence-and-profiles.md"
+line = 32
+text = "Data-versioning policy"
+status = "planned"
+tests = []
+planned_tests = ["todo::bf25f6a02c"]
+
+[[item]]
+id = "persistence-and-profiles.md:33:ad6a368303"
+file = "persistence-and-profiles.md"
+line = 33
+text = "Backup/export workflows"
+status = "planned"
+tests = []
+planned_tests = ["todo::ad6a368303"]
+
+[[item]]
+id = "resource-injection.md:9:dd7ff91a54"
+file = "resource-injection.md"
+line = 9
+text = "Internal resource resolution logic exists for Servo-specific assets"
+status = "planned"
+tests = []
+planned_tests = ["todo::dd7ff91a54"]
+
+[[item]]
+id = "resource-injection.md:10:2568018a19"
+file = "resource-injection.md"
+line = 10
+text = "No virtual mount point (e.g., `brazen://`) is implemented"
+status = "planned"
+tests = []
+planned_tests = ["todo::2568018a19"]
+
+[[item]]
+id = "resource-injection.md:11:b6016dafc4"
+file = "resource-injection.md"
+line = 11
+text = "No bridging between Local Connectors and Engine Protocol Handlers"
+status = "planned"
+tests = []
+planned_tests = ["todo::b6016dafc4"]
+
+[[item]]
+id = "resource-injection.md:15:35bc8e5684"
+file = "resource-injection.md"
+line = 15
+text = "Define the `brazen://` (or similar) internal URI scheme"
+status = "planned"
+tests = []
+planned_tests = ["todo::35bc8e5684"]
+
+[[item]]
+id = "resource-injection.md:16:d37a59d06f"
+file = "resource-injection.md"
+line = 16
+text = "Implement a Virtual Protocol Handler in the engine abstraction"
+status = "planned"
+tests = []
+planned_tests = ["todo::d37a59d06f"]
+
+[[item]]
+id = "resource-injection.md:17:36d9cb9f64"
+file = "resource-injection.md"
+line = 17
+text = "Support for directory-like mounting of filesystem paths"
+status = "planned"
+tests = []
+planned_tests = ["todo::36d9cb9f64"]
+
+[[item]]
+id = "resource-injection.md:18:88dea5e082"
+file = "resource-injection.md"
+line = 18
+text = "Support for dynamic mounting of terminal sessions as streamable"
+status = "planned"
+tests = []
+planned_tests = ["todo::88dea5e082"]
+
+[[item]]
+id = "resource-injection.md:20:e67dfdc4ee"
+file = "resource-injection.md"
+line = 20
+text = "Support for mounting MCP tool definitions as discoverable JSON resources"
+status = "planned"
+tests = []
+planned_tests = ["todo::e67dfdc4ee"]
+
+[[item]]
+id = "resource-injection.md:21:3b59142469"
+file = "resource-injection.md"
+line = 21
+text = "CORS and security boundary enforcement for virtual resources"
+status = "planned"
+tests = []
+planned_tests = ["todo::3b59142469"]
+
+[[item]]
+id = "resource-injection.md:25:6afc9598f3"
+file = "resource-injection.md"
+line = 25
+text = "Origin-specific mounting (only allow `chatgpt.com` to see certain mounts)"
+status = "planned"
+tests = []
+planned_tests = ["todo::6afc9598f3"]
+
+[[item]]
+id = "resource-injection.md:26:ef72ff08f9"
+file = "resource-injection.md"
+line = 26
+text = "Read-only vs Read-Write mount modes"
+status = "planned"
+tests = []
+planned_tests = ["todo::ef72ff08f9"]
+
+[[item]]
+id = "resource-injection.md:27:9b18a70888"
+file = "resource-injection.md"
+line = 27
+text = "Streaming support for large files or terminal output"
+status = "planned"
+tests = []
+planned_tests = ["todo::9b18a70888"]
+
+[[item]]
+id = "resource-injection.md:28:527f133f6c"
+file = "resource-injection.md"
+line = 28
+text = "Content-type sniffing for local resources mapped to web types"
+status = "planned"
+tests = []
+planned_tests = ["todo::527f133f6c"]
+
+[[item]]
+id = "resource-injection.md:29:f216f37683"
+file = "resource-injection.md"
+line = 29
+text = "Support for injecting resources into the DOM via virtual script tags or state objects"
+status = "planned"
+tests = []
+planned_tests = ["todo::f216f37683"]
+
+[[item]]
+id = "resource-injection.md:33:0403f52add"
+file = "resource-injection.md"
+line = 33
+text = "Bridging `AssetStore` queries as virtual resources"
+status = "planned"
+tests = []
+planned_tests = ["todo::0403f52add"]
+
+[[item]]
+id = "resource-injection.md:34:8ac50e5ad8"
+file = "resource-injection.md"
+line = 34
+text = "Bridging `LocalConnectors` as virtual resources"
+status = "planned"
+tests = []
+planned_tests = ["todo::8ac50e5ad8"]
+
+[[item]]
+id = "resource-injection.md:35:9a5f93d2f8"
+file = "resource-injection.md"
+line = 35
+text = "Multi-tab resource sharing (one tab's DOM as another tab's virtual file)"
+status = "planned"
+tests = []
+planned_tests = ["todo::9a5f93d2f8"]
+
+[[item]]
+id = "resource-injection.md:36:eca9a79703"
+file = "resource-injection.md"
+line = 36
+text = "Live-update triggers for virtual resources (filesystem watch -> browser event)"
+status = "planned"
+tests = []
+planned_tests = ["todo::eca9a79703"]
+
+[[item]]
+id = "resource-injection.md:40:fde1ed9786"
+file = "resource-injection.md"
+line = 40
+text = "Mount-point manager UI (see what is currently shared)"
+status = "planned"
+tests = []
+planned_tests = ["todo::fde1ed9786"]
+
+[[item]]
+id = "resource-injection.md:41:4cbd9f71f3"
+file = "resource-injection.md"
+line = 41
+text = "Per-site \"Resource Gallery\" for AI agents"
+status = "planned"
+tests = []
+planned_tests = ["todo::4cbd9f71f3"]
+
+[[item]]
+id = "resource-injection.md:42:df99419c48"
+file = "resource-injection.md"
+line = 42
+text = "Debugger for virtual request/response cycles"
+status = "planned"
+tests = []
+planned_tests = ["todo::df99419c48"]
+
+[[item]]
+id = "security-policy-and-audit.md:7:e0553dda7e"
+file = "security-policy-and-audit.md"
+line = 7
+text = "Permissions are modeled as browser-mediated policy rather than raw OS access"
+status = "planned"
+tests = []
+planned_tests = ["todo::e0553dda7e"]
+
+[[item]]
+id = "security-policy-and-audit.md:8:5f46b45798"
+file = "security-policy-and-audit.md"
+line = 8
+text = "Logging hooks exist for startup and command activity"
+status = "planned"
+tests = []
+planned_tests = ["todo::5f46b45798"]
+
+[[item]]
+id = "security-policy-and-audit.md:12:cfde75cf9e"
+file = "security-policy-and-audit.md"
+line = 12
+text = "Approval prompts with explicit action summaries"
+status = "planned"
+tests = []
+planned_tests = ["todo::cfde75cf9e"]
+
+[[item]]
+id = "security-policy-and-audit.md:13:185cfb9859"
+file = "security-policy-and-audit.md"
+line = 13
+text = "Revocation UI and policy reset flows"
+status = "planned"
+tests = []
+planned_tests = ["todo::185cfb9859"]
+
+[[item]]
+id = "security-policy-and-audit.md:14:23152f479e"
+file = "security-policy-and-audit.md"
+line = 14
+text = "Origin binding rules"
+status = "planned"
+tests = []
+planned_tests = ["todo::23152f479e"]
+
+[[item]]
+id = "security-policy-and-audit.md:15:51195dcc4e"
+file = "security-policy-and-audit.md"
+line = 15
+text = "Session binding rules"
+status = "planned"
+tests = []
+planned_tests = ["todo::51195dcc4e"]
+
+[[item]]
+id = "security-policy-and-audit.md:16:5ffd26d641"
+file = "security-policy-and-audit.md"
+line = 16
+text = "Rate limiting and abuse controls"
+status = "planned"
+tests = []
+planned_tests = ["todo::5ffd26d641"]
+
+[[item]]
+id = "security-policy-and-audit.md:17:c63dece1cb"
+file = "security-policy-and-audit.md"
+line = 17
+text = "Sandbox profiles for different browsing modes"
+status = "planned"
+tests = []
+planned_tests = ["todo::c63dece1cb"]
+
+[[item]]
+id = "security-policy-and-audit.md:18:6184af4719"
+file = "security-policy-and-audit.md"
+line = 18
+text = "Trusted-client policy for local automation"
+status = "planned"
+tests = []
+planned_tests = ["todo::6184af4719"]
+
+[[item]]
+id = "security-policy-and-audit.md:22:96aaa2b40e"
+file = "security-policy-and-audit.md"
+line = 22
+text = "Structured audit log for capability usage"
+status = "planned"
+tests = []
+planned_tests = ["todo::96aaa2b40e"]
+
+[[item]]
+id = "security-policy-and-audit.md:23:a08333bca8"
+file = "security-policy-and-audit.md"
+line = 23
+text = "Tool invocation history"
+status = "planned"
+tests = []
+planned_tests = ["todo::a08333bca8"]
+
+[[item]]
+id = "security-policy-and-audit.md:24:ad961da45c"
+file = "security-policy-and-audit.md"
+line = 24
+text = "Terminal command history with policy context"
+status = "planned"
+tests = []
+planned_tests = ["todo::ad961da45c"]
+
+[[item]]
+id = "security-policy-and-audit.md:25:06a7aee3af"
+file = "security-policy-and-audit.md"
+line = 25
+text = "Cache/data access audit trail"
+status = "planned"
+tests = []
+planned_tests = ["todo::06a7aee3af"]
+
+[[item]]
+id = "security-policy-and-audit.md:26:f23fef6795"
+file = "security-policy-and-audit.md"
+line = 26
+text = "Security event panel in the shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::f23fef6795"]
+
+[[item]]
+id = "security-policy-and-audit.md:27:747d48ee36"
+file = "security-policy-and-audit.md"
+line = 27
+text = "Exportable audit snapshots"
+status = "planned"
+tests = []
+planned_tests = ["todo::747d48ee36"]
+
+[[item]]
+id = "security-policy-and-audit.md:31:ede32f7c32"
+file = "security-policy-and-audit.md"
+line = 31
+text = "Separate privileged host actions from page execution"
+status = "planned"
+tests = []
+planned_tests = ["todo::ede32f7c32"]
+
+[[item]]
+id = "security-policy-and-audit.md:32:cae483ccd3"
+file = "security-policy-and-audit.md"
+line = 32
+text = "Document hostile-page assumptions"
+status = "planned"
+tests = []
+planned_tests = ["todo::cae483ccd3"]
+
+[[item]]
+id = "security-policy-and-audit.md:33:2b8c826bdf"
+file = "security-policy-and-audit.md"
+line = 33
+text = "Define sensitive-data redaction policy for logs"
+status = "planned"
+tests = []
+planned_tests = ["todo::2b8c826bdf"]
+
+[[item]]
+id = "security-policy-and-audit.md:34:2f501df8dc"
+file = "security-policy-and-audit.md"
+line = 34
+text = "Review default-safe posture for all high-risk capabilities"
+status = "planned"
+tests = []
+planned_tests = ["todo::2f501df8dc"]
+
+[[item]]
+id = "servo-engine-integration.md:7:3474997c54"
+file = "servo-engine-integration.md"
+line = 7
+text = "`BrowserEngine` trait exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::3474997c54"]
+
+[[item]]
+id = "servo-engine-integration.md:8:db75a6f85b"
+file = "servo-engine-integration.md"
+line = 8
+text = "Null backend exists for default builds"
+status = "planned"
+tests = []
+planned_tests = ["todo::db75a6f85b"]
+
+[[item]]
+id = "servo-engine-integration.md:9:0051008292"
+file = "servo-engine-integration.md"
+line = 9
+text = "Feature-gated Servo scaffold backend exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::0051008292"]
+
+[[item]]
+id = "servo-engine-integration.md:10:64e0920f38"
+file = "servo-engine-integration.md"
+line = 10
+text = "Engine status states include `NoEngine`, `Initializing`, `Ready`, and `Error`"
+status = "planned"
+tests = []
+planned_tests = ["todo::64e0920f38"]
+
+[[item]]
+id = "servo-engine-integration.md:11:baf3252163"
+file = "servo-engine-integration.md"
+line = 11
+text = "Render-surface metadata is modeled"
+status = "planned"
+tests = []
+planned_tests = ["todo::baf3252163"]
+
+[[item]]
+id = "servo-engine-integration.md:12:1a385ea170"
+file = "servo-engine-integration.md"
+line = 12
+text = "Engine seam includes input, IME, focus, and clipboard hooks"
+status = "planned"
+tests = []
+planned_tests = ["todo::1a385ea170"]
+
+[[item]]
+id = "servo-engine-integration.md:13:7a770ee21c"
+file = "servo-engine-integration.md"
+line = 13
+text = "Navigation-state events and back/forward hooks are modeled"
+status = "planned"
+tests = []
+planned_tests = ["todo::7a770ee21c"]
+
+[[item]]
+id = "servo-engine-integration.md:17:2255b3e3da"
+file = "servo-engine-integration.md"
+line = 17
+text = "Pin official Servo source revision for live integration"
+status = "planned"
+tests = []
+planned_tests = ["todo::2255b3e3da"]
+
+[[item]]
+id = "servo-engine-integration.md:18:7d59d716c4"
+file = "servo-engine-integration.md"
+line = 18
+text = "Define Servo bootstrap lifecycle and process model"
+status = "planned"
+tests = []
+planned_tests = ["todo::7d59d716c4"]
+
+[[item]]
+id = "servo-engine-integration.md:19:3e136f4c8f"
+file = "servo-engine-integration.md"
+line = 19
+text = "Document Servo build prerequisites per platform (Linux packages, gfx backend, toolchains)"
+status = "planned"
+tests = []
+planned_tests = ["todo::3e136f4c8f"]
+
+[[item]]
+id = "servo-engine-integration.md:20:df7eedab07"
+file = "servo-engine-integration.md"
+line = 20
+text = "Add `servo` feature dependency wiring to pull Servo sources via git"
+status = "planned"
+tests = []
+planned_tests = ["todo::df7eedab07"]
+
+[[item]]
+id = "servo-engine-integration.md:21:0172a26c00"
+file = "servo-engine-integration.md"
+line = 21
+text = "Add a compile-time guard that errors when Servo sources are missing"
+status = "planned"
+tests = []
+planned_tests = ["todo::0172a26c00"]
+
+[[item]]
+id = "servo-engine-integration.md:22:7c3ea16edc"
+file = "servo-engine-integration.md"
+line = 22
+text = "Implement a thin Servo embedder module with explicit init/shutdown"
+status = "planned"
+tests = []
+planned_tests = ["todo::7c3ea16edc"]
+
+[[item]]
+id = "servo-engine-integration.md:23:cc082e8f84"
+file = "servo-engine-integration.md"
+line = 23
+text = "Allocate real render surface / texture bridge into `egui`"
+status = "planned"
+tests = []
+planned_tests = ["todo::cc082e8f84"]
+
+[[item]]
+id = "servo-engine-integration.md:24:fe58665ca2"
+file = "servo-engine-integration.md"
+line = 24
+text = "Implement a swap-chain or surface abstraction for Servo output"
+status = "planned"
+tests = []
+planned_tests = ["todo::fe58665ca2"]
+
+[[item]]
+id = "servo-engine-integration.md:25:742c7c885c"
+file = "servo-engine-integration.md"
+line = 25
+text = "Decide on single-thread vs multi-thread render ownership and document it"
+status = "planned"
+tests = []
+planned_tests = ["todo::742c7c885c"]
+
+[[item]]
+id = "servo-engine-integration.md:26:347a1d7b52"
+file = "servo-engine-integration.md"
+line = 26
+text = "Forward viewport resize events to Servo"
+status = "planned"
+tests = []
+planned_tests = ["todo::347a1d7b52"]
+
+[[item]]
+id = "servo-engine-integration.md:27:c6136e98d6"
+file = "servo-engine-integration.md"
+line = 27
+text = "Forward pointer, keyboard, scroll, and focus events"
+status = "planned"
+tests = []
+planned_tests = ["todo::c6136e98d6"]
+
+[[item]]
+id = "servo-engine-integration.md:28:5b1469b43c"
+file = "servo-engine-integration.md"
+line = 28
+text = "Handle IME/text-input composition correctly"
+status = "planned"
+tests = []
+planned_tests = ["todo::5b1469b43c"]
+
+[[item]]
+id = "servo-engine-integration.md:29:d4603f0d10"
+file = "servo-engine-integration.md"
+line = 29
+text = "Implement clipboard integration between Servo and shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::d4603f0d10"]
+
+[[item]]
+id = "servo-engine-integration.md:30:01a59e687e"
+file = "servo-engine-integration.md"
+line = 30
+text = "Handle high-DPI scale-factor changes mid-session"
+status = "planned"
+tests = []
+planned_tests = ["todo::01a59e687e"]
+
+[[item]]
+id = "servo-engine-integration.md:31:2df6c3c0bb"
+file = "servo-engine-integration.md"
+line = 31
+text = "Map window occlusion/minimize/restore events to Servo lifecycle hooks"
+status = "planned"
+tests = []
+planned_tests = ["todo::2df6c3c0bb"]
+
+[[item]]
+id = "servo-engine-integration.md:35:b0b321a606"
+file = "servo-engine-integration.md"
+line = 35
+text = "Tab-to-engine instance mapping"
+status = "planned"
+tests = []
+planned_tests = ["todo::b0b321a606"]
+
+[[item]]
+id = "servo-engine-integration.md:36:dea158c264"
+file = "servo-engine-integration.md"
+line = 36
+text = "Per-tab engine lifecycle (create, suspend, resume, destroy)"
+status = "planned"
+tests = []
+planned_tests = ["todo::dea158c264"]
+
+[[item]]
+id = "servo-engine-integration.md:37:1fe824d3a9"
+file = "servo-engine-integration.md"
+line = 37
+text = "Background tab throttling strategy"
+status = "planned"
+tests = []
+planned_tests = ["todo::1fe824d3a9"]
+
+[[item]]
+id = "servo-engine-integration.md:38:d73a29b69f"
+file = "servo-engine-integration.md"
+line = 38
+text = "Navigation lifecycle events from engine into shell state"
+status = "planned"
+tests = []
+planned_tests = ["todo::d73a29b69f"]
+
+[[item]]
+id = "servo-engine-integration.md:39:8c6299fb46"
+file = "servo-engine-integration.md"
+line = 39
+text = "Expose load progress and document-ready milestones"
+status = "planned"
+tests = []
+planned_tests = ["todo::8c6299fb46"]
+
+[[item]]
+id = "servo-engine-integration.md:40:5e63cf9977"
+file = "servo-engine-integration.md"
+line = 40
+text = "Capture title, favicon, and metadata updates from Servo"
+status = "planned"
+tests = []
+planned_tests = ["todo::5e63cf9977"]
+
+[[item]]
+id = "servo-engine-integration.md:41:665c516bee"
+file = "servo-engine-integration.md"
+line = 41
+text = "Link navigation events to command log and history model"
+status = "planned"
+tests = []
+planned_tests = ["todo::665c516bee"]
+
+[[item]]
+id = "servo-engine-integration.md:42:fd18f2ab27"
+file = "servo-engine-integration.md"
+line = 42
+text = "Popup, dialog, and context-menu mediation"
+status = "planned"
+tests = []
+planned_tests = ["todo::fd18f2ab27"]
+
+[[item]]
+id = "servo-engine-integration.md:43:b53605055e"
+file = "servo-engine-integration.md"
+line = 43
+text = "New-window and target-blank routing policy"
+status = "planned"
+tests = []
+planned_tests = ["todo::b53605055e"]
+
+[[item]]
+id = "servo-engine-integration.md:44:53e03e8283"
+file = "servo-engine-integration.md"
+line = 44
+text = "Crash detection and backend recovery UX"
+status = "planned"
+tests = []
+planned_tests = ["todo::53e03e8283"]
+
+[[item]]
+id = "servo-engine-integration.md:45:18347f0d15"
+file = "servo-engine-integration.md"
+line = 45
+text = "Clean shutdown and crash-dump collection path"
+status = "planned"
+tests = []
+planned_tests = ["todo::18347f0d15"]
+
+[[item]]
+id = "servo-engine-integration.md:46:5f4f8a6890"
+file = "servo-engine-integration.md"
+line = 46
+text = "Content-process isolation strategy"
+status = "planned"
+tests = []
+planned_tests = ["todo::5f4f8a6890"]
+
+[[item]]
+id = "servo-engine-integration.md:47:b0a073a4bf"
+file = "servo-engine-integration.md"
+line = 47
+text = "Define resource limits per tab/process"
+status = "planned"
+tests = []
+planned_tests = ["todo::b0a073a4bf"]
+
+[[item]]
+id = "servo-engine-integration.md:48:6e53084f71"
+file = "servo-engine-integration.md"
+line = 48
+text = "Devtools / debugging integration plan"
+status = "planned"
+tests = []
+planned_tests = ["todo::6e53084f71"]
+
+[[item]]
+id = "servo-engine-integration.md:49:2e77206dc8"
+file = "servo-engine-integration.md"
+line = 49
+text = "Devtools transport selection and security constraints"
+status = "planned"
+tests = []
+planned_tests = ["todo::2e77206dc8"]
+
+[[item]]
+id = "servo-engine-integration.md:53:7f10c35a95"
+file = "servo-engine-integration.md"
+line = 53
+text = "Media playback behavior review"
+status = "planned"
+tests = []
+planned_tests = ["todo::7f10c35a95"]
+
+[[item]]
+id = "servo-engine-integration.md:54:7bb7f50789"
+file = "servo-engine-integration.md"
+line = 54
+text = "Audio output device selection and policy"
+status = "planned"
+tests = []
+planned_tests = ["todo::7bb7f50789"]
+
+[[item]]
+id = "servo-engine-integration.md:55:5697d8b70d"
+file = "servo-engine-integration.md"
+line = 55
+text = "Clipboard integration review"
+status = "planned"
+tests = []
+planned_tests = ["todo::5697d8b70d"]
+
+[[item]]
+id = "servo-engine-integration.md:56:8d8f34e1bf"
+file = "servo-engine-integration.md"
+line = 56
+text = "Download handoff path"
+status = "planned"
+tests = []
+planned_tests = ["todo::8d8f34e1bf"]
+
+[[item]]
+id = "servo-engine-integration.md:57:837ea1b70b"
+file = "servo-engine-integration.md"
+line = 57
+text = "Cookie and storage persistence handshake with app profiles"
+status = "planned"
+tests = []
+planned_tests = ["todo::837ea1b70b"]
+
+[[item]]
+id = "servo-engine-integration.md:58:6590f2e689"
+file = "servo-engine-integration.md"
+line = 58
+text = "Multi-profile / request-context support"
+status = "planned"
+tests = []
+planned_tests = ["todo::6590f2e689"]
+
+[[item]]
+id = "servo-engine-integration.md:59:959d34c0a1"
+file = "servo-engine-integration.md"
+line = 59
+text = "Service worker and cache behavior alignment review"
+status = "planned"
+tests = []
+planned_tests = ["todo::959d34c0a1"]
+
+[[item]]
+id = "servo-engine-integration.md:60:70ea7fff46"
+file = "servo-engine-integration.md"
+line = 60
+text = "Mixed-content and security warning surfacing"
+status = "planned"
+tests = []
+planned_tests = ["todo::70ea7fff46"]
+
+[[item]]
+id = "servo-engine-integration.md:61:6a657cadd7"
+file = "servo-engine-integration.md"
+line = 61
+text = "TLS error handling and user messaging"
+status = "planned"
+tests = []
+planned_tests = ["todo::6a657cadd7"]
+
+[[item]]
+id = "servo-engine-integration.md:62:bc4038026c"
+file = "servo-engine-integration.md"
+line = 62
+text = "Platform-specific embedding prerequisites documented"
+status = "planned"
+tests = []
+planned_tests = ["todo::bc4038026c"]
+
+[[item]]
+id = "servo-live-integration.md:7:84cc32dc80"
+file = "servo-live-integration.md"
+line = 7
+text = "Pin a specific Servo source revision with a reproducible fetch script"
+status = "planned"
+tests = []
+planned_tests = ["todo::84cc32dc80"]
+
+[[item]]
+id = "servo-live-integration.md:8:0c20ab930b"
+file = "servo-live-integration.md"
+line = 8
+text = "Add Servo as a git dependency or workspace submodule"
+status = "planned"
+tests = []
+planned_tests = ["todo::0c20ab930b"]
+
+[[item]]
+id = "servo-live-integration.md:9:daab0a0164"
+file = "servo-live-integration.md"
+line = 9
+text = "Document platform-specific build prerequisites for the pinned revision"
+status = "planned"
+tests = []
+planned_tests = ["todo::daab0a0164"]
+
+[[item]]
+id = "servo-live-integration.md:10:ea26555873"
+file = "servo-live-integration.md"
+line = 10
+text = "Establish a dedicated build profile for Servo artifacts"
+status = "planned"
+tests = []
+planned_tests = ["todo::ea26555873"]
+
+[[item]]
+id = "servo-live-integration.md:11:7c297e34c0"
+file = "servo-live-integration.md"
+line = 11
+text = "Add CI target that builds Servo in the same environment"
+status = "planned"
+tests = []
+planned_tests = ["todo::7c297e34c0"]
+
+[[item]]
+id = "servo-live-integration.md:15:e6ee29953d"
+file = "servo-live-integration.md"
+line = 15
+text = "Create a Servo embedder crate/module wired to the pinned source"
+status = "planned"
+tests = []
+planned_tests = ["todo::e6ee29953d"]
+
+[[item]]
+id = "servo-live-integration.md:16:a4287e6922"
+file = "servo-live-integration.md"
+line = 16
+text = "Implement real init/shutdown and error propagation"
+status = "planned"
+tests = []
+planned_tests = ["todo::a4287e6922"]
+
+[[item]]
+id = "servo-live-integration.md:17:88c5e46857"
+file = "servo-live-integration.md"
+line = 17
+text = "Initialize Servo’s renderer and compositor"
+status = "planned"
+tests = []
+planned_tests = ["todo::88c5e46857"]
+
+[[item]]
+id = "servo-live-integration.md:18:3c4c326ff1"
+file = "servo-live-integration.md"
+line = 18
+text = "Allocate a render surface compatible with `egui` textures"
+status = "planned"
+tests = []
+planned_tests = ["todo::3c4c326ff1"]
+
+[[item]]
+id = "servo-live-integration.md:19:cce741b037"
+file = "servo-live-integration.md"
+line = 19
+text = "Upload rendered frames to the `egui` surface each frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::cce741b037"]
+
+[[item]]
+id = "servo-live-integration.md:20:c3d5132b1b"
+file = "servo-live-integration.md"
+line = 20
+text = "Implement window resize handling with framebuffer reallocation"
+status = "planned"
+tests = []
+planned_tests = ["todo::c3d5132b1b"]
+
+[[item]]
+id = "servo-live-integration.md:24:87da950241"
+file = "servo-live-integration.md"
+line = 24
+text = "Forward mouse/pointer events to Servo correctly"
+status = "planned"
+tests = []
+planned_tests = ["todo::87da950241"]
+
+[[item]]
+id = "servo-live-integration.md:25:f00f6a4ea9"
+file = "servo-live-integration.md"
+line = 25
+text = "Forward keyboard events to Servo correctly"
+status = "planned"
+tests = []
+planned_tests = ["todo::f00f6a4ea9"]
+
+[[item]]
+id = "servo-live-integration.md:26:53f64601da"
+file = "servo-live-integration.md"
+line = 26
+text = "Forward scroll/zoom events to Servo correctly"
+status = "planned"
+tests = []
+planned_tests = ["todo::53f64601da"]
+
+[[item]]
+id = "servo-live-integration.md:27:4ec7547316"
+file = "servo-live-integration.md"
+line = 27
+text = "Wire IME composition into Servo text input"
+status = "planned"
+tests = []
+planned_tests = ["todo::4ec7547316"]
+
+[[item]]
+id = "servo-live-integration.md:28:cfa63b6250"
+file = "servo-live-integration.md"
+line = 28
+text = "Add focus/blur events for window activation"
+status = "planned"
+tests = []
+planned_tests = ["todo::cfa63b6250"]
+
+[[item]]
+id = "servo-live-integration.md:29:3d5e02dd0b"
+file = "servo-live-integration.md"
+line = 29
+text = "Integrate Servo’s event loop with `eframe`’s update cadence"
+status = "planned"
+tests = []
+planned_tests = ["todo::3d5e02dd0b"]
+
+[[item]]
+id = "servo-live-integration.md:33:63ba12de41"
+file = "servo-live-integration.md"
+line = 33
+text = "Translate Servo navigation events into shell events"
+status = "planned"
+tests = []
+planned_tests = ["todo::63ba12de41"]
+
+[[item]]
+id = "servo-live-integration.md:34:c0c250b71a"
+file = "servo-live-integration.md"
+line = 34
+text = "Update title/favicon from Servo"
+status = "planned"
+tests = []
+planned_tests = ["todo::c0c250b71a"]
+
+[[item]]
+id = "servo-live-integration.md:35:8955ad0f7c"
+file = "servo-live-integration.md"
+line = 35
+text = "Wire back/forward stack to Servo history"
+status = "planned"
+tests = []
+planned_tests = ["todo::8955ad0f7c"]
+
+[[item]]
+id = "servo-live-integration.md:36:f75e8b49ba"
+file = "servo-live-integration.md"
+line = 36
+text = "Implement reload/stop commands"
+status = "planned"
+tests = []
+planned_tests = ["todo::f75e8b49ba"]
+
+[[item]]
+id = "servo-live-integration.md:37:be96871afb"
+file = "servo-live-integration.md"
+line = 37
+text = "Surface load progress updates"
+status = "planned"
+tests = []
+planned_tests = ["todo::be96871afb"]
+
+[[item]]
+id = "servo-live-integration.md:41:651d442c3f"
+file = "servo-live-integration.md"
+line = 41
+text = "Add a render debug overlay in the shell"
+status = "planned"
+tests = []
+planned_tests = ["todo::651d442c3f"]
+
+[[item]]
+id = "servo-live-integration.md:42:a0245ee6f6"
+file = "servo-live-integration.md"
+line = 42
+text = "Capture Servo logs and pipe into `tracing`"
+status = "planned"
+tests = []
+planned_tests = ["todo::a0245ee6f6"]
+
+[[item]]
+id = "servo-live-integration.md:43:492639647a"
+file = "servo-live-integration.md"
+line = 43
+text = "Add a runtime toggle for verbose Servo logging"
+status = "planned"
+tests = []
+planned_tests = ["todo::492639647a"]
+
+[[item]]
+id = "servo-live-integration.md:44:1b00f953c2"
+file = "servo-live-integration.md"
+line = 44
+text = "Implement a minimal devtools transport for local use"
+status = "planned"
+tests = []
+planned_tests = ["todo::1b00f953c2"]
+
+[[item]]
+id = "servo-live-integration.md:48:2d18db4997"
+file = "servo-live-integration.md"
+line = 48
+text = "Crash detection with retry/backoff"
+status = "planned"
+tests = []
+planned_tests = ["todo::2d18db4997"]
+
+[[item]]
+id = "servo-live-integration.md:49:152d4eb1bc"
+file = "servo-live-integration.md"
+line = 49
+text = "Persist crash dumps with session context"
+status = "planned"
+tests = []
+planned_tests = ["todo::152d4eb1bc"]
+
+[[item]]
+id = "servo-live-integration.md:50:3a8b6498c2"
+file = "servo-live-integration.md"
+line = 50
+text = "Memory and GPU resource cleanup on shutdown"
+status = "planned"
+tests = []
+planned_tests = ["todo::3a8b6498c2"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:7:969caf5fa5"
+file = "servo-real-rendering-implementation.md"
+line = 7
+text = "Add Servo workspace path dependencies behind a `servo-upstream` feature"
+status = "planned"
+tests = []
+planned_tests = ["todo::969caf5fa5"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:8:3af929230e"
+file = "servo-real-rendering-implementation.md"
+line = 8
+text = "Introduce a `servo_upstream` module that wraps Servo types and embedder traits"
+status = "planned"
+tests = []
+planned_tests = ["todo::3af929230e"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:9:5b35653d22"
+file = "servo-real-rendering-implementation.md"
+line = 9
+text = "Implement an `EventLoopWaker` that integrates with `eframe`’s repaint cadence"
+status = "planned"
+tests = []
+planned_tests = ["todo::5b35653d22"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:10:c99f5b750b"
+file = "servo-real-rendering-implementation.md"
+line = 10
+text = "Build a minimal Servo `Embedder` implementation that can receive `EmbedderMsg`"
+status = "planned"
+tests = []
+planned_tests = ["todo::c99f5b750b"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:11:5ca222170f"
+file = "servo-real-rendering-implementation.md"
+line = 11
+text = "Wire Servo logging to `tracing` with per-target filtering"
+status = "planned"
+tests = []
+planned_tests = ["todo::5ca222170f"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:15:35b4c674d5"
+file = "servo-real-rendering-implementation.md"
+line = 15
+text = "Initialize WebRender and compositor with the chosen backend"
+status = "planned"
+tests = []
+planned_tests = ["todo::35b4c674d5"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:16:cc604b2a75"
+file = "servo-real-rendering-implementation.md"
+line = 16
+text = "Create a render surface compatible with egui (CPU readback path)"
+status = "planned"
+tests = []
+planned_tests = ["todo::cc604b2a75"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:17:02838057de"
+file = "servo-real-rendering-implementation.md"
+line = 17
+text = "Map Servo’s rendered frame into `egui::ColorImage`"
+status = "planned"
+tests = []
+planned_tests = ["todo::02838057de"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:18:e87e4265c1"
+file = "servo-real-rendering-implementation.md"
+line = 18
+text = "Add a render loop that drains Servo paint messages each frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::e87e4265c1"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:19:ef6f7ac9d6"
+file = "servo-real-rendering-implementation.md"
+line = 19
+text = "Handle viewport resize and reallocate WebRender surfaces"
+status = "planned"
+tests = []
+planned_tests = ["todo::ef6f7ac9d6"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:20:019bb403bb"
+file = "servo-real-rendering-implementation.md"
+line = 20
+text = "Add explicit metrics for frame upload cost"
+status = "planned"
+tests = []
+planned_tests = ["todo::019bb403bb"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:24:5acc1e43b8"
+file = "servo-real-rendering-implementation.md"
+line = 24
+text = "Instantiate a real Servo browser instance and WebView"
+status = "planned"
+tests = []
+planned_tests = ["todo::5acc1e43b8"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:25:1e28bef25c"
+file = "servo-real-rendering-implementation.md"
+line = 25
+text = "Wire `navigate/reload/stop` to Servo’s API"
+status = "planned"
+tests = []
+planned_tests = ["todo::1e28bef25c"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:26:0c2633761c"
+file = "servo-real-rendering-implementation.md"
+line = 26
+text = "Translate Servo navigation events into `EngineEvent`"
+status = "planned"
+tests = []
+planned_tests = ["todo::0c2633761c"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:27:3f0ef63b3b"
+file = "servo-real-rendering-implementation.md"
+line = 27
+text = "Update title, URL, and favicon from Servo metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::3f0ef63b3b"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:28:cd9a2b6c0a"
+file = "servo-real-rendering-implementation.md"
+line = 28
+text = "Surface load progress / document ready from Servo"
+status = "planned"
+tests = []
+planned_tests = ["todo::cd9a2b6c0a"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:32:b37e02c823"
+file = "servo-real-rendering-implementation.md"
+line = 32
+text = "Translate pointer events into Servo embedder input"
+status = "planned"
+tests = []
+planned_tests = ["todo::b37e02c823"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:33:4da5b1e689"
+file = "servo-real-rendering-implementation.md"
+line = 33
+text = "Translate keyboard + modifiers into Servo input"
+status = "planned"
+tests = []
+planned_tests = ["todo::4da5b1e689"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:34:31718bb2ca"
+file = "servo-real-rendering-implementation.md"
+line = 34
+text = "Translate scroll/zoom events into Servo input"
+status = "planned"
+tests = []
+planned_tests = ["todo::31718bb2ca"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:35:60dd90cdaf"
+file = "servo-real-rendering-implementation.md"
+line = 35
+text = "Wire IME composition to Servo"
+status = "planned"
+tests = []
+planned_tests = ["todo::60dd90cdaf"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:36:a246b1e2df"
+file = "servo-real-rendering-implementation.md"
+line = 36
+text = "Bridge clipboard read/write requests"
+status = "planned"
+tests = []
+planned_tests = ["todo::a246b1e2df"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:40:73cf6e5bca"
+file = "servo-real-rendering-implementation.md"
+line = 40
+text = "Load `about:blank` without crashing and draw a frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::73cf6e5bca"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:41:a47b002a2c"
+file = "servo-real-rendering-implementation.md"
+line = 41
+text = "Load a basic HTTP URL and show real content"
+status = "planned"
+tests = []
+planned_tests = ["todo::a47b002a2c"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:42:d12e237ae2"
+file = "servo-real-rendering-implementation.md"
+line = 42
+text = "Add a smoke test that boots Servo and renders one real frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::d12e237ae2"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:46:0553bf5355"
+file = "servo-real-rendering-implementation.md"
+line = 46
+text = "Add `engine.startup_url` to the config schema for initial navigation"
+status = "planned"
+tests = []
+planned_tests = ["todo::0553bf5355"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:47:c79b648d77"
+file = "servo-real-rendering-implementation.md"
+line = 47
+text = "Validate `engine.startup_url` for supported schemes"
+status = "planned"
+tests = []
+planned_tests = ["todo::c79b648d77"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:48:aeb1dccb83"
+file = "servo-real-rendering-implementation.md"
+line = 48
+text = "Document `engine.startup_url` in the default TOML"
+status = "planned"
+tests = []
+planned_tests = ["todo::aeb1dccb83"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:49:9f758e6acc"
+file = "servo-real-rendering-implementation.md"
+line = 49
+text = "Add a navigation helper module for URL normalization"
+status = "planned"
+tests = []
+planned_tests = ["todo::9f758e6acc"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:50:61c19223eb"
+file = "servo-real-rendering-implementation.md"
+line = 50
+text = "Normalize address bar navigation before dispatching to the engine"
+status = "planned"
+tests = []
+planned_tests = ["todo::61c19223eb"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:51:0182d67f8c"
+file = "servo-real-rendering-implementation.md"
+line = 51
+text = "Emit a navigation failure event for rejected inputs"
+status = "planned"
+tests = []
+planned_tests = ["todo::0182d67f8c"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:52:a8c97bc3d4"
+file = "servo-real-rendering-implementation.md"
+line = 52
+text = "Schedule startup navigation after the render surface is attached"
+status = "planned"
+tests = []
+planned_tests = ["todo::a8c97bc3d4"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:53:af35dda440"
+file = "servo-real-rendering-implementation.md"
+line = 53
+text = "Normalize new-window navigation targets before routing"
+status = "planned"
+tests = []
+planned_tests = ["todo::af35dda440"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:54:9474dfc487"
+file = "servo-real-rendering-implementation.md"
+line = 54
+text = "Queue pending navigation in the Servo embedder when upstream is not ready"
+status = "planned"
+tests = []
+planned_tests = ["todo::9474dfc487"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:55:dcdde01751"
+file = "servo-real-rendering-implementation.md"
+line = 55
+text = "Flush pending navigation after upstream initialization"
+status = "planned"
+tests = []
+planned_tests = ["todo::dcdde01751"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:56:04ae2ef22c"
+file = "servo-real-rendering-implementation.md"
+line = 56
+text = "Track upstream active/error state in the Servo embedder"
+status = "planned"
+tests = []
+planned_tests = ["todo::04ae2ef22c"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:57:ce01b5fe0d"
+file = "servo-real-rendering-implementation.md"
+line = 57
+text = "Log upstream init success with surface dimensions"
+status = "planned"
+tests = []
+planned_tests = ["todo::ce01b5fe0d"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:58:a84212d12f"
+file = "servo-real-rendering-implementation.md"
+line = 58
+text = "Log the first upstream frame capture with format metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::a84212d12f"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:59:66efd4afbf"
+file = "servo-real-rendering-implementation.md"
+line = 59
+text = "Surface upstream activity in `backend_name`"
+status = "planned"
+tests = []
+planned_tests = ["todo::66efd4afbf"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:60:cb84daa4d0"
+file = "servo-real-rendering-implementation.md"
+line = 60
+text = "Refresh the shell backend name each sync cycle"
+status = "planned"
+tests = []
+planned_tests = ["todo::cb84daa4d0"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:61:05aa98adc5"
+file = "servo-real-rendering-implementation.md"
+line = 61
+text = "Promote upstream errors into `EngineStatus::Error`"
+status = "planned"
+tests = []
+planned_tests = ["todo::05aa98adc5"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:62:efb5541e90"
+file = "servo-real-rendering-implementation.md"
+line = 62
+text = "Sync active tab title and URL from upstream snapshots"
+status = "planned"
+tests = []
+planned_tests = ["todo::efb5541e90"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:63:f8a0120791"
+file = "servo-real-rendering-implementation.md"
+line = 63
+text = "Display render format metadata in the UI panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::f8a0120791"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:64:f8dbc2808b"
+file = "servo-real-rendering-implementation.md"
+line = 64
+text = "Add URL normalization unit tests"
+status = "planned"
+tests = []
+planned_tests = ["todo::f8dbc2808b"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:65:7cd83fc609"
+file = "servo-real-rendering-implementation.md"
+line = 65
+text = "Add config validation coverage for startup URLs"
+status = "planned"
+tests = []
+planned_tests = ["todo::7cd83fc609"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:69:58d63f6124"
+file = "servo-real-rendering-implementation.md"
+line = 69
+text = "Add `engine.servo_resources_dir` to the config schema"
+status = "planned"
+tests = []
+planned_tests = ["todo::58d63f6124"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:70:e5eff1e1b9"
+file = "servo-real-rendering-implementation.md"
+line = 70
+text = "Resolve the resources directory from config, env var, or vendor path"
+status = "planned"
+tests = []
+planned_tests = ["todo::e5eff1e1b9"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:71:4450202866"
+file = "servo-real-rendering-implementation.md"
+line = 71
+text = "Implement a Servo resource reader for required files"
+status = "planned"
+tests = []
+planned_tests = ["todo::4450202866"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:72:a49e13612b"
+file = "servo-real-rendering-implementation.md"
+line = 72
+text = "Initialize the resource reader before Servo builder creation"
+status = "planned"
+tests = []
+planned_tests = ["todo::a49e13612b"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:73:77765d209c"
+file = "servo-real-rendering-implementation.md"
+line = 73
+text = "Emit a clear error when the resources directory cannot be resolved"
+status = "planned"
+tests = []
+planned_tests = ["todo::77765d209c"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:74:5f1f113d4e"
+file = "servo-real-rendering-implementation.md"
+line = 74
+text = "Track resource reader readiness in the Servo embedder"
+status = "planned"
+tests = []
+planned_tests = ["todo::5f1f113d4e"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:75:6fbb80e20b"
+file = "servo-real-rendering-implementation.md"
+line = 75
+text = "Surface resource reader status in render health updates"
+status = "planned"
+tests = []
+planned_tests = ["todo::6fbb80e20b"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:76:1023eaf887"
+file = "servo-real-rendering-implementation.md"
+line = 76
+text = "Add a render frame probe for non-white ratio and alpha stats"
+status = "planned"
+tests = []
+planned_tests = ["todo::1023eaf887"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:77:4833ff44d0"
+file = "servo-real-rendering-implementation.md"
+line = 77
+text = "Log a warning after 30 mostly-white frames post navigation"
+status = "planned"
+tests = []
+planned_tests = ["todo::4833ff44d0"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:78:dac6ede0a3"
+file = "servo-real-rendering-implementation.md"
+line = 78
+text = "Display probe stats in the backend UI panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::dac6ede0a3"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:79:a59a849520"
+file = "servo-real-rendering-implementation.md"
+line = 79
+text = "Display render health (reader/upstream/load status/error) in the UI"
+status = "planned"
+tests = []
+planned_tests = ["todo::a59a849520"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:80:25a46201d0"
+file = "servo-real-rendering-implementation.md"
+line = 80
+text = "Track load status transitions from Servo snapshots"
+status = "planned"
+tests = []
+planned_tests = ["todo::25a46201d0"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:81:811688cf93"
+file = "servo-real-rendering-implementation.md"
+line = 81
+text = "Emit warnings when load status is stuck at Started for 10s"
+status = "planned"
+tests = []
+planned_tests = ["todo::811688cf93"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:82:2acf3909aa"
+file = "servo-real-rendering-implementation.md"
+line = 82
+text = "Reset blank-frame counters on new navigation"
+status = "planned"
+tests = []
+planned_tests = ["todo::2acf3909aa"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:83:3ceef2cb8a"
+file = "servo-real-rendering-implementation.md"
+line = 83
+text = "Add unit tests for resource resolution order"
+status = "planned"
+tests = []
+planned_tests = ["todo::3ceef2cb8a"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:84:0399a5fd01"
+file = "servo-real-rendering-implementation.md"
+line = 84
+text = "Add unit test for resource reader file loading"
+status = "planned"
+tests = []
+planned_tests = ["todo::0399a5fd01"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:85:30556d3518"
+file = "servo-real-rendering-implementation.md"
+line = 85
+text = "Add config wiring for debug frame probe in dev mode"
+status = "planned"
+tests = []
+planned_tests = ["todo::30556d3518"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:86:ae74a70aa0"
+file = "servo-real-rendering-implementation.md"
+line = 86
+text = "Keep debug pixel probe intact for format detection"
+status = "planned"
+tests = []
+planned_tests = ["todo::ae74a70aa0"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:87:2150a4fc67"
+file = "servo-real-rendering-implementation.md"
+line = 87
+text = "Gate probe metrics behind config toggle"
+status = "planned"
+tests = []
+planned_tests = ["todo::2150a4fc67"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:88:04a6fd1232"
+file = "servo-real-rendering-implementation.md"
+line = 88
+text = "Preserve per-launch log behavior for diagnostics"
+status = "planned"
+tests = []
+planned_tests = ["todo::04a6fd1232"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:92:ea4b4abedb"
+file = "servo-real-rendering-implementation.md"
+line = 92
+text = "Read back pixels before presenting the software render surface"
+status = "planned"
+tests = []
+planned_tests = ["todo::ea4b4abedb"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:93:8f7cad642d"
+file = "servo-real-rendering-implementation.md"
+line = 93
+text = "Propagate viewport resize to Servo WebView instances"
+status = "planned"
+tests = []
+planned_tests = ["todo::8f7cad642d"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:94:477c4a5ff3"
+file = "servo-real-rendering-implementation.md"
+line = 94
+text = "Log render capture success/failure with probe alpha and sample RGB values"
+status = "planned"
+tests = []
+planned_tests = ["todo::477c4a5ff3"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:95:80ff8d7faa"
+file = "servo-real-rendering-implementation.md"
+line = 95
+text = "Add a data-URL smoke test that asserts non-white pixels render"
+status = "planned"
+tests = []
+planned_tests = ["todo::80ff8d7faa"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:99:a231ae7c7e"
+file = "servo-real-rendering-implementation.md"
+line = 99
+text = "Add config for `engine.ignore_certificate_errors` and optional `engine.certificate_path`"
+status = "planned"
+tests = []
+planned_tests = ["todo::a231ae7c7e"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:100:0c80d45d1e"
+file = "servo-real-rendering-implementation.md"
+line = 100
+text = "Wire TLS options into Servo `Opts` during upstream initialization"
+status = "planned"
+tests = []
+planned_tests = ["todo::0c80d45d1e"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:101:0c1ee0f850"
+file = "servo-real-rendering-implementation.md"
+line = 101
+text = "Default ignore-certificate-errors to dev mode when not explicitly set"
+status = "planned"
+tests = []
+planned_tests = ["todo::0c1ee0f850"]
+
+[[item]]
+id = "servo-real-rendering-implementation.md:105:3fe2d9cad7"
+file = "servo-real-rendering-implementation.md"
+line = 105
+text = "Auto-detect a system CA bundle path when none is configured"
+status = "planned"
+tests = []
+planned_tests = ["todo::3fe2d9cad7"]
+
+[[item]]
+id = "servo-real-rendering.md:7:16eee50f68"
+file = "servo-real-rendering.md"
+line = 7
+text = "Identify the correct Servo embedding crate/module entrypoints for the pinned revision"
+status = "planned"
+tests = []
+planned_tests = ["todo::16eee50f68"]
+
+[[item]]
+id = "servo-real-rendering.md:8:6d427fd9c5"
+file = "servo-real-rendering.md"
+line = 8
+text = "Add Servo embedding crates to `Cargo.toml` (or path deps from `vendor/servo`)"
+status = "planned"
+tests = []
+planned_tests = ["todo::6d427fd9c5"]
+
+[[item]]
+id = "servo-real-rendering.md:9:a8cb898518"
+file = "servo-real-rendering.md"
+line = 9
+text = "Create a dedicated `servo_runtime` module that isolates Servo-specific types"
+status = "planned"
+tests = []
+planned_tests = ["todo::a8cb898518"]
+
+[[item]]
+id = "servo-real-rendering.md:10:ca05cb29df"
+file = "servo-real-rendering.md"
+line = 10
+text = "Build a minimal Servo `Embedder` implementation compatible with the pinned revision"
+status = "planned"
+tests = []
+planned_tests = ["todo::ca05cb29df"]
+
+[[item]]
+id = "servo-real-rendering.md:11:b87c038dfe"
+file = "servo-real-rendering.md"
+line = 11
+text = "Wire Servo logging to `tracing` (bridge Servo log targets)"
+status = "planned"
+tests = []
+planned_tests = ["todo::b87c038dfe"]
+
+[[item]]
+id = "servo-real-rendering.md:12:cdc8e16824"
+file = "servo-real-rendering.md"
+line = 12
+text = "Add a runtime config surface for Servo feature flags (layout, webrender options)"
+status = "planned"
+tests = []
+planned_tests = ["todo::cdc8e16824"]
+
+[[item]]
+id = "servo-real-rendering.md:16:ffb83b6773"
+file = "servo-real-rendering.md"
+line = 16
+text = "Create a real window/surface adapter that Servo can render into"
+status = "planned"
+tests = []
+planned_tests = ["todo::ffb83b6773"]
+
+[[item]]
+id = "servo-real-rendering.md:17:1c2f736c5d"
+file = "servo-real-rendering.md"
+line = 17
+text = "Initialize WebRender with the correct backend for the host platform"
+status = "planned"
+tests = []
+planned_tests = ["todo::1c2f736c5d"]
+
+[[item]]
+id = "servo-real-rendering.md:18:7d13178916"
+file = "servo-real-rendering.md"
+line = 18
+text = "Bridge the egui/eframe texture to the Servo surface (GPU or CPU path)"
+status = "planned"
+tests = []
+planned_tests = ["todo::7d13178916"]
+
+[[item]]
+id = "servo-real-rendering.md:19:7b9cb909a4"
+file = "servo-real-rendering.md"
+line = 19
+text = "Implement texture sharing or CPU readback with explicit performance notes"
+status = "planned"
+tests = []
+planned_tests = ["todo::7b9cb909a4"]
+
+[[item]]
+id = "servo-real-rendering.md:20:667d65a0f3"
+file = "servo-real-rendering.md"
+line = 20
+text = "Implement swapchain or frame scheduling for Servo’s compositor"
+status = "planned"
+tests = []
+planned_tests = ["todo::667d65a0f3"]
+
+[[item]]
+id = "servo-real-rendering.md:21:c7f465c4df"
+file = "servo-real-rendering.md"
+line = 21
+text = "Make resize events reallocate compositor surfaces cleanly"
+status = "planned"
+tests = []
+planned_tests = ["todo::c7f465c4df"]
+
+[[item]]
+id = "servo-real-rendering.md:22:3eec3f0278"
+file = "servo-real-rendering.md"
+line = 22
+text = "Add a frame pacing strategy tied to egui’s update cadence"
+status = "planned"
+tests = []
+planned_tests = ["todo::3eec3f0278"]
+
+[[item]]
+id = "servo-real-rendering.md:26:7eb8d64d35"
+file = "servo-real-rendering.md"
+line = 26
+text = "Instantiate a real `Servo` browser instance and tab/session model"
+status = "planned"
+tests = []
+planned_tests = ["todo::7eb8d64d35"]
+
+[[item]]
+id = "servo-real-rendering.md:27:60a9419851"
+file = "servo-real-rendering.md"
+line = 27
+text = "Wire navigation requests into Servo’s browser API"
+status = "planned"
+tests = []
+planned_tests = ["todo::60a9419851"]
+
+[[item]]
+id = "servo-real-rendering.md:28:3da2524c1a"
+file = "servo-real-rendering.md"
+line = 28
+text = "Surface navigation committed, loading, and idle events into `EngineEvent`"
+status = "planned"
+tests = []
+planned_tests = ["todo::3da2524c1a"]
+
+[[item]]
+id = "servo-real-rendering.md:29:8c41d17826"
+file = "servo-real-rendering.md"
+line = 29
+text = "Update title, URL, and favicon from Servo page metadata"
+status = "planned"
+tests = []
+planned_tests = ["todo::8c41d17826"]
+
+[[item]]
+id = "servo-real-rendering.md:30:1cb208099b"
+file = "servo-real-rendering.md"
+line = 30
+text = "Translate Servo history into `NavigationState` back/forward"
+status = "planned"
+tests = []
+planned_tests = ["todo::1cb208099b"]
+
+[[item]]
+id = "servo-real-rendering.md:31:ec841e91e6"
+file = "servo-real-rendering.md"
+line = 31
+text = "Add page reload/stop hooks backed by Servo"
+status = "planned"
+tests = []
+planned_tests = ["todo::ec841e91e6"]
+
+[[item]]
+id = "servo-real-rendering.md:35:8fbf6df5c3"
+file = "servo-real-rendering.md"
+line = 35
+text = "Map egui pointer events into Servo’s input pipeline"
+status = "planned"
+tests = []
+planned_tests = ["todo::8fbf6df5c3"]
+
+[[item]]
+id = "servo-real-rendering.md:36:f441a5513e"
+file = "servo-real-rendering.md"
+line = 36
+text = "Map keyboard events and modifiers accurately"
+status = "planned"
+tests = []
+planned_tests = ["todo::f441a5513e"]
+
+[[item]]
+id = "servo-real-rendering.md:37:3070bc1f60"
+file = "servo-real-rendering.md"
+line = 37
+text = "Map scroll and zoom events with correct delta units"
+status = "planned"
+tests = []
+planned_tests = ["todo::3070bc1f60"]
+
+[[item]]
+id = "servo-real-rendering.md:38:803c41cd87"
+file = "servo-real-rendering.md"
+line = 38
+text = "Wire IME composition events end-to-end"
+status = "planned"
+tests = []
+planned_tests = ["todo::803c41cd87"]
+
+[[item]]
+id = "servo-real-rendering.md:39:5e781c729a"
+file = "servo-real-rendering.md"
+line = 39
+text = "Handle focus/blur and window activation transitions"
+status = "planned"
+tests = []
+planned_tests = ["todo::5e781c729a"]
+
+[[item]]
+id = "servo-real-rendering.md:40:6552953efb"
+file = "servo-real-rendering.md"
+line = 40
+text = "Add clipboard read/write support via Servo embedder hooks"
+status = "planned"
+tests = []
+planned_tests = ["todo::6552953efb"]
+
+[[item]]
+id = "servo-real-rendering.md:44:5ba5aa4421"
+file = "servo-real-rendering.md"
+line = 44
+text = "Enable Servo devtools for the pinned revision"
+status = "planned"
+tests = []
+planned_tests = ["todo::5ba5aa4421"]
+
+[[item]]
+id = "servo-real-rendering.md:45:7092e20b18"
+file = "servo-real-rendering.md"
+line = 45
+text = "Expose devtools endpoint in shell (already surfaced) and validate connectivity"
+status = "planned"
+tests = []
+planned_tests = ["todo::7092e20b18"]
+
+[[item]]
+id = "servo-real-rendering.md:46:3bbffec3ee"
+file = "servo-real-rendering.md"
+line = 46
+text = "Add a “render mode” indicator: CPU readback vs GPU texture"
+status = "planned"
+tests = []
+planned_tests = ["todo::3bbffec3ee"]
+
+[[item]]
+id = "servo-real-rendering.md:47:74aac00630"
+file = "servo-real-rendering.md"
+line = 47
+text = "Record per-frame timings and surface in the log panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::74aac00630"]
+
+[[item]]
+id = "servo-real-rendering.md:48:564bc688a5"
+file = "servo-real-rendering.md"
+line = 48
+text = "Capture Servo crashes and emit structured crash dumps"
+status = "planned"
+tests = []
+planned_tests = ["todo::564bc688a5"]
+
+[[item]]
+id = "servo-real-rendering.md:52:0a58352354"
+file = "servo-real-rendering.md"
+line = 52
+text = "Document the exact Servo build steps for Linux/macOS/Windows"
+status = "planned"
+tests = []
+planned_tests = ["todo::0a58352354"]
+
+[[item]]
+id = "servo-real-rendering.md:53:f081182ee5"
+file = "servo-real-rendering.md"
+line = 53
+text = "Add a build helper (justfile/xtask) to build Servo then Brazen"
+status = "planned"
+tests = []
+planned_tests = ["todo::f081182ee5"]
+
+[[item]]
+id = "servo-real-rendering.md:54:490870a983"
+file = "servo-real-rendering.md"
+line = 54
+text = "Add a CI job that builds Servo artifacts and then Brazen with `--features servo`"
+status = "planned"
+tests = []
+planned_tests = ["todo::490870a983"]
+
+[[item]]
+id = "servo-real-rendering.md:55:e6f6ac33f0"
+file = "servo-real-rendering.md"
+line = 55
+text = "Add a smoke-test that boots a Servo tab and renders a single frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::e6f6ac33f0"]
+
+[[item]]
+id = "servo-rendering-debug.md:7:137f641ebf"
+file = "servo-rendering-debug.md"
+line = 7
+text = "Confirm Servo readback pixel format (RGBA/BGRA/ARGB) and document it"
+status = "planned"
+tests = []
+planned_tests = ["todo::137f641ebf"]
+
+[[item]]
+id = "servo-rendering-debug.md:8:e4eff30ec6"
+file = "servo-rendering-debug.md"
+line = 8
+text = "Add a runtime pixel-format probe using a known solid-color test frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::e4eff30ec6"]
+
+[[item]]
+id = "servo-rendering-debug.md:9:031f8a3dfa"
+file = "servo-rendering-debug.md"
+line = 9
+text = "Validate sRGB vs linear conversion expectations for the readback buffer"
+status = "planned"
+tests = []
+planned_tests = ["todo::031f8a3dfa"]
+
+[[item]]
+id = "servo-rendering-debug.md:10:3a9e5fd223"
+file = "servo-rendering-debug.md"
+line = 10
+text = "Verify alpha premultiplication and adjust if egui expects straight alpha"
+status = "planned"
+tests = []
+planned_tests = ["todo::3a9e5fd223"]
+
+[[item]]
+id = "servo-rendering-debug.md:11:9c3e330b0b"
+file = "servo-rendering-debug.md"
+line = 11
+text = "Add an explicit pixel format enum to the upstream bridge for clarity"
+status = "planned"
+tests = []
+planned_tests = ["todo::9c3e330b0b"]
+
+[[item]]
+id = "servo-rendering-debug.md:15:7390c1ce6d"
+file = "servo-rendering-debug.md"
+line = 15
+text = "Validate render surface dimensions against the egui viewport every frame"
+status = "planned"
+tests = []
+planned_tests = ["todo::7390c1ce6d"]
+
+[[item]]
+id = "servo-rendering-debug.md:16:0f92ccf8b5"
+file = "servo-rendering-debug.md"
+line = 16
+text = "Confirm stride/row alignment from Servo readback and handle padding"
+status = "planned"
+tests = []
+planned_tests = ["todo::0f92ccf8b5"]
+
+[[item]]
+id = "servo-rendering-debug.md:17:2b50647fc4"
+file = "servo-rendering-debug.md"
+line = 17
+text = "Ensure the readback rect uses correct origin and size (no off-by-one)"
+status = "planned"
+tests = []
+planned_tests = ["todo::2b50647fc4"]
+
+[[item]]
+id = "servo-rendering-debug.md:18:1f4c526edf"
+file = "servo-rendering-debug.md"
+line = 18
+text = "Guard against zero-sized surfaces and skip readback cleanly"
+status = "planned"
+tests = []
+planned_tests = ["todo::1f4c526edf"]
+
+[[item]]
+id = "servo-rendering-debug.md:19:442de3e82d"
+file = "servo-rendering-debug.md"
+line = 19
+text = "Add a frame checksum to detect repeated or stale buffers"
+status = "planned"
+tests = []
+planned_tests = ["todo::442de3e82d"]
+
+[[item]]
+id = "servo-rendering-debug.md:23:60e79b2c16"
+file = "servo-rendering-debug.md"
+line = 23
+text = "Verify WebRender pipeline ID and document lifecycle timing"
+status = "planned"
+tests = []
+planned_tests = ["todo::60e79b2c16"]
+
+[[item]]
+id = "servo-rendering-debug.md:24:f6a535a86c"
+file = "servo-rendering-debug.md"
+line = 24
+text = "Confirm we are draining paint messages before readback"
+status = "planned"
+tests = []
+planned_tests = ["todo::f6a535a86c"]
+
+[[item]]
+id = "servo-rendering-debug.md:25:657673d478"
+file = "servo-rendering-debug.md"
+line = 25
+text = "Add a trace span around readback → upload with byte counts"
+status = "planned"
+tests = []
+planned_tests = ["todo::657673d478"]
+
+[[item]]
+id = "servo-rendering-debug.md:26:583102856a"
+file = "servo-rendering-debug.md"
+line = 26
+text = "Add a debug toggle to bypass color conversion for A/B comparison"
+status = "planned"
+tests = []
+planned_tests = ["todo::583102856a"]
+
+[[item]]
+id = "servo-rendering-debug.md:27:66167bb32c"
+file = "servo-rendering-debug.md"
+line = 27
+text = "Add a single-frame capture to disk (png) for offline inspection"
+status = "planned"
+tests = []
+planned_tests = ["todo::66167bb32c"]
+
+[[item]]
+id = "servo-rendering-debug.md:31:af6b0090cb"
+file = "servo-rendering-debug.md"
+line = 31
+text = "Log viewport scale, device pixel ratio, and physical size each resize"
+status = "planned"
+tests = []
+planned_tests = ["todo::af6b0090cb"]
+
+[[item]]
+id = "servo-rendering-debug.md:32:4ebc679636"
+file = "servo-rendering-debug.md"
+line = 32
+text = "Verify scale factor usage matches Servo’s device pixel ratio expectations"
+status = "planned"
+tests = []
+planned_tests = ["todo::4ebc679636"]
+
+[[item]]
+id = "servo-rendering-debug.md:33:c0d13280d2"
+file = "servo-rendering-debug.md"
+line = 33
+text = "Validate pointer coordinates with a hit-test overlay"
+status = "planned"
+tests = []
+planned_tests = ["todo::c0d13280d2"]
+
+[[item]]
+id = "servo-rendering-debug.md:34:a33c94b1c7"
+file = "servo-rendering-debug.md"
+line = 34
+text = "Confirm scroll delta units match Servo’s expected units"
+status = "planned"
+tests = []
+planned_tests = ["todo::a33c94b1c7"]
+
+[[item]]
+id = "servo-rendering-debug.md:38:1c1d754c5c"
+file = "servo-rendering-debug.md"
+line = 38
+text = "Add a regression test that renders a known gradient and checks sample pixels"
+status = "planned"
+tests = []
+planned_tests = ["todo::1c1d754c5c"]
+
+[[item]]
+id = "servo-rendering-debug.md:39:cedea54d8f"
+file = "servo-rendering-debug.md"
+line = 39
+text = "Add a basic screenshot comparison test for about:blank"
+status = "planned"
+tests = []
+planned_tests = ["todo::cedea54d8f"]
+
+[[item]]
+id = "servo-rendering-debug.md:40:26f04d2d1e"
+file = "servo-rendering-debug.md"
+line = 40
+text = "Add a manual validation checklist to the README for visual sanity checks"
+status = "planned"
+tests = []
+planned_tests = ["todo::26f04d2d1e"]
+
+[[item]]
+id = "shell-and-workspace.md:7:37b2e82d1d"
+file = "shell-and-workspace.md"
+line = 7
+text = "Desktop shell boots through `eframe` / `egui`"
+status = "planned"
+tests = []
+planned_tests = ["todo::37b2e82d1d"]
+
+[[item]]
+id = "shell-and-workspace.md:8:b97cd762c1"
+file = "shell-and-workspace.md"
+line = 8
+text = "Single-tab workspace model exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::b97cd762c1"]
+
+[[item]]
+id = "shell-and-workspace.md:9:636ac72c3d"
+file = "shell-and-workspace.md"
+line = 9
+text = "Address bar and basic command controls exist"
+status = "planned"
+tests = []
+planned_tests = ["todo::636ac72c3d"]
+
+[[item]]
+id = "shell-and-workspace.md:10:3af1cd2c56"
+file = "shell-and-workspace.md"
+line = 10
+text = "Backend status panel exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::3af1cd2c56"]
+
+[[item]]
+id = "shell-and-workspace.md:11:050797f5af"
+file = "shell-and-workspace.md"
+line = 11
+text = "Placeholder content viewport exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::050797f5af"]
+
+[[item]]
+id = "shell-and-workspace.md:12:08cf1e2c10"
+file = "shell-and-workspace.md"
+line = 12
+text = "Log panel exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::08cf1e2c10"]
+
+[[item]]
+id = "shell-and-workspace.md:13:cba27bb2b2"
+file = "shell-and-workspace.md"
+line = 13
+text = "Permission panel exists"
+status = "planned"
+tests = []
+planned_tests = ["todo::cba27bb2b2"]
+
+[[item]]
+id = "shell-and-workspace.md:17:07547aa834"
+file = "shell-and-workspace.md"
+line = 17
+text = "Multi-tab workspace management"
+status = "planned"
+tests = []
+planned_tests = ["todo::07547aa834"]
+
+[[item]]
+id = "shell-and-workspace.md:18:bed241c2be"
+file = "shell-and-workspace.md"
+line = 18
+text = "Tab strip for active tabs"
+status = "planned"
+tests = []
+planned_tests = ["todo::bed241c2be"]
+
+[[item]]
+id = "shell-and-workspace.md:19:d7f3b2fa14"
+file = "shell-and-workspace.md"
+line = 19
+text = "Window management"
+status = "planned"
+tests = []
+planned_tests = ["todo::d7f3b2fa14"]
+
+[[item]]
+id = "shell-and-workspace.md:20:0ca54e7a30"
+file = "shell-and-workspace.md"
+line = 20
+text = "Bookmark surface"
+status = "planned"
+tests = []
+planned_tests = ["todo::0ca54e7a30"]
+
+[[item]]
+id = "shell-and-workspace.md:21:3fd2125f91"
+file = "shell-and-workspace.md"
+line = 21
+text = "History surface"
+status = "planned"
+tests = []
+planned_tests = ["todo::3fd2125f91"]
+
+[[item]]
+id = "shell-and-workspace.md:22:b0335ff354"
+file = "shell-and-workspace.md"
+line = 22
+text = "Download surface"
+status = "planned"
+tests = []
+planned_tests = ["todo::b0335ff354"]
+
+[[item]]
+id = "shell-and-workspace.md:23:5921670cb5"
+file = "shell-and-workspace.md"
+line = 23
+text = "Keyboard shortcuts"
+status = "planned"
+tests = []
+planned_tests = ["todo::5921670cb5"]
+
+[[item]]
+id = "shell-and-workspace.md:24:100784965f"
+file = "shell-and-workspace.md"
+line = 24
+text = "Command palette"
+status = "planned"
+tests = []
+planned_tests = ["todo::100784965f"]
+
+[[item]]
+id = "shell-and-workspace.md:25:a00d5f8ee9"
+file = "shell-and-workspace.md"
+line = 25
+text = "Layout presets for operator workflows"
+status = "planned"
+tests = []
+planned_tests = ["todo::a00d5f8ee9"]
+
+[[item]]
+id = "shell-and-workspace.md:29:72f759c2ce"
+file = "shell-and-workspace.md"
+line = 29
+text = "DOM inspector panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::72f759c2ce"]
+
+[[item]]
+id = "shell-and-workspace.md:30:0823eaad8e"
+file = "shell-and-workspace.md"
+line = 30
+text = "Network inspector panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::0823eaad8e"]
+
+[[item]]
+id = "shell-and-workspace.md:31:8ce204bc8b"
+file = "shell-and-workspace.md"
+line = 31
+text = "Cache explorer panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::8ce204bc8b"]
+
+[[item]]
+id = "shell-and-workspace.md:32:500d0b73f3"
+file = "shell-and-workspace.md"
+line = 32
+text = "Capability grant inspector"
+status = "planned"
+tests = []
+planned_tests = ["todo::500d0b73f3"]
+
+[[item]]
+id = "shell-and-workspace.md:33:ecd342829b"
+file = "shell-and-workspace.md"
+line = 33
+text = "Automation activity console"
+status = "planned"
+tests = []
+planned_tests = ["todo::ecd342829b"]
+
+[[item]]
+id = "shell-and-workspace.md:34:52cbca6430"
+file = "shell-and-workspace.md"
+line = 34
+text = "Knowledge graph / ontology inspector"
+status = "planned"
+tests = []
+planned_tests = ["todo::52cbca6430"]
+
+[[item]]
+id = "shell-and-workspace.md:35:2d35e3e425"
+file = "shell-and-workspace.md"
+line = 35
+text = "Reading queue and article inspector"
+status = "planned"
+tests = []
+planned_tests = ["todo::2d35e3e425"]
+
+[[item]]
+id = "shell-and-workspace.md:36:b635f8e1d6"
+file = "shell-and-workspace.md"
+line = 36
+text = "TTS playback controls"
+status = "planned"
+tests = []
+planned_tests = ["todo::b635f8e1d6"]
+
+[[item]]
+id = "shell-and-workspace.md:40:53b0731ae0"
+file = "shell-and-workspace.md"
+line = 40
+text = "Split-pane and dockable panels"
+status = "planned"
+tests = []
+planned_tests = ["todo::53b0731ae0"]
+
+[[item]]
+id = "shell-and-workspace.md:41:ad69f3bb38"
+file = "shell-and-workspace.md"
+line = 41
+text = "Persisted workspace layout"
+status = "planned"
+tests = []
+planned_tests = ["todo::ad69f3bb38"]
+
+[[item]]
+id = "shell-and-workspace.md:42:40909bfb72"
+file = "shell-and-workspace.md"
+line = 42
+text = "Context menus for browser-internal actions"
+status = "planned"
+tests = []
+planned_tests = ["todo::40909bfb72"]
+
+[[item]]
+id = "shell-and-workspace.md:43:190ef5f931"
+file = "shell-and-workspace.md"
+line = 43
+text = "Theme and density options"
+status = "planned"
+tests = []
+planned_tests = ["todo::190ef5f931"]
+
+[[item]]
+id = "shell-and-workspace.md:44:1b4d6d410c"
+file = "shell-and-workspace.md"
+line = 44
+text = "Accessibility and keyboard reachability review"
+status = "planned"
+tests = []
+planned_tests = ["todo::1b4d6d410c"]
+
+[[item]]
+id = "shell-and-workspace.md:45:d9ff6e7ff3"
+file = "shell-and-workspace.md"
+line = 45
+text = "Workspace settings panel"
+status = "planned"
+tests = []
+planned_tests = ["todo::d9ff6e7ff3"]
+
+[[item]]
+id = "shell-and-workspace.md:46:4977e2918e"
+file = "shell-and-workspace.md"
+line = 46
+text = "Toolbar panel toggles"
+status = "planned"
+tests = []
+planned_tests = ["todo::4977e2918e"]
+
+[[item]]
+id = "shell-and-workspace.md:47:8a54b9a17e"
+file = "shell-and-workspace.md"
+line = 47
+text = "Sidebar visibility toggle"
+status = "planned"
+tests = []
+planned_tests = ["todo::8a54b9a17e"]

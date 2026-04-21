@@ -4,18 +4,18 @@ Tracks tracing, diagnostics, testing, and verification quality across the platfo
 
 ## Current State
 
-- [x] Tracing bootstrap exists
-- [x] Console and rolling-file filters are configurable
-- [x] Startup and command activity are logged
-- [x] Config parsing tests exist
-- [x] Path resolution tests exist
-- [x] Command dispatch tests exist
-- [x] Engine-state synchronization tests exist
-- [x] Bootstrap integration tests exist
+- [ ] Tracing bootstrap exists
+- [ ] Console and rolling-file filters are configurable
+- [ ] Startup and command activity are logged
+- [ ] Config parsing tests exist
+- [ ] Path resolution tests exist
+- [ ] Command dispatch tests exist
+- [ ] Engine-state synchronization tests exist
+- [ ] Bootstrap integration tests exist
 
 ## Observability
 
-- [x] Per-launch timestamped log files
+- [ ] Per-launch timestamped log files
 - [ ] Engine lifecycle spans around real Servo integration
 - [ ] Capability decision tracing
 - [ ] Connector activity tracing

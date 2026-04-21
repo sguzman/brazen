@@ -6,7 +6,7 @@ browser-resident AI agents.
 
 ## Current State
 
-- [x] Internal resource resolution logic exists for Servo-specific assets
+- [ ] Internal resource resolution logic exists for Servo-specific assets
 - [ ] No virtual mount point (e.g., `brazen://`) is implemented
 - [ ] No bridging between Local Connectors and Engine Protocol Handlers
 

@@ -4,50 +4,50 @@ Focuses on making the browser feel usable: accurate pointer/keyboard input, righ
 
 ## Pointer + Click
 
-- [x] Normalize pointer coordinates across scale factors and viewports.
-- [x] Track hover/enter/leave events reliably for Servo.
-- [x] Support left/right/middle click with correct button mapping.
-- [x] Support double-click and click count.
-- [x] Add pointer capture for drag operations.
-- [x] Fix cursor updates (text, pointer, resize, grab, etc).
+- [ ] Normalize pointer coordinates across scale factors and viewports.
+- [ ] Track hover/enter/leave events reliably for Servo.
+- [ ] Support left/right/middle click with correct button mapping.
+- [ ] Support double-click and click count.
+- [ ] Add pointer capture for drag operations.
+- [ ] Fix cursor updates (text, pointer, resize, grab, etc).
 
 ## Scroll + Zoom
 
-- [x] Wire Ctrl + mouse wheel to zoom (browser zoom, not page scale only).
-- [x] Add configurable zoom step and min/max bounds.
-- [x] Persist per-tab zoom level.
-- [x] Render UI zoom indicator and reset button.
-- [x] Distinguish trackpad vs wheel scrolling.
-- [x] Allow Shift + wheel to horizontal scroll.
+- [ ] Wire Ctrl + mouse wheel to zoom (browser zoom, not page scale only).
+- [ ] Add configurable zoom step and min/max bounds.
+- [ ] Persist per-tab zoom level.
+- [ ] Render UI zoom indicator and reset button.
+- [ ] Distinguish trackpad vs wheel scrolling.
+- [ ] Allow Shift + wheel to horizontal scroll.
 
 ## Keyboard + IME
 
-- [x] Fix key mapping for common navigation keys (Backspace, Enter, Tab, Esc).
-- [x] Support Ctrl/Cmd shortcuts (Copy/Paste/Select All/Find).
-- [x] Ensure key repeat and modifiers are delivered correctly.
-- [x] Integrate IME composition start/update/end with Servo.
+- [ ] Fix key mapping for common navigation keys (Backspace, Enter, Tab, Esc).
+- [ ] Support Ctrl/Cmd shortcuts (Copy/Paste/Select All/Find).
+- [ ] Ensure key repeat and modifiers are delivered correctly.
+- [ ] Integrate IME composition start/update/end with Servo.
 
 ## Context Menus + Right Click
 
-- [x] Handle right-click events in Servo input pipeline.
-- [x] Surface Servo context menu requests in UI.
-- [x] Render custom context menu in egui (copy link, open in new tab, inspect).
-- [x] Map context menu actions back to Servo.
+- [ ] Handle right-click events in Servo input pipeline.
+- [ ] Surface Servo context menu requests in UI.
+- [ ] Render custom context menu in egui (copy link, open in new tab, inspect).
+- [ ] Map context menu actions back to Servo.
 
 ## Clipboard + Drag/Drop
 
-- [x] Bridge clipboard read/write requests (text).
-- [x] Add drag-and-drop for URLs into the address bar.
-- [x] Support image drag‑out to file (future).
+- [ ] Bridge clipboard read/write requests (text).
+- [ ] Add drag-and-drop for URLs into the address bar.
+- [ ] Support image drag‑out to file (future).
 
 ## Diagnostics + Testing
 
-- [x] Add input event logging toggle with timestamps.
-- [x] Add a manual input test page (data URL) with buttons/inputs.
-- [x] Add regression test for zoom behavior (Ctrl+wheel).
-- [x] Add regression test for right-click context menu event.
+- [ ] Add input event logging toggle with timestamps.
+- [ ] Add a manual input test page (data URL) with buttons/inputs.
+- [ ] Add regression test for zoom behavior (Ctrl+wheel).
+- [ ] Add regression test for right-click context menu event.
 
 ## Text Input Fidelity
 
-- [x] Route plain text input to IME composition end events.
-- [x] Forward IME dismissals explicitly to Servo.
+- [ ] Route plain text input to IME composition end events.
+- [ ] Forward IME dismissals explicitly to Servo.

@@ -4,44 +4,44 @@ Tracks the `egui`/`eframe` operator shell, browser chrome, and custom inspector 
 
 ## Current State
 
-- [x] Desktop shell boots through `eframe` / `egui`
-- [x] Single-tab workspace model exists
-- [x] Address bar and basic command controls exist
-- [x] Backend status panel exists
-- [x] Placeholder content viewport exists
-- [x] Log panel exists
-- [x] Permission panel exists
+- [ ] Desktop shell boots through `eframe` / `egui`
+- [ ] Single-tab workspace model exists
+- [ ] Address bar and basic command controls exist
+- [ ] Backend status panel exists
+- [ ] Placeholder content viewport exists
+- [ ] Log panel exists
+- [ ] Permission panel exists
 
 ## Browser Chrome
 
-- [x] Multi-tab workspace management
-- [x] Tab strip for active tabs
-- [x] Window management
-- [x] Bookmark surface
-- [x] History surface
-- [x] Download surface
-- [x] Keyboard shortcuts
-- [x] Command palette
-- [x] Layout presets for operator workflows
+- [ ] Multi-tab workspace management
+- [ ] Tab strip for active tabs
+- [ ] Window management
+- [ ] Bookmark surface
+- [ ] History surface
+- [ ] Download surface
+- [ ] Keyboard shortcuts
+- [ ] Command palette
+- [ ] Layout presets for operator workflows
 
 ## Inspector Surfaces
 
-- [x] DOM inspector panel
-- [x] Network inspector panel
-- [x] Cache explorer panel
-- [x] Capability grant inspector
-- [x] Automation activity console
-- [x] Knowledge graph / ontology inspector
-- [x] Reading queue and article inspector
-- [x] TTS playback controls
+- [ ] DOM inspector panel
+- [ ] Network inspector panel
+- [ ] Cache explorer panel
+- [ ] Capability grant inspector
+- [ ] Automation activity console
+- [ ] Knowledge graph / ontology inspector
+- [ ] Reading queue and article inspector
+- [ ] TTS playback controls
 
 ## UX Integration
 
-- [x] Split-pane and dockable panels
-- [x] Persisted workspace layout
-- [x] Context menus for browser-internal actions
-- [x] Theme and density options
+- [ ] Split-pane and dockable panels
+- [ ] Persisted workspace layout
+- [ ] Context menus for browser-internal actions
+- [ ] Theme and density options
 - [ ] Accessibility and keyboard reachability review
-- [x] Workspace settings panel
-- [x] Toolbar panel toggles
-- [x] Sidebar visibility toggle
+- [ ] Workspace settings panel
+- [ ] Toolbar panel toggles
+- [ ] Sidebar visibility toggle

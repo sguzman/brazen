@@ -4,18 +4,18 @@ Tracks browser-mediated grants for sensitive capabilities, following the same co
 
 ## Current State
 
-- [x] Capability-oriented permission policy exists
-- [x] Default decision model supports `allow`, `ask`, and `deny`
-- [x] Capability defaults are configurable in TOML
-- [x] Permission state is visible in the shell
+- [ ] Capability-oriented permission policy exists
+- [ ] Default decision model supports `allow`, `ask`, and `deny`
+- [ ] Capability defaults are configurable in TOML
+- [ ] Permission state is visible in the shell
 
 ## Capability Surface
 
-- [x] Terminal execution capability placeholder exists in config
-- [x] DOM read capability placeholder exists in config
-- [x] Cache read capability placeholder exists in config
-- [x] Tab inspection capability placeholder exists in config
-- [x] AI tool usage capability placeholder exists in config
+- [ ] Terminal execution capability placeholder exists in config
+- [ ] DOM read capability placeholder exists in config
+- [ ] Cache read capability placeholder exists in config
+- [ ] Tab inspection capability placeholder exists in config
+- [ ] AI tool usage capability placeholder exists in config
 - [ ] Terminal output-read capability
 - [ ] File / workspace access capabilities
 - [ ] Database / notes-vault capabilities
