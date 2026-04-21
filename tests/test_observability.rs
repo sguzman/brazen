@@ -96,6 +96,8 @@ fn create_mock_shell_state() -> ShellState {
         find_query: String::new(),
         capabilities_snapshot: Vec::new(),
         automation_activities: Vec::new(),
+        tts_queue: std::collections::VecDeque::new(),
+        tts_playing: false,
         mount_manager: MountManager::new(),
         runtime_paths: RuntimePaths {
             config_path: root.join("brazen.toml"),

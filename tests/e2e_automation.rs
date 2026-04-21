@@ -223,6 +223,28 @@ async fn e2e_boot_connect_logs_and_shutdown() {
     let dom = response["result"].as_str().unwrap_or("");
     assert!(!dom.trim().is_empty(), "expected non-empty dom");
 
+    // Rendered/article text surfaces.
+    let response = ws_roundtrip(&url, json!({"id":"t4b","type":"rendered-text"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "rendered-text failed: {response}");
+    assert!(!response["result"].as_str().unwrap_or("").trim().is_empty(), "expected rendered text");
+    let response = ws_roundtrip(&url, json!({"id":"t4c","type":"article-text"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "article-text failed: {response}");
+    assert!(!response["result"].as_str().unwrap_or("").trim().is_empty(), "expected article text");
+
+    // TTS enqueue + play/pause surfaces in snapshot.
+    let response = ws_roundtrip(&url, json!({"id":"tts1","type":"tts-enqueue","text":"Hello"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "tts enqueue failed: {response}");
+    let response = snapshot(&url).await;
+    assert_eq!(response["result"]["tts_queue_len"].as_u64().unwrap_or(0), 1);
+    let response = ws_roundtrip(&url, json!({"id":"tts2","type":"tts-control","action":"play"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "tts play failed: {response}");
+    let response = snapshot(&url).await;
+    assert!(response["result"]["tts_playing"].as_bool().unwrap_or(false));
+    let response = ws_roundtrip(&url, json!({"id":"tts3","type":"tts-control","action":"pause"})).await;
+    assert!(response["ok"].as_bool().unwrap_or(false), "tts pause failed: {response}");
+    let response = snapshot(&url).await;
+    assert!(!response["result"]["tts_playing"].as_bool().unwrap_or(true));
+
     // Screenshot-meta returns base64 PNG + dimensions.
     let response = ws_roundtrip(&url, json!({"id":"t5","type":"screenshot-meta"})).await;
     assert!(response["ok"].as_bool().unwrap_or(false), "screenshot failed: {response}");

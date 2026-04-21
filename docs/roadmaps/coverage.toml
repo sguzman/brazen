@@ -1,5 +1,6 @@
 # Auto-generated. Each roadmap checkbox must have an entry here.
 # status: planned | done
+
 [[item]]
 id = "automation-and-external-apis.md:7:a185b9b55c"
 file = "automation-and-external-apis.md"
@@ -59,8 +60,8 @@ id = "automation-and-external-apis.md:16:d2a6dd5fd9"
 file = "automation-and-external-apis.md"
 line = 16
 text = "Rendered-text / article-text API"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::d2a6dd5fd9"]
 
 [[item]]
@@ -95,8 +96,8 @@ id = "automation-and-external-apis.md:20:63efacfc16"
 file = "automation-and-external-apis.md"
 line = 20
 text = "TTS and reading-queue control API"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::63efacfc16"]
 
 [[item]]
@@ -1954,13 +1955,13 @@ tests = ["bootstrap::default_config_contains_capability_sections"]
 planned_tests = ["todo::fbb15cbbb2"]
 
 [[item]]
-id = "media-reading-and-tts.md:9:ad22bc021e"
+id = "media-reading-and-tts.md:9:bd00606ea0"
 file = "media-reading-and-tts.md"
 line = 9
-text = "No reading or TTS pipeline is implemented yet"
-status = "planned"
-tests = []
-planned_tests = ["todo::ad22bc021e"]
+text = "Minimal TTS queue state machine exists (no audio backend yet)"
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
+planned_tests = ["todo::bd00606ea0"]
 
 [[item]]
 id = "media-reading-and-tts.md:13:98c918ae84"
@@ -2012,8 +2013,8 @@ id = "media-reading-and-tts.md:21:5db0231fab"
 file = "media-reading-and-tts.md"
 line = 21
 text = "TTS queue"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::5db0231fab"]
 
 [[item]]
@@ -2048,8 +2049,8 @@ id = "media-reading-and-tts.md:25:3ed132922f"
 file = "media-reading-and-tts.md"
 line = 25
 text = "Playback controls in the shell"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::3ed132922f"]
 
 [[item]]

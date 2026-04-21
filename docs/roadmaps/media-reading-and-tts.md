@@ -6,7 +6,7 @@ Tracks save-for-later, reader workflows, reading stats, and text-to-speech.
 
 - [x] TTS provider config exists
 - [x] Reader-mode autoplay toggle exists in config
-- [ ] No reading or TTS pipeline is implemented yet
+- [x] Minimal TTS queue state machine exists (no audio backend yet)
 
 ## Reading Workflows
 
@@ -18,11 +18,11 @@ Tracks save-for-later, reader workflows, reading stats, and text-to-speech.
 
 ## TTS
 
-- [ ] TTS queue
+- [x] TTS queue
 - [ ] Multiple provider integration
 - [ ] Voice/profile preferences
 - [ ] Synchronize TTS with article extraction output
-- [ ] Playback controls in the shell
+- [x] Playback controls in the shell
 
 ## RSS And Rehydration
 

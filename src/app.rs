@@ -69,6 +69,8 @@ pub struct ShellState {
     pub find_query: String,
     pub capabilities_snapshot: Vec<(String, String)>,
     pub automation_activities: Vec<crate::automation::AutomationActivity>,
+    pub tts_queue: VecDeque<String>,
+    pub tts_playing: bool,
     pub mount_manager: crate::mounts::MountManager,
     pub runtime_paths: RuntimePaths,
     pub pending_window_screenshot: Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<Result<crate::engine::EngineFrame, String>>>>>,
@@ -333,6 +335,8 @@ pub fn build_shell_state(
         find_query: String::new(),
         capabilities_snapshot,
         automation_activities: Vec::new(),
+        tts_queue: VecDeque::new(),
+        tts_playing: false,
         mount_manager: crate::mounts::MountManager::new(),
         runtime_paths: paths.clone(),
         pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
@@ -2424,11 +2428,29 @@ impl BrazenApp {
         eframe::egui::Window::new("TTS Controls")
             .open(&mut open)
             .show(ctx, |ui| {
-                ui.label("TTS controls not wired.");
+                ui.label(format!(
+                    "State: {} | Queue: {}",
+                    if self.shell_state.tts_playing { "playing" } else { "paused" },
+                    self.shell_state.tts_queue.len()
+                ));
                 ui.horizontal(|ui| {
-                    let _ = ui.button("Play");
-                    let _ = ui.button("Pause");
-                    let _ = ui.button("Stop");
+                    if ui.button("Play").clicked() {
+                        self.shell_state.tts_playing = true;
+                        self.shell_state.record_event("tts: play");
+                    }
+                    if ui.button("Pause").clicked() {
+                        self.shell_state.tts_playing = false;
+                        self.shell_state.record_event("tts: pause");
+                    }
+                    if ui.button("Stop").clicked() {
+                        self.shell_state.tts_playing = false;
+                        self.shell_state.tts_queue.clear();
+                        self.shell_state.record_event("tts: stop");
+                    }
+                    if ui.button("Clear Queue").clicked() {
+                        self.shell_state.tts_queue.clear();
+                        self.shell_state.record_event("tts: clear");
+                    }
                 });
             });
         if !open {
@@ -3492,6 +3514,8 @@ mod tests {
             find_query: String::new(),
             capabilities_snapshot: Vec::new(),
             automation_activities: Vec::new(),
+            tts_queue: VecDeque::new(),
+            tts_playing: false,
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
@@ -3590,6 +3614,8 @@ mod tests {
             find_query: String::new(),
             capabilities_snapshot: Vec::new(),
             automation_activities: Vec::new(),
+            tts_queue: VecDeque::new(),
+            tts_playing: false,
             runtime_paths: paths,
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),

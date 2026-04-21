@@ -56,6 +56,8 @@ pub struct AutomationSnapshot {
     pub cache_entries: Vec<AutomationAssetSummary>,
     pub activities: VecDeque<AutomationActivity>,
     pub last_event_log_len: usize,
+    pub tts_queue_len: usize,
+    pub tts_playing: bool,
 }
 
 impl Default for AutomationSnapshot {
@@ -90,6 +92,8 @@ impl Default for AutomationSnapshot {
             cache_entries: Vec::new(),
             activities: VecDeque::with_capacity(128),
             last_event_log_len: 0,
+            tts_queue_len: 0,
+            tts_playing: false,
         }
     }
 }
@@ -439,6 +443,8 @@ impl AutomationHandle {
             .map(asset_summary_from_metadata)
             .collect();
         snapshot.last_event_log_len = shell_state.event_log.len();
+        snapshot.tts_queue_len = shell_state.tts_queue.len();
+        snapshot.tts_playing = shell_state.tts_playing;
     }
 
     pub fn publish_navigation(&self, event: AutomationNavigationEvent) {
@@ -2378,11 +2384,34 @@ pub fn drain_automation_commands(
                  }
             }
             AutomationCommand::TtsControl { action, response_tx } => {
-                shell_state.record_event(format!("automation tts control: {}", action));
+                let action_lc = action.to_lowercase();
+                match action_lc.as_str() {
+                    "play" => {
+                        shell_state.tts_playing = true;
+                        shell_state.record_event("tts: play");
+                    }
+                    "pause" => {
+                        shell_state.tts_playing = false;
+                        shell_state.record_event("tts: pause");
+                    }
+                    "stop" => {
+                        shell_state.tts_playing = false;
+                        shell_state.tts_queue.clear();
+                        shell_state.record_event("tts: stop");
+                    }
+                    "clear" => {
+                        shell_state.tts_queue.clear();
+                        shell_state.record_event("tts: clear");
+                    }
+                    _ => {
+                        shell_state.record_event(format!("tts: unknown control action {action}"));
+                    }
+                }
                 let _ = response_tx.send(Ok(()));
             }
             AutomationCommand::TtsEnqueue { text, response_tx } => {
-                shell_state.record_event(format!("automation tts enqueue: {} characters", text.len()));
+                shell_state.tts_queue.push_back(text);
+                shell_state.record_event("tts: enqueue");
                 let _ = response_tx.send(Ok(()));
             }
             AutomationCommand::InteractDom { selector, event, value, response_tx } => {
