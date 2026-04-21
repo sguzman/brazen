@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use chrono::Utc;
 use globset::{Glob, GlobSet, GlobSetBuilder};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use url::Url;
@@ -11,7 +12,7 @@ use url::Url;
 use crate::config::{CacheConfig, HostCapturePolicy};
 use crate::platform_paths::RuntimePaths;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, JsonSchema)]
 pub enum CaptureMode {
     #[default]
     MetadataOnly,
@@ -19,7 +20,7 @@ pub enum CaptureMode {
     Archive,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, JsonSchema)]
 pub enum StorageMode {
     Memory,
     #[default]
@@ -27,7 +28,7 @@ pub enum StorageMode {
     Archive,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct CaptureDecision {
     pub mode: CaptureMode,
     pub capture_body: bool,
@@ -35,7 +36,7 @@ pub struct CaptureDecision {
     pub reason: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, JsonSchema)]
 #[serde(default)]
 pub struct AssetMetadata {
     pub asset_id: String,
@@ -64,7 +65,7 @@ pub struct AssetMetadata {
     pub request_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AssetQuery {
     pub url: Option<String>,
     pub mime: Option<String>,
@@ -74,7 +75,7 @@ pub struct AssetQuery {
     pub status_code: Option<u16>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct CacheStats {
     pub entries: usize,
     pub total_bytes: u64,

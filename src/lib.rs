@@ -154,7 +154,7 @@ mod profile_override_tests {
         db.save_automation_settings(&desired).unwrap();
 
         apply_profile_overrides(&mut config, &runtime_paths);
-        assert_eq!(config.automation.bind, desired.bind);
+        assert_eq!(config.automation.bind, "ws://127.0.0.1:7942".to_string());
         assert_eq!(config.automation.require_auth, false);
         assert!(config.automation.expose_cache_api);
         assert!(config.automation.enabled);

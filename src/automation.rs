@@ -10,6 +10,7 @@ use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::get;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, broadcast, mpsc};
 use std::collections::VecDeque;
@@ -34,7 +35,7 @@ use flate2::write::GzEncoder;
 use flate2::Compression;
 use tar::{Archive, Builder};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationSnapshot {
     pub tabs: Vec<AutomationTab>,
     pub active_tab_index: usize,
@@ -117,7 +118,7 @@ impl Default for AutomationSnapshot {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationActivity {
     pub id: String,
     pub command: String,
@@ -126,7 +127,7 @@ pub struct AutomationActivity {
     pub output: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, JsonSchema)]
 pub enum AutomationActivityStatus {
     Pending,
     Running,
@@ -134,7 +135,7 @@ pub enum AutomationActivityStatus {
     Failed,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationTab {
     pub tab_id: String,
     pub index: usize,
@@ -145,7 +146,7 @@ pub struct AutomationTab {
     pub muted: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationAssetSummary {
     pub asset_id: String,
     pub url: String,
@@ -158,7 +159,7 @@ pub struct AutomationAssetSummary {
     pub tab_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationNavigationEvent {
     pub url: String,
     pub title: String,
@@ -166,12 +167,12 @@ pub struct AutomationNavigationEvent {
     pub load_progress: f32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationCapabilityEvent {
     pub message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "topic", rename_all = "kebab-case")]
 pub enum AutomationEvent {
     Navigation(AutomationNavigationEvent),
@@ -179,7 +180,7 @@ pub enum AutomationEvent {
     TerminalOutput(AutomationTerminalOutputEvent),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationTerminalOutputEvent {
     pub session_id: String,
     pub stream: String,
@@ -189,14 +190,14 @@ pub struct AutomationTerminalOutputEvent {
     pub error: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationEnvelope<T> {
     pub id: Option<String>,
     #[serde(flatten)]
     pub payload: T,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum AutomationRequest {
     WindowList,
@@ -333,7 +334,7 @@ pub enum AutomationRequest {
     Shutdown,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AutomationResponse<T> {
     pub id: Option<String>,
     pub ok: bool,
@@ -4282,6 +4283,32 @@ mod tests {
         let (playing, queue) = dst_db.load_tts_state().unwrap();
         assert!(playing);
         assert_eq!(queue.first().map(|s| s.as_str()), Some("hi"));
+    }
+
+    #[test]
+    fn test_export_automation_schema() {
+        use schemars::JsonSchema;
+
+        #[derive(JsonSchema)]
+        #[allow(dead_code)]
+        struct AutomationApiSchema {
+            /// The standard wrapper for all requests.
+            request_envelope: AutomationEnvelope<AutomationRequest>,
+            /// The standard wrapper for all responses.
+            response_envelope: AutomationResponse<serde_json::Value>,
+            /// Asynchronous events pushed by the server.
+            event: AutomationEvent,
+            /// A full state dump of the automation system.
+            snapshot: AutomationSnapshot,
+        }
+
+        let schema = schemars::schema_for!(AutomationApiSchema);
+        let schema_json = serde_json::to_string_pretty(&schema).unwrap();
+
+        let out_dir = Path::new("docs/automation");
+        let _ = std::fs::create_dir_all(out_dir);
+        let out_path = out_dir.join("schema.json");
+        let _ = std::fs::write(out_path, schema_json);
     }
 }
 

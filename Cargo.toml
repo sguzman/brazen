@@ -25,6 +25,7 @@ futures-util = "0.3.32"
 hex = "0.4.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
+schemars = "0.8.21"
 sha2 = "0.11.0-rc.5"
 globset = "0.4.15"
 thiserror = "2.0.18"
