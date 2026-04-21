@@ -4,18 +4,18 @@ Tracks tracing, diagnostics, testing, and verification quality across the platfo
 
 ## Current State
 
-- [ ] Tracing bootstrap exists
-- [ ] Console and rolling-file filters are configurable
-- [ ] Startup and command activity are logged
-- [ ] Config parsing tests exist
-- [ ] Path resolution tests exist
-- [ ] Command dispatch tests exist
-- [ ] Engine-state synchronization tests exist
-- [ ] Bootstrap integration tests exist
+- [x] Tracing bootstrap exists
+- [x] Console and rolling-file filters are configurable
+- [x] Startup and command activity are logged
+- [x] Config parsing tests exist
+- [x] Path resolution tests exist
+- [x] Command dispatch tests exist
+- [x] Engine-state synchronization tests exist
+- [x] Bootstrap integration tests exist
 
 ## Observability
 
-- [ ] Per-launch timestamped log files
+- [x] Per-launch timestamped log files
 - [ ] Engine lifecycle spans around real Servo integration
 - [ ] Capability decision tracing
 - [ ] Connector activity tracing
@@ -23,11 +23,11 @@ Tracks tracing, diagnostics, testing, and verification quality across the platfo
 - [ ] Cache/extraction pipeline tracing
 - [ ] Diagnostics panel in the shell
 - [ ] Metrics and health summaries
-- [ ] CLI-based live log streaming and inspection
+- [x] CLI-based live log streaming and inspection
 
 ## Quality Gates
 
-- [ ] GUI interaction smoke tests
+- [x] GUI interaction smoke tests
 - [ ] Servo-enabled integration checks on a prepared machine
 - [ ] Cross-platform CI matrix
 - [ ] Performance baselines for shell and engine startup

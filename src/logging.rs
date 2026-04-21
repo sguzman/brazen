@@ -162,3 +162,18 @@ fn build_log_file_name(prefix: &str) -> String {
     let timestamp = Local::now().format("%Y%m%d-%H%M%S");
     format!("{base}-{timestamp}.log")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::build_log_file_name;
+
+    #[test]
+    fn log_file_name_includes_timestamp() {
+        let name = build_log_file_name("brazen");
+        assert!(name.starts_with("brazen-"));
+        assert!(name.ends_with(".log"));
+        let mid = name.trim_start_matches("brazen-").trim_end_matches(".log");
+        assert_eq!(mid.len(), "YYYYMMDD-HHMMSS".len());
+        assert!(mid.chars().all(|c| c.is_ascii_digit() || c == '-'));
+    }
+}

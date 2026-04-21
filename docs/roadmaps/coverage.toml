@@ -2327,8 +2327,8 @@ id = "observability-and-quality.md:7:3fe41fe903"
 file = "observability-and-quality.md"
 line = 7
 text = "Tracing bootstrap exists"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::tracing_init_is_idempotent"]
 planned_tests = ["todo::3fe41fe903"]
 
 [[item]]
@@ -2336,8 +2336,8 @@ id = "observability-and-quality.md:8:344069df48"
 file = "observability-and-quality.md"
 line = 8
 text = "Console and rolling-file filters are configurable"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::logging_plan_is_derived_from_config"]
 planned_tests = ["todo::344069df48"]
 
 [[item]]
@@ -2345,8 +2345,8 @@ id = "observability-and-quality.md:9:a2ca016617"
 file = "observability-and-quality.md"
 line = 9
 text = "Startup and command activity are logged"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::command_dispatch_routes_navigation_and_panel_state"]
 planned_tests = ["todo::a2ca016617"]
 
 [[item]]
@@ -2354,8 +2354,8 @@ id = "observability-and-quality.md:10:fa2a68df1a"
 file = "observability-and-quality.md"
 line = 10
 text = "Config parsing tests exist"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::config_defaults_merge_with_partial_overrides"]
 planned_tests = ["todo::fa2a68df1a"]
 
 [[item]]
@@ -2363,8 +2363,8 @@ id = "observability-and-quality.md:11:f09748c5f8"
 file = "observability-and-quality.md"
 line = 11
 text = "Path resolution tests exist"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::runtime_paths_resolve_relative_to_config_directory"]
 planned_tests = ["todo::f09748c5f8"]
 
 [[item]]
@@ -2372,8 +2372,8 @@ id = "observability-and-quality.md:12:b694ac437e"
 file = "observability-and-quality.md"
 line = 12
 text = "Command dispatch tests exist"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::command_dispatch_routes_navigation_and_panel_state"]
 planned_tests = ["todo::b694ac437e"]
 
 [[item]]
@@ -2381,8 +2381,8 @@ id = "observability-and-quality.md:13:d5d5c2619b"
 file = "observability-and-quality.md"
 line = 13
 text = "Engine-state synchronization tests exist"
-status = "planned"
-tests = []
+status = "done"
+tests = ["app::tests::shell_state_sync_handles_ready_and_error_statuses"]
 planned_tests = ["todo::d5d5c2619b"]
 
 [[item]]
@@ -2390,8 +2390,8 @@ id = "observability-and-quality.md:14:9d1f01d0b3"
 file = "observability-and-quality.md"
 line = 14
 text = "Bootstrap integration tests exist"
-status = "planned"
-tests = []
+status = "done"
+tests = ["bootstrap::bootstrap_starts_with_default_config_and_custom_path"]
 planned_tests = ["todo::9d1f01d0b3"]
 
 [[item]]
@@ -2399,8 +2399,8 @@ id = "observability-and-quality.md:18:bba868d620"
 file = "observability-and-quality.md"
 line = 18
 text = "Per-launch timestamped log files"
-status = "planned"
-tests = []
+status = "done"
+tests = ["logging::tests::log_file_name_includes_timestamp"]
 planned_tests = ["todo::bba868d620"]
 
 [[item]]
@@ -2471,8 +2471,8 @@ id = "observability-and-quality.md:26:d2c91b9826"
 file = "observability-and-quality.md"
 line = 26
 text = "CLI-based live log streaming and inspection"
-status = "planned"
-tests = []
+status = "done"
+tests = ["automation::tests::log_subscribe_is_ok"]
 planned_tests = ["todo::d2c91b9826"]
 
 [[item]]
@@ -2480,8 +2480,8 @@ id = "observability-and-quality.md:30:f902384dd8"
 file = "observability-and-quality.md"
 line = 30
 text = "GUI interaction smoke tests"
-status = "planned"
-tests = []
+status = "done"
+tests = ["e2e_automation::e2e_boot_connect_logs_and_shutdown"]
 planned_tests = ["todo::f902384dd8"]
 
 [[item]]
