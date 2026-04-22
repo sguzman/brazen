@@ -1,5 +1,6 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use eframe::egui::Color32;
 use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
@@ -21,10 +22,10 @@ use crate::navigation::{normalize_url_input, resolve_startup_url};
 use crate::permissions::Capability;
 use crate::platform_paths::RuntimePaths;
 use crate::rendering::{normalize_pixels, probe_frame_stats};
-use crate::session::{NavigationEntry, SessionSnapshot, load_session, save_session};
+use crate::session::{NavigationEntry, SessionSnapshot, load_session};
 use crate::profile_db::ProfileDb;
 
-const INPUT_TEST_URL: &str = "data:text/html;charset=utf-8,<html><body%20style=\"font-family:sans-serif;background:%23f8f8f8;\"><h1>Input%20Test</h1><p>Click%20buttons,%20type%20in%20the%20field,%20and%20use%20right-click.</p><input%20placeholder=\"type%20here\"><button%20onclick=\"document.body.style.background='%23dff'\">Change%20Color</button></body></html>";
+const _PLACEHOLDER: &str = "";
 
 #[derive(Debug, Clone)]
 pub struct ShellState {
@@ -85,6 +86,10 @@ pub struct ShellState {
     pub dom_snapshot: Option<String>,
     pub network_log: VecDeque<crate::engine::NetworkRequest>,
     pub extracted_entities: Vec<ExtractedEntity>,
+    pub ai_messages: Vec<AiMessage>,
+    pub ai_input: String,
+    pub terminal_history: Vec<String>,
+    pub terminal_input: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,6 +108,12 @@ pub struct ExtractedEntity {
     pub value: String,
     pub label: String,
     pub metadata: HashMap<String, String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiMessage {
+    pub role: String,
+    pub content: String,
+    pub timestamp: String,
 }
 
 impl ShellState {
@@ -423,6 +434,10 @@ pub fn build_shell_state(
         pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
         dom_snapshot: None,
         network_log: VecDeque::with_capacity(512),
+        ai_messages: Vec::new(),
+        ai_input: String::new(),
+        terminal_history: vec!["Welcome to Brazen Terminal. Type 'help' for commands.".to_string()],
+        terminal_input: String::new(),
     };
 
     shell_state.sync_from_engine(engine.as_mut());
@@ -530,6 +545,7 @@ enum UiTheme {
     System,
     Light,
     Dark,
+    Brazen,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -540,8 +556,8 @@ enum UiDensity {
 
 #[derive(Debug, Clone, Copy)]
 enum LayoutPreset {
-    Focus,
-    Inspector,
+    Default,
+    Developer,
     Archive,
 }
 
@@ -562,6 +578,10 @@ struct WorkspacePanels {
     reader_mode: bool,
     tts_controls: bool,
     workspace_settings: bool,
+    resources_sidebar: bool,
+    ai_assistant: bool,
+    terminal: bool,
+    dashboard: bool,
 }
 
 impl Default for WorkspacePanels {
@@ -582,6 +602,10 @@ impl Default for WorkspacePanels {
             reader_mode: false,
             tts_controls: false,
             workspace_settings: false,
+            resources_sidebar: true,
+            ai_assistant: true,
+            terminal: false,
+            dashboard: true,
         }
     }
 }
@@ -910,15 +934,7 @@ impl BrazenApp {
         self.shell_state.sync_from_engine(self.engine.as_mut());
     }
 
-    fn open_input_test_page(&mut self) {
-        self.shell_state.address_bar_input = INPUT_TEST_URL.to_string();
-        let _ = dispatch_command(
-            &mut self.shell_state,
-            self.engine.as_mut(),
-            AppCommand::NavigateTo(INPUT_TEST_URL.to_string()),
-        );
-        self.shell_state.record_event("navigation: input test page");
-    }
+
 
     fn render_context_menu(&mut self, ctx: &eframe::egui::Context) {
         let Some((x, y)) = self.shell_state.pending_context_menu else {
@@ -2054,28 +2070,33 @@ impl BrazenApp {
 
     fn apply_layout_preset(&mut self, preset: LayoutPreset) {
         self.panels = match preset {
-            LayoutPreset::Focus => WorkspacePanels {
+            LayoutPreset::Default => WorkspacePanels {
                 sidebar_visible: true,
+                resources_sidebar: true,
+                ai_assistant: true,
+                terminal: false,
+                dashboard: true,
+                bookmarks: false,
+                history: false,
+                downloads: false,
+                dom_inspector: false,
+                network_inspector: false,
                 cache_explorer: false,
                 capability_inspector: false,
                 automation_console: false,
-                dom_inspector: false,
-                network_inspector: false,
+                engine_health: false,
                 knowledge_graph: false,
                 reading_queue: false,
                 reader_mode: false,
                 tts_controls: false,
-                bookmarks: false,
-                history: false,
-                downloads: false,
-                engine_health: false,
-                workspace_settings: true,
+                workspace_settings: false,
             },
-            LayoutPreset::Inspector => WorkspacePanels {
+            LayoutPreset::Developer => WorkspacePanels {
                 sidebar_visible: true,
-                cache_explorer: true,
-                capability_inspector: true,
-                automation_console: true,
+                resources_sidebar: true,
+                ai_assistant: true,
+                terminal: true,
+                dashboard: false,
                 dom_inspector: true,
                 network_inspector: true,
                 engine_health: true,
@@ -2087,9 +2108,16 @@ impl BrazenApp {
                 history: true,
                 downloads: true,
                 workspace_settings: true,
+                cache_explorer: false,
+                capability_inspector: false,
+                automation_console: false,
             },
             LayoutPreset::Archive => WorkspacePanels {
                 sidebar_visible: true,
+                resources_sidebar: false,
+                ai_assistant: false,
+                terminal: false,
+                dashboard: false,
                 cache_explorer: true,
                 capability_inspector: false,
                 automation_console: false,
@@ -2116,6 +2144,7 @@ impl BrazenApp {
             UiTheme::System => {}
             UiTheme::Light => ctx.set_visuals(eframe::egui::Visuals::light()),
             UiTheme::Dark => ctx.set_visuals(eframe::egui::Visuals::dark()),
+            UiTheme::Brazen => crate::ui_theme::apply_brazen_style(ctx),
         }
         let mut style = (*ctx.style()).clone();
         match self.ui_density {
@@ -2142,11 +2171,11 @@ impl BrazenApp {
             .show(ctx, |ui| {
                 ui.label("Layout presets");
                 ui.horizontal(|ui| {
-                    if ui.button("Focus").clicked() {
-                        self.apply_layout_preset(LayoutPreset::Focus);
+                    if ui.button("Default").clicked() {
+                        self.apply_layout_preset(LayoutPreset::Default);
                     }
-                    if ui.button("Inspector").clicked() {
-                        self.apply_layout_preset(LayoutPreset::Inspector);
+                    if ui.button("Developer").clicked() {
+                        self.apply_layout_preset(LayoutPreset::Developer);
                     }
                     if ui.button("Archive").clicked() {
                         self.apply_layout_preset(LayoutPreset::Archive);
@@ -2463,7 +2492,7 @@ impl BrazenApp {
 
                             for req in self.shell_state.network_log.iter().rev() {
                                 ui.label(&req.method);
-                                ui.label(req.status.map(|s| s.to_string()).unwrap_or_else(|| "-".to_string()));
+                                ui.label(req.status.map(|s: u16| s.to_string()).unwrap_or_else(|| "-".to_string()));
                                 ui.label(req.mime_type.as_deref().unwrap_or("-"));
                                 ui.label(&req.url);
                                 ui.end_row();
@@ -2860,55 +2889,354 @@ impl BrazenApp {
         }
     }
 
-    fn render_tab_strip(&mut self, ctx: &eframe::egui::Context) {
-        eframe::egui::TopBottomPanel::top("tab_strip").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                let (active_window, window_count) = {
-                    let s = self.shell_state.session.read().unwrap();
-                    (s.active_window, s.windows.len())
-                };
-                if active_window < window_count {
-                    let (tabs, active_index) = {
-                        let s = self.shell_state.session.read().unwrap();
-                        let window = &s.windows[active_window];
+    fn render_workspace_sidebar(&mut self, ctx: &eframe::egui::Context) {
+        if !self.panels.sidebar_visible {
+            return;
+        }
+        eframe::egui::SidePanel::left("tab_sidebar")
+            .default_width(240.0)
+            .show(ctx, |ui| {
+                ui.heading("Workspace");
+                ui.horizontal(|ui| {
+                    if ui.button("New Tab").clicked() {
+                        {
+                            let mut session = self.shell_state.session.write().unwrap();
+                            session.open_new_tab("about:blank", "New Tab");
+                            session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                        }
+                        self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
+                    }
+                    if ui.button("Duplicate").clicked() {
+                        self.shell_state.session.write().unwrap().duplicate_active_tab();
+                    }
+                });
+                ui.separator();
+                let active_window = self.shell_state.session.read().unwrap().active_window;
+                let (tabs, active_index) = {
+                    let session = self.shell_state.session.read().unwrap();
+                    if let Some(window) = session.windows.get(active_window) {
                         (window.tabs.clone(), window.active_tab)
-                    };
+                    } else {
+                        (Vec::new(), 0)
+                    }
+                };
+                eframe::egui::ScrollArea::vertical().show(ui, |ui| {
                     for (index, tab) in tabs.iter().enumerate() {
-                        let is_active = index == active_index;
-                        let label = if tab.title.is_empty() {
-                            if tab.url.is_empty() { "New Tab".to_string() } else { tab.url.clone() }
-                        } else {
-                            tab.title.clone()
-                        };
-                        
-                        if ui.selectable_label(is_active, label).clicked() {
+                        let label = format!(
+                            "{}{} {}",
+                            if index == active_index { ">" } else { " " },
+                            if tab.pinned { "📌" } else { "  " },
+                            tab.title
+                        );
+                        if ui.selectable_label(index == active_index, label).clicked() {
                             self.shell_state.session.write().unwrap().set_active_tab(index);
-                            self.sync_active_tab_from_session();
                             self.shell_state.address_bar_input = tab.url.clone();
                         }
-                        
-                        if tabs.len() > 1 && is_active {
-                            if ui.small_button("x").clicked() {
-                                self.shell_state.session.write().unwrap().close_active_tab();
-                                self.sync_active_tab_from_session();
-                                self.shell_state.address_bar_input = self.shell_state.active_tab.current_url.clone();
-                            }
+                    }
+                });
+            });
+    }
+
+    fn render_browser_view(&mut self, ctx: &eframe::egui::Context) {
+        eframe::egui::CentralPanel::default().show(ctx, |ui| {
+            if let Some(texture) = &self.render_texture {
+                let response = ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
+                self.render_viewport_rect = Some(response.rect);
+                
+                if self.config.engine.debug_pointer_overlay
+                    && let Some(pos) = self.last_pointer_pos
+                    && response.rect.contains(pos)
+                {
+                    let painter = ui.painter().with_clip_rect(response.rect);
+                    let stroke = eframe::egui::Stroke::new(1.0, eframe::egui::Color32::YELLOW);
+                    let offset = eframe::egui::vec2(8.0, 0.0);
+                    painter.line_segment([pos - offset, pos + offset], stroke);
+                    let offset = eframe::egui::vec2(0.0, 8.0);
+                    painter.line_segment([pos - offset, pos + offset], stroke);
+                }
+            } else {
+                self.render_viewport_rect = None;
+                ui.centered_and_justified(|ui| {
+                    ui.heading("Engine initializing...");
+                });
+            }
+            
+            // Floating overlays or info could go here
+            if let Some(warning) = &self.shell_state.render_warning {
+                ui.colored_label(eframe::egui::Color32::YELLOW, warning);
+            }
+        });
+    }
+
+    fn render_resources_sidebar(&mut self, ctx: &eframe::egui::Context) {
+        if !self.panels.resources_sidebar {
+            return;
+        }
+        eframe::egui::SidePanel::left("resources_sidebar")
+            .resizable(true)
+            .default_width(260.0)
+            .show(ctx, |ui| {
+                ui.add_space(8.0);
+                ui.heading("Local Assets");
+                ui.add_space(4.0);
+                
+                ui.collapsing("📁 Mounts", |ui| {
+                    let mounts = self.shell_state.mount_manager.list_mounts();
+                    if mounts.is_empty() {
+                        ui.weak("No mounts active");
+                    } else {
+                        for mount in mounts {
+                            ui.horizontal(|ui| {
+                                ui.label(&mount.name);
+                                if let crate::mounts::MountType::FileSystem(path) = &mount.mount_type {
+                                    ui.weak(format!("({})", path.display()));
+                                }
+                            });
                         }
                     }
-                }
-                if ui.button("+").clicked() {
-                    {
-                        let mut session = self.shell_state.session.write().unwrap();
-                        session.open_new_tab("about:blank", "New Tab");
-                        session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
+                });
+                
+                ui.collapsing("📜 Scripts", |ui| {
+                    ui.weak("Automation scripts registry");
+                });
+                
+                ui.collapsing("🔌 MCP Servers", |ui| {
+                    let tools = crate::mcp::McpBroker::list_tools();
+                    for tool in tools {
+                        ui.horizontal(|ui| {
+                            ui.label(&tool.name);
+                            if ui.button("i").on_hover_text(&tool.description).clicked() {
+                                // Show tool details
+                            }
+                        });
                     }
-                    self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
-                    self.sync_active_tab_from_session();
-                    self.shell_state.address_bar_input = self.shell_state.active_tab.current_url.clone();
-                }
+                });
+                
+                ui.add_space(12.0);
+                ui.separator();
+                ui.vertical_centered(|ui| {
+                    if ui.button("Register Resource").clicked() {
+                        // Open resource dialog
+                    }
+                });
+            });
+    }
+
+    fn render_ai_assistant_panel(&mut self, ctx: &eframe::egui::Context) {
+        if !self.panels.ai_assistant {
+            return;
+        }
+        eframe::egui::SidePanel::right("ai_assistant")
+            .resizable(true)
+            .default_width(320.0)
+            .show(ctx, |ui| {
+                ui.add_space(8.0);
+                ui.heading("Brazen AI");
+                ui.add_space(4.0);
+                
+                eframe::egui::ScrollArea::vertical()
+                    .stick_to_bottom(true)
+                    .show(ui, |ui| {
+                        for msg in &self.shell_state.ai_messages {
+                            ui.group(|ui| {
+                                ui.strong(&msg.role);
+                                ui.label(&msg.content);
+                                ui.weak(&msg.timestamp);
+                            });
+                        }
+                    });
+                
+                ui.add_space(8.0);
+                ui.separator();
+                ui.horizontal(|ui| {
+                    let response = ui.text_edit_singleline(&mut self.shell_state.ai_input);
+                    if (response.lost_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter))) || ui.button("Send").clicked() {
+                        let content = std::mem::take(&mut self.shell_state.ai_input);
+                        if !content.is_empty() {
+                            self.shell_state.ai_messages.push(AiMessage {
+                                role: "User".to_string(),
+                                content,
+                                timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
+                            });
+                            // AI response logic would go here
+                        }
+                    }
+                });
+                
+                ui.add_space(8.0);
+                ui.collapsing("Capabilities", |ui| {
+                    ui.checkbox(&mut false, "Observe DOM");
+                    ui.checkbox(&mut false, "Control Terminal");
+                    ui.checkbox(&mut false, "Use MCP Tools");
+                });
+            });
+    }
+
+    fn render_dashboard(&mut self, ctx: &eframe::egui::Context) {
+        if !self.panels.dashboard {
+            return;
+        }
+        eframe::egui::CentralPanel::default().show(ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.add_space(60.0);
+                ui.heading(eframe::egui::RichText::new("Brazen Command Center").size(32.0).strong());
+                ui.add_space(20.0);
+                
+                ui.horizontal(|ui| {
+                    ui.add_space(ui.available_width() / 4.0);
+                    ui.group(|ui| {
+                        ui.set_width(ui.available_width() / 2.0);
+                        ui.heading("Quick Actions");
+                        if ui.button("New Private Workspace").clicked() {}
+                        if ui.button("Audit Current Session").clicked() {}
+                        if ui.button("Clear Cache & Cookies").clicked() {}
+                    });
+                });
+                
+                ui.add_space(40.0);
+                ui.horizontal(|ui| {
+                    ui.columns(3, |columns| {
+                        columns[0].group(|ui| {
+                            ui.heading("Stats");
+                            ui.label(format!("Tabs: {}", self.shell_state.history.len()));
+                            ui.label(format!("Visits: {}", self.shell_state.visit_total));
+                        });
+                        columns[1].group(|ui| {
+                            ui.heading("Mounts");
+                            let mounts = self.shell_state.mount_manager.list_mounts();
+                            for mount in mounts.iter().take(3) {
+                                ui.label(format!("• {}", mount.name));
+                            }
+                        });
+                        columns[2].group(|ui| {
+                            ui.heading("Engine");
+                            ui.label(&self.shell_state.backend_name);
+                            ui.label(format!("Status: {}", self.shell_state.engine_status));
+                        });
+                    });
+                });
+                
+                ui.add_space(20.0);
+                ui.group(|ui| {
+                    ui.set_width(ui.available_width());
+                    ui.heading("Active Intelligence");
+                    if self.shell_state.ai_messages.is_empty() {
+                        ui.weak("No active AI session.");
+                    } else {
+                        ui.label(format!("Last message: {}", self.shell_state.ai_messages.last().unwrap().content));
+                    }
+                });
             });
         });
     }
+
+    fn render_terminal_panel(&mut self, ctx: &eframe::egui::Context) {
+        if !self.panels.terminal {
+            return;
+        }
+        eframe::egui::TopBottomPanel::bottom("terminal_panel")
+            .resizable(true)
+            .default_height(200.0)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.heading("Terminal");
+                    if ui.button("Close").clicked() {
+                        self.panels.terminal = false;
+                    }
+                });
+                ui.separator();
+                
+                eframe::egui::ScrollArea::vertical()
+                    .max_height(140.0)
+                    .stick_to_bottom(true)
+                    .show(ui, |ui| {
+                        for line in &self.shell_state.terminal_history {
+                            ui.monospace(line);
+                        }
+                    });
+                    
+                ui.horizontal(|ui| {
+                    ui.label("brazen@local:~$");
+                    let response = ui.text_edit_singleline(&mut self.shell_state.terminal_input);
+                    if response.lost_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter)) {
+                        let cmd = std::mem::take(&mut self.shell_state.terminal_input);
+                        if !cmd.is_empty() {
+                            self.shell_state.terminal_history.push(format!("$ {}", cmd));
+                            // TODO: Dispatch to TerminalBroker (requires async bridge or sync shell)
+                            self.shell_state.terminal_history.push("Command execution requires async runtime bridge.".to_string());
+                        }
+                    }
+                });
+                ui.weak("(Interactive terminal implementation in progress)");
+            });
+    }
+
+    fn render_header(&mut self, ctx: &eframe::egui::Context) {
+        eframe::egui::TopBottomPanel::top("header")
+            .frame(eframe::egui::Frame::NONE
+                .fill(ctx.style().visuals.panel_fill)
+                .inner_margin(eframe::egui::Margin::symmetric(12, 8))
+            )
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.add_space(4.0);
+                    ui.heading(eframe::egui::RichText::new("Brazen").strong().color(Color32::from_rgb(0, 150, 255)));
+                    ui.add_space(12.0);
+                    
+                    ui.horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 4.0;
+                        if ui.button("⏴").on_hover_text("Back").clicked() {
+                            let _ = dispatch_command(&mut self.shell_state, self.engine.as_mut(), AppCommand::GoBack);
+                        }
+                        if ui.button("⏵").on_hover_text("Forward").clicked() {
+                            let _ = dispatch_command(&mut self.shell_state, self.engine.as_mut(), AppCommand::GoForward);
+                        }
+                        if ui.button("⟳").on_hover_text("Reload").clicked() {
+                            let _ = dispatch_command(&mut self.shell_state, self.engine.as_mut(), AppCommand::ReloadActiveTab);
+                        }
+                    });
+                    
+                    ui.add_space(8.0);
+                    
+                    let address_bar = eframe::egui::TextEdit::singleline(&mut self.shell_state.address_bar_input)
+                        .hint_text("Search or enter address")
+                        .desired_width(f32::INFINITY)
+                        .margin(eframe::egui::Margin::symmetric(12, 6));
+                        
+                    let response = ui.add(address_bar);
+                    if self.address_bar_focus_pending {
+                        response.request_focus();
+                        self.address_bar_focus_pending = false;
+                    }
+                    if response.lost_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter)) {
+                        self.handle_navigation();
+                    }
+                    
+                    ui.add_space(8.0);
+                    
+                    ui.horizontal(|ui| {
+                        if ui.button("🏠").on_hover_text("Dashboard").clicked() {
+                            self.panels.dashboard = !self.panels.dashboard;
+                        }
+                        if ui.button("🔍").on_hover_text("Find").clicked() {
+                            self.shell_state.find_panel_open = !self.shell_state.find_panel_open;
+                        }
+                        if ui.button("👤").on_hover_text("Profile").clicked() {
+                            self.panels.workspace_settings = !self.panels.workspace_settings;
+                        }
+                        if ui.button("⚙").on_hover_text("Settings").clicked() {
+                            self.panels.workspace_settings = !self.panels.workspace_settings;
+                        }
+                    });
+                });
+                
+                if self.shell_state.load_progress > 0.0 && self.shell_state.load_progress < 1.0 {
+                    ui.add(eframe::egui::ProgressBar::new(self.shell_state.load_progress).show_percentage());
+                }
+            });
+    }
+
+
 
     fn render_cache_panel(&mut self, ui: &mut eframe::egui::Ui) {
         ui.separator();
@@ -3118,481 +3446,23 @@ impl eframe::App for BrazenApp {
         }
         self.handle_crash_recovery();
 
-        eframe::egui::TopBottomPanel::top("toolbar").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.heading(&self.config.app.name);
-                ui.label(format!("backend: {}", self.shell_state.backend_name));
-                ui.label(format!("engine: {}", self.shell_state.engine_instance_id));
-                ui.separator();
-                ui.label(format!("status: {}", self.shell_state.engine_status));
-                ui.separator();
-                ui.label(format!("title: {}", self.shell_state.page_title));
-                ui.separator();
-                ui.label(format!(
-                    "ready: {}",
-                    if self.shell_state.document_ready {
-                        "yes"
-                    } else {
-                        "no"
-                    }
-                ));
-                let cache_entries = self.cache_store.entries().len();
-                let cache_last = self
-                    .cache_store
-                    .latest_entry()
-                    .map(|entry| entry.created_at.clone())
-                    .unwrap_or_else(|| "-".to_string());
-                ui.separator();
-                ui.label(format!("cache: {} last: {}", cache_entries, cache_last));
-            });
+        // --- New Modular Layout ---
+        self.render_header(ctx);
+        self.render_workspace_sidebar(ctx);
+        self.render_resources_sidebar(ctx);
+        self.render_ai_assistant_panel(ctx);
+        self.render_terminal_panel(ctx);
 
-            ui.horizontal(|ui| {
-                ui.add_enabled_ui(self.shell_state.can_go_back, |ui| {
-                    if ui.button("Back").clicked() {
-                        let _ = dispatch_command(
-                            &mut self.shell_state,
-                            self.engine.as_mut(),
-                            AppCommand::GoBack,
-                        );
-                        self.shell_state.session.write().unwrap().go_back(Utc::now().to_rfc3339());
-                    }
-                });
-                ui.add_enabled_ui(self.shell_state.can_go_forward, |ui| {
-                    if ui.button("Forward").clicked() {
-                        let _ = dispatch_command(
-                            &mut self.shell_state,
-                            self.engine.as_mut(),
-                            AppCommand::GoForward,
-                        );
-                        self.shell_state.session.write().unwrap().go_forward(Utc::now().to_rfc3339());
-                    }
-                });
-                let response = ui.text_edit_singleline(&mut self.shell_state.address_bar_input);
-                if self.address_bar_focus_pending {
-                    response.request_focus();
-                    self.address_bar_focus_pending = false;
-                }
-                let enter_pressed = ui.input(|input| input.key_pressed(eframe::egui::Key::Enter));
-                if response.lost_focus() && enter_pressed {
-                    self.handle_navigation();
-                }
-                if ui.button("Go").clicked() {
-                    self.handle_navigation();
-                }
-                if ui.button("Reload").clicked() {
-                    let _ = dispatch_command(
-                        &mut self.shell_state,
-                        self.engine.as_mut(),
-                        AppCommand::ReloadActiveTab,
-                    );
-                }
-                if ui.button("Stop").clicked() {
-                    let _ = dispatch_command(
-                        &mut self.shell_state,
-                        self.engine.as_mut(),
-                        AppCommand::StopLoading,
-                    );
-                }
-                if ui.button("Input Test").clicked() {
-                    self.open_input_test_page();
-                }
-                if ui.button("Restart Engine").clicked() {
-                    self.restart_engine();
-                }
-                if ui.button("Logs").clicked() {
-                    let _ = dispatch_command(
-                        &mut self.shell_state,
-                        self.engine.as_mut(),
-                        AppCommand::ToggleLogPanel,
-                    );
-                }
-                if ui.button("Permissions").clicked() {
-                    let _ = dispatch_command(
-                        &mut self.shell_state,
-                        self.engine.as_mut(),
-                        AppCommand::OpenPermissionPanel,
-                    );
-                }
-                if ui.button("Workspace").clicked() {
-                    self.panels.workspace_settings = !self.panels.workspace_settings;
-                    self.save_workspace_layout();
-                }
-                if ui.button("Bookmarks").clicked() {
-                    self.panels.bookmarks = !self.panels.bookmarks;
-                    self.save_workspace_layout();
-                }
-                if ui.button("History").clicked() {
-                    self.panels.history = !self.panels.history;
-                    self.save_workspace_layout();
-                }
-                if ui.button("Downloads").clicked() {
-                    self.panels.downloads = !self.panels.downloads;
-                    self.save_workspace_layout();
-                }
-                if ui.button("New Window").clicked() {
-                    self.shell_state
-                        .record_event("window management: new window requested");
-                }
-                if ui.button("Close Window").clicked() {
-                    self.shell_state
-                        .record_event("window management: close window requested");
-                }
-                ui.separator();
-                ui.label(format!(
-                    "Zoom: {:.0}%",
-                    self.shell_state.active_tab_zoom * 100.0
-                ));
-                if ui.button("Reset Zoom").clicked() {
-                    self.set_active_tab_zoom(self.config.engine.zoom_default, "reset");
-                }
-            });
-            ui.add(
-                eframe::egui::ProgressBar::new(self.shell_state.load_progress)
-                    .show_percentage()
-                    .desired_width(f32::INFINITY),
-            );
-        });
-
-        self.render_tab_strip(ctx);
-
-        if self.panels.sidebar_visible {
-            eframe::egui::SidePanel::left("tab_sidebar")
-                .default_width(240.0)
-                .show(ctx, |ui| {
-                    ui.heading("Workspace");
-                    ui.horizontal(|ui| {
-                        if ui.button("New Tab").clicked() {
-                            {
-                                let mut session = self.shell_state.session.write().unwrap();
-                                session.open_new_tab("about:blank", "New Tab");
-                                session.active_tab_mut().zoom_level = self.config.engine.zoom_default;
-                            }
-                            self.shell_state.active_tab_zoom = self.config.engine.zoom_default;
-                        }
-                        if ui.button("Duplicate").clicked() {
-                            self.shell_state.session.write().unwrap().duplicate_active_tab();
-                        }
-                    });
-                    ui.horizontal(|ui| {
-                        if ui.button("Close").clicked() {
-                            self.shell_state.session.write().unwrap().close_active_tab();
-                        }
-                        if ui.button("Pin").clicked() {
-                            self.shell_state.session.write().unwrap().toggle_pin_active_tab();
-                        }
-                        if ui.button("Mute").clicked() {
-                            self.shell_state.session.write().unwrap().toggle_mute_active_tab();
-                        }
-                    });
-                    ui.horizontal(|ui| {
-                        if ui.button("Save Session").clicked()
-                            && save_session(
-                                &self.shell_state.runtime_paths.session_path,
-                                &self.shell_state.session.read().unwrap(),
-                            )
-                            .is_ok()
-                        {
-                            self.shell_state.record_event("session saved");
-                        }
-                        if ui.button("Load Session").clicked()
-                            && let Ok(session) =
-                                load_session(&self.shell_state.runtime_paths.session_path)
-                        {
-                            *self.shell_state.session.write().unwrap() = session;
-                            let tab = self.shell_state.session.read().unwrap().active_tab().unwrap().clone();
-                            self.shell_state.address_bar_input = tab.url.clone();
-                            self.shell_state.record_event("session loaded");
-                        }
-                    });
-                    ui.label(format!(
-                        "Session: {}",
-                        self.shell_state.session.read().unwrap().session_id.0
-                    ));
-                    ui.label(format!("Profile: {}", self.shell_state.session.read().unwrap().profile_id));
-                    ui.label(format!(
-                        "Crash recovery: {}",
-                        if self.shell_state.session.read().unwrap().crash_recovery_pending {
-                            "pending"
-                        } else {
-                            "clear"
-                        }
-                    ));
-                    ui.separator();
-                    let active_window = self.shell_state.session.read().unwrap().active_window;
-                    let (tabs, active_index) = {
-                        let session = self.shell_state.session.read().unwrap();
-                        if let Some(window) = session.windows.get(active_window) {
-                            (window.tabs.clone(), window.active_tab)
-                        } else {
-                            (Vec::new(), 0)
-                        }
-                    };
-                    for (index, tab) in tabs.iter().enumerate() {
-                        let label = format!(
-                            "{}{} {}",
-                            if index == active_index { ">" } else { " " },
-                            if tab.pinned { "P" } else { " " },
-                            tab.title
-                        );
-                        if ui.selectable_label(index == active_index, label).clicked() {
-                            {
-                                self.shell_state.session.write().unwrap().set_active_tab(index);
-                            }
-                            self.shell_state.address_bar_input = tab.url.clone();
-                            let event_url = tab.url.clone();
-                            self.shell_state
-                                .record_event(format!("active tab: {}", event_url));
-                        }
-                    }
-                    ui.label(format!("Title: {}", self.shell_state.active_tab.title));
-                    ui.label(format!("URL: {}", self.shell_state.active_tab.current_url));
-                    ui.label(format!("History: {}", self.shell_state.history.len()));
-                    if let Some(favicon) = &self.shell_state.favicon_url {
-                        ui.label(format!("Favicon: {favicon}"));
-                    }
-                    if let Some(metadata) = &self.shell_state.metadata_summary {
-                        ui.label(format!("Metadata: {metadata}"));
-                    }
-                    ui.label(format!(
-                        "Profiles: {}",
-                        self.shell_state.runtime_paths.profiles_dir.display()
-                    ));
-                    ui.label(format!(
-                        "Cache: {}",
-                        self.shell_state.runtime_paths.cache_dir.display()
-                    ));
-                    ui.label(format!(
-                        "Crash dumps: {}",
-                        self.shell_state.runtime_paths.crash_dumps_dir.display()
-                    ));
-                    ui.label(format!(
-                        "Downloads: {}",
-                        self.shell_state.runtime_paths.downloads_dir.display()
-                    ));
-                    if let Some(last_download) = &self.shell_state.last_download {
-                        ui.label(format!("Last download: {last_download}"));
-                    }
-                    if let Some((kind, url)) = &self.shell_state.last_security_warning {
-                        ui.label(format!("Security: {kind:?} {url}"));
-                    }
-                    if let Some(reason) = &self.shell_state.last_crash {
-                        ui.label(format!("Crash: {reason}"));
-                    }
-                    if let Some(path) = &self.shell_state.last_crash_dump {
-                        ui.label(format!("Crash dump: {path}"));
-                    }
-                    if let Some(endpoint) = &self.shell_state.devtools_endpoint {
-                        ui.label(format!("Devtools: {endpoint}"));
-                    }
-                    if ui
-                        .checkbox(
-                            &mut self.shell_state.engine_verbose_logging,
-                            "Verbose Servo logging",
-                        )
-                        .changed()
-                    {
-                        self.engine
-                            .set_verbose_logging(self.shell_state.engine_verbose_logging);
-                        self.shell_state.record_event(format!(
-                            "servo verbose logging {}",
-                            if self.shell_state.engine_verbose_logging {
-                                "enabled"
-                            } else {
-                                "disabled"
-                            }
-                        ));
-                    }
-                    ui.collapsing("Debug events", |ui| {
-                        if ui.button("Sim Popup").clicked() {
-                            self.engine.inject_event(EngineEvent::PopupRequested {
-                                url: "https://example.invalid/popup".to_string(),
-                                disposition: WindowDisposition::NewWindow,
-                            });
-                        }
-                        if ui.button("Sim Dialog").clicked() {
-                            self.engine.inject_event(EngineEvent::DialogRequested {
-                                kind: DialogKind::Alert,
-                                message: "Simulated alert".to_string(),
-                            });
-                        }
-                        if ui.button("Sim Context Menu").clicked() {
-                            self.engine.inject_event(EngineEvent::ContextMenuRequested {
-                                x: 120.0,
-                                y: 88.0,
-                            });
-                        }
-                        if ui.button("Sim New Window").clicked() {
-                            self.engine.inject_event(EngineEvent::NewWindowRequested {
-                                url: "https://example.invalid/new".to_string(),
-                                disposition: WindowDisposition::ForegroundTab,
-                            });
-                        }
-                        if ui.button("Sim Download").clicked() {
-                            self.engine.inject_event(EngineEvent::DownloadRequested {
-                                url: "https://example.invalid/file.zip".to_string(),
-                                suggested_path: Some("downloads/file.zip".to_string()),
-                            });
-                        }
-                        if ui.button("Sim TLS Warning").clicked() {
-                            self.engine.inject_event(EngineEvent::SecurityWarning {
-                                kind: SecurityWarningKind::TlsError,
-                                url: "https://badssl.example.invalid".to_string(),
-                            });
-                        }
-                        if ui.button("Sim Crash").clicked() {
-                            self.engine.inject_event(EngineEvent::Crashed {
-                                reason: "simulated crash".to_string(),
-                            });
-                        }
-                    });
-                    self.render_cache_panel(ui);
-                });
+        // --- Viewport Selection ---
+        if self.panels.dashboard {
+            self.render_dashboard(ctx);
+        } else {
+            self.render_browser_view(ctx);
         }
-
-        if self.shell_state.permission_panel_open {
-            eframe::egui::SidePanel::right("permissions")
-                .default_width(260.0)
-                .show(ctx, |ui| {
-                    ui.heading("Capability Grants");
-                    for (capability, decision) in &self.shell_state.capabilities_snapshot {
-                        ui.horizontal(|ui| {
-                            ui.monospace(capability);
-                            ui.label(decision);
-                        });
-                    }
-                });
-        }
-
-        eframe::egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Browser Backend View");
-            ui.separator();
-            ui.label(format!("Engine state: {}", self.shell_state.engine_status));
-            ui.label("This viewport is reserved for Servo-backed rendering surfaces.");
-            if let Some(frame_number) = self.render_frame_number {
-                let size = self
-                    .render_frame_size
-                    .map(|(w, h)| format!("{w}x{h}"))
-                    .unwrap_or_else(|| "unknown".to_string());
-                ui.label(format!("Frame: {frame_number} ({size})"));
-            }
-            if let Some((format, alpha, color_space)) = self.render_frame_format {
-                ui.label(format!(
-                    "Format: {} / {} / {}",
-                    format.as_str(),
-                    alpha.as_str(),
-                    color_space.as_str()
-                ));
-            }
-            if let Some(stats) = self.frame_probe {
-                ui.label(format!(
-                    "Probe: non-white {:.1}% avg rgb {} {} {} alpha min {} avg {:.0}",
-                    stats.non_white_ratio * 100.0,
-                    stats.avg_r,
-                    stats.avg_g,
-                    stats.avg_b,
-                    stats.alpha_min,
-                    stats.alpha_avg
-                ));
-            }
-            if let Some(avg) = frame_average_ms(&self.frame_times) {
-                let last = self
-                    .last_frame_ms
-                    .map(|ms| format!("{ms:.1}ms"))
-                    .unwrap_or_else(|| "n/a".to_string());
-                ui.label(format!("Frame timing: avg {avg:.1}ms (last {last})"));
-            }
-            if let Some(avg) = frame_average_ms(&self.upload_times) {
-                let last = self
-                    .last_upload_ms
-                    .map(|ms| format!("{ms:.1}ms"))
-                    .unwrap_or_else(|| "n/a".to_string());
-                ui.label(format!("Frame upload: avg {avg:.1}ms (last {last})"));
-            }
-            ui.label(format!(
-                "Render mode: {} (pacing: {})",
-                self.config.engine.render_mode, self.config.engine.frame_pacing
-            ));
-            let resource_status = match self.shell_state.resource_reader_ready {
-                Some(true) => "ok",
-                Some(false) => "missing",
-                None => "unknown",
-            };
-            let load_status = self
-                .shell_state
-                .load_status
-                .map(|status| status.as_str())
-                .unwrap_or("n/a");
-            let last_error = self
-                .shell_state
-                .upstream_last_error
-                .as_deref()
-                .unwrap_or("none");
-            ui.label(format!(
-                "Render health: resource_reader={} upstream_active={} load_status={} last_error={}",
-                resource_status, self.shell_state.upstream_active, load_status, last_error
-            ));
-
-            ui.separator();
-            ui.label("Active Capabilities:");
-            if self.shell_state.capabilities_snapshot.is_empty() {
-                ui.label("  (none)");
-            } else {
-                for cap in &self.shell_state.capabilities_snapshot {
-                    ui.label(format!("  - {:?}", cap));
-                }
-            }
-
-            if let Some(warning) = &self.shell_state.render_warning {
-                ui.colored_label(eframe::egui::Color32::YELLOW, warning);
-            }
-            if let Some(texture) = &self.render_texture {
-                let response =
-                    ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
-                self.render_viewport_rect = Some(response.rect);
-                if self.config.engine.debug_pointer_overlay
-                    && let Some(pos) = self.last_pointer_pos
-                    && response.rect.contains(pos)
-                {
-                    let painter = ui.painter().with_clip_rect(response.rect);
-                    let stroke =
-                        eframe::egui::Stroke::new(1.0, eframe::egui::Color32::YELLOW);
-                    let offset = eframe::egui::vec2(8.0, 0.0);
-                    painter.line_segment([pos - offset, pos + offset], stroke);
-                    let offset = eframe::egui::vec2(0.0, 8.0);
-                    painter.line_segment([pos - offset, pos + offset], stroke);
-                }
-            } else {
-                self.render_viewport_rect = None;
-            }
-            ui.add_space(12.0);
-            ui.group(|ui| {
-                ui.label("Current target");
-                ui.monospace(&self.shell_state.active_tab.current_url);
-            });
-            ui.add_space(12.0);
-            ui.group(|ui| {
-                ui.label("Pending dialogs");
-                if let Some((kind, message)) = &self.shell_state.pending_dialog {
-                    ui.label(format!("{kind:?}: {message}"));
-                } else {
-                    ui.label("none");
-                }
-                if let Some((url, disposition)) = &self.shell_state.pending_popup {
-                    ui.label(format!("popup: {url} ({disposition:?})"));
-                }
-                if let Some((x, y)) = &self.shell_state.pending_context_menu {
-                    ui.label(format!("context menu: {x:.0},{y:.0}"));
-                }
-            });
-            ui.add_space(12.0);
-            ui.group(|ui| {
-                ui.label("Future dimensions");
-                ui.label("Permissions, automation, cache introspection, article workflows, and local-tool routing hang off this shell.");
-            });
-        });
 
         self.sync_active_tab_from_session();
 
+        // --- Supplemental Panels ---
         self.render_workspace_settings(ctx);
         self.render_bookmarks_panel(ctx);
         self.render_history_panel(ctx);
@@ -3890,6 +3760,8 @@ mod tests {
             dom_snapshot: None,
             network_log: VecDeque::new(),
             extracted_entities: Vec::new(),
+            ai_messages: Vec::new(),
+            ai_input: String::new(),
         };
 
         let mut ready_engine = MockEngine {
@@ -3991,7 +3863,6 @@ mod tests {
             reader_mode_open: false,
             reader_mode_source_url: None,
             reader_mode_text: String::new(),
-            visit_counts: HashMap::new(),
             visit_total: 0,
             revisit_total: 0,
             runtime_paths: paths,
@@ -4000,6 +3871,8 @@ mod tests {
             extracted_entities: Vec::new(),
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
+            ai_messages: Vec::new(),
+            ai_input: String::new(),
         };
 
         let mut engine = MockEngine {

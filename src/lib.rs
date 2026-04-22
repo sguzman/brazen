@@ -27,6 +27,7 @@ pub mod audit_log;
 pub mod mcp;
 pub mod mcp_stdio;
 pub mod extraction;
+pub mod ui_theme;
 
 use std::path::{Path, PathBuf};
 
