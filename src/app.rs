@@ -586,6 +586,7 @@ enum SettingsTab {
     Appearance,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 enum SidePanelTab {
     Assistant,
     Terminal,
@@ -618,6 +619,7 @@ struct WorkspacePanels {
     assistant: bool,
     terminal: bool,
     dashboard: bool,
+    find_panel_open: bool,
 }
 
 impl Default for WorkspacePanels {
@@ -642,6 +644,7 @@ impl Default for WorkspacePanels {
             assistant: true,
             terminal: false,
             dashboard: true,
+            find_panel_open: false,
         }
     }
 }
@@ -2218,6 +2221,7 @@ impl BrazenApp {
                 reader_mode: false,
                 tts_controls: false,
                 workspace_settings: false,
+                find_panel_open: false,
             },
             LayoutPreset::Developer => WorkspacePanels {
                 sidebar_visible: true,
@@ -2239,6 +2243,7 @@ impl BrazenApp {
                 cache_explorer: false,
                 capability_inspector: false,
                 automation_console: false,
+                find_panel_open: false,
             },
             LayoutPreset::Archive => WorkspacePanels {
                 sidebar_visible: true,
@@ -2260,6 +2265,7 @@ impl BrazenApp {
                 downloads: true,
                 engine_health: false,
                 workspace_settings: true,
+                find_panel_open: false,
             },
         };
         self.shell_state
@@ -2319,7 +2325,7 @@ impl BrazenApp {
                             ui.separator();
                             changed |= ui.checkbox(&mut self.panels.sidebar_visible, "Show Sidebar").changed();
                             changed |= ui.checkbox(&mut self.panels.resources_sidebar, "Resources Sidebar").changed();
-                            changed |= ui.checkbox(&mut self.panels.ai_assistant, "Assistant").changed();
+                            changed |= ui.checkbox(&mut self.panels.assistant, "Assistant").changed();
                             changed |= ui.checkbox(&mut self.panels.terminal, "Terminal Panel").changed();
                             changed |= ui.checkbox(&mut self.panels.dashboard, "Command Center Dashboard").changed();
                         }
@@ -3068,11 +3074,11 @@ impl BrazenApp {
             eframe::egui::menu::bar(ui, |ui| {
                 ui.menu_button("File", |ui| {
                     if ui.button("New Tab").clicked() {
-                        self.handle_palette_command(PaletteCommand::NewTab);
+                        self.apply_palette_command(PaletteCommand::NewTab);
                         ui.close_menu();
                     }
                     if ui.button("Close Tab").clicked() {
-                        self.handle_palette_command(PaletteCommand::CloseTab);
+                        self.apply_palette_command(PaletteCommand::CloseTab);
                         ui.close_menu();
                     }
                     ui.separator();
@@ -3089,7 +3095,7 @@ impl BrazenApp {
                     }
                     ui.separator();
                     if ui.button("Find...").clicked() {
-                        self.panels.find_panel_open = true;
+                        self.shell_state.find_panel_open = true;
                         ui.close_menu();
                     }
                 });
@@ -3099,7 +3105,7 @@ impl BrazenApp {
                     ui.checkbox(&mut self.panels.assistant, "Right Sidebar");
                     ui.separator();
                     if ui.button("Reload").clicked() {
-                        self.handle_palette_command(PaletteCommand::Reload);
+                        self.apply_palette_command(PaletteCommand::Reload);
                         ui.close_menu();
                     }
                 });
@@ -3291,7 +3297,7 @@ impl BrazenApp {
                         ui.set_min_width(ui.available_width());
                         ui.heading("Assistant");
                         ui.separator();
-                        self.render_ai_assistant_content(ui);
+                        self.render_assistant_content(ui);
                     });
                 });
 
@@ -3719,6 +3725,7 @@ impl eframe::App for BrazenApp {
 
         // --- New Modular Layout ---
         self.render_top_menu(ctx);
+        self.render_header(ctx);
         
         if self.panels.dashboard {
             self.render_dashboard(ctx);
