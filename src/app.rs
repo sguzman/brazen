@@ -92,6 +92,9 @@ pub struct ShellState {
     pub terminal_history: Vec<String>,
     pub terminal_input: String,
     pub terminal_busy: bool,
+    pub observe_dom: bool,
+    pub control_terminal: bool,
+    pub use_mcp_tools: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -438,9 +441,12 @@ pub fn build_shell_state(
         network_log: VecDeque::with_capacity(512),
         ai_messages: Vec::new(),
         ai_input: String::new(),
-        terminal_history: vec!["Welcome to Brazen Terminal. Type 'help' for commands.".to_string()],
+        terminal_history: Vec::new(),
         terminal_input: String::new(),
         terminal_busy: false,
+        observe_dom: false,
+        control_terminal: true,
+        use_mcp_tools: true,
     };
 
     shell_state.sync_from_engine(engine.as_mut());
@@ -518,6 +524,8 @@ pub struct BrazenApp {
     last_profile_persist_at: Instant,
     terminal_tx: Option<mpsc::UnboundedSender<String>>,
     terminal_rx: Option<mpsc::UnboundedReceiver<crate::terminal::TerminalLine>>,
+    last_dom_observation: Instant,
+    settings_tab: SettingsTab,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -564,6 +572,15 @@ enum LayoutPreset {
     Default,
     Developer,
     Archive,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+enum SettingsTab {
+    Layout,
+    Features,
+    DevTools,
+    Automation,
+    Appearance,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -786,6 +803,8 @@ impl BrazenApp {
             last_profile_persist_at: Instant::now(),
             terminal_tx: Some(term_tx),
             terminal_rx: Some(term_out_rx),
+            last_dom_observation: Instant::now(),
+            settings_tab: SettingsTab::Layout,
         }
     }
 
@@ -929,6 +948,15 @@ impl BrazenApp {
         }
 
         self.persist_profile_state_if_due();
+        
+        // Periodic DOM observation
+        if self.shell_state.observe_dom && self.last_dom_observation.elapsed() > Duration::from_secs(5) {
+            self.last_dom_observation = Instant::now();
+            self.shell_state.record_event("automated dom observation triggered");
+            // In a real implementation, we would call engine.evaluate_javascript
+            // For now, we simulate a snapshot update
+            self.shell_state.dom_snapshot = Some("<html><body>Mock DOM Snapshot</body></html>".to_string());
+        }
     }
 
     fn update_terminal(&mut self, ctx: &eframe::egui::Context) {
@@ -2247,84 +2275,65 @@ impl BrazenApp {
         let mut changed = false;
         eframe::egui::Window::new("Workspace Settings")
             .open(&mut open)
+            .default_width(500.0)
             .show(ctx, |ui| {
-                ui.label("Layout presets");
                 ui.horizontal(|ui| {
-                    if ui.button("Default").clicked() {
-                        self.apply_layout_preset(LayoutPreset::Default);
-                    }
-                    if ui.button("Developer").clicked() {
-                        self.apply_layout_preset(LayoutPreset::Developer);
-                    }
-                    if ui.button("Archive").clicked() {
-                        self.apply_layout_preset(LayoutPreset::Archive);
-                    }
+                    ui.selectable_value(&mut self.settings_tab, SettingsTab::Layout, "Layout");
+                    ui.selectable_value(&mut self.settings_tab, SettingsTab::Features, "Features");
+                    ui.selectable_value(&mut self.settings_tab, SettingsTab::DevTools, "DevTools");
+                    ui.selectable_value(&mut self.settings_tab, SettingsTab::Automation, "Automation");
+                    ui.selectable_value(&mut self.settings_tab, SettingsTab::Appearance, "Appearance");
                 });
                 ui.separator();
-                changed |= ui
-                    .checkbox(&mut self.panels.sidebar_visible, "Show sidebar")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.bookmarks, "Bookmarks panel")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.history, "History panel")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.downloads, "Downloads panel")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.dom_inspector, "DOM inspector")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.network_inspector, "Network inspector")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.cache_explorer, "Cache explorer")
-                    .changed();
-                changed |= ui
-                    .checkbox(
-                        &mut self.panels.capability_inspector,
-                        "Capability inspector",
-                    )
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.automation_console, "Automation console")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.engine_health, "Engine health")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.knowledge_graph, "Knowledge graph")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.reading_queue, "Reading queue")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.reader_mode, "Reader mode")
-                    .changed();
-                changed |= ui
-                    .checkbox(&mut self.panels.tts_controls, "TTS controls")
-                    .changed();
-                ui.separator();
-                ui.label("Theme");
-                changed |= ui
-                    .radio_value(&mut self.ui_theme, UiTheme::System, "System")
-                    .clicked();
-                changed |= ui
-                    .radio_value(&mut self.ui_theme, UiTheme::Light, "Light")
-                    .clicked();
-                changed |= ui
-                    .radio_value(&mut self.ui_theme, UiTheme::Dark, "Dark")
-                    .clicked();
-                ui.separator();
-                ui.label("Density");
-                changed |= ui
-                    .radio_value(&mut self.ui_density, UiDensity::Comfortable, "Comfortable")
-                    .clicked();
-                changed |= ui
-                    .radio_value(&mut self.ui_density, UiDensity::Compact, "Compact")
-                    .clicked();
+
+                eframe::egui::ScrollArea::vertical().show(ui, |ui| {
+                    match self.settings_tab {
+                        SettingsTab::Layout => {
+                            ui.label("Layout Presets");
+                            ui.horizontal(|ui| {
+                                if ui.button("Default").clicked() { self.apply_layout_preset(LayoutPreset::Default); }
+                                if ui.button("Developer").clicked() { self.apply_layout_preset(LayoutPreset::Developer); }
+                                if ui.button("Archive").clicked() { self.apply_layout_preset(LayoutPreset::Archive); }
+                            });
+                            ui.separator();
+                            changed |= ui.checkbox(&mut self.panels.sidebar_visible, "Show Sidebar").changed();
+                            changed |= ui.checkbox(&mut self.panels.resources_sidebar, "Resources Sidebar").changed();
+                            changed |= ui.checkbox(&mut self.panels.ai_assistant, "AI Assistant").changed();
+                            changed |= ui.checkbox(&mut self.panels.terminal, "Terminal Panel").changed();
+                            changed |= ui.checkbox(&mut self.panels.dashboard, "Command Center Dashboard").changed();
+                        }
+                        SettingsTab::Features => {
+                            changed |= ui.checkbox(&mut self.panels.bookmarks, "Bookmarks").changed();
+                            changed |= ui.checkbox(&mut self.panels.history, "History").changed();
+                            changed |= ui.checkbox(&mut self.panels.downloads, "Downloads").changed();
+                            changed |= ui.checkbox(&mut self.panels.reading_queue, "Reading Queue").changed();
+                            changed |= ui.checkbox(&mut self.panels.reader_mode, "Reader Mode").changed();
+                            changed |= ui.checkbox(&mut self.panels.tts_controls, "TTS Controls").changed();
+                        }
+                        SettingsTab::DevTools => {
+                            changed |= ui.checkbox(&mut self.panels.dom_inspector, "DOM Inspector").changed();
+                            changed |= ui.checkbox(&mut self.panels.network_inspector, "Network Inspector").changed();
+                            changed |= ui.checkbox(&mut self.panels.cache_explorer, "Cache Explorer").changed();
+                            changed |= ui.checkbox(&mut self.panels.engine_health, "Engine Health").changed();
+                            changed |= ui.checkbox(&mut self.panels.knowledge_graph, "Knowledge Graph").changed();
+                        }
+                        SettingsTab::Automation => {
+                            changed |= ui.checkbox(&mut self.panels.automation_console, "Automation Console").changed();
+                            changed |= ui.checkbox(&mut self.panels.capability_inspector, "Capability Inspector").changed();
+                        }
+                        SettingsTab::Appearance => {
+                            ui.label("Theme");
+                            changed |= ui.radio_value(&mut self.ui_theme, UiTheme::System, "System").clicked();
+                            changed |= ui.radio_value(&mut self.ui_theme, UiTheme::Light, "Light").clicked();
+                            changed |= ui.radio_value(&mut self.ui_theme, UiTheme::Dark, "Dark").clicked();
+                            changed |= ui.radio_value(&mut self.ui_theme, UiTheme::Brazen, "Brazen").clicked();
+                            ui.separator();
+                            ui.label("Density");
+                            changed |= ui.radio_value(&mut self.ui_density, UiDensity::Comfortable, "Comfortable").clicked();
+                            changed |= ui.radio_value(&mut self.ui_density, UiDensity::Compact, "Compact").clicked();
+                        }
+                    }
+                });
             });
         if !open {
             self.panels.workspace_settings = false;
@@ -3108,6 +3117,7 @@ impl BrazenApp {
         eframe::egui::SidePanel::right("ai_assistant")
             .resizable(true)
             .default_width(320.0)
+            .max_width(480.0)
             .show(ctx, |ui| {
                 ui.add_space(8.0);
                 ui.heading("Brazen AI");
@@ -3119,7 +3129,7 @@ impl BrazenApp {
                         for msg in &self.shell_state.ai_messages {
                             ui.group(|ui| {
                                 ui.strong(&msg.role);
-                                ui.label(&msg.content);
+                                ui.add(eframe::egui::Label::new(&msg.content).wrap());
                                 ui.weak(&msg.timestamp);
                             });
                         }
@@ -3141,11 +3151,16 @@ impl BrazenApp {
                                 content,
                                 timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
                             });
-                            
-                            // Mock response for now to demonstrate connectivity
+                            // Enhanced mock response
+                            let mcp_status = if self.shell_state.use_mcp_tools {
+                                "MCP Tool bridge is ACTIVE. I can execute local commands and query connected servers."
+                            } else {
+                                "MCP Tool bridge is currently disabled."
+                            };
+
                             self.shell_state.ai_messages.push(AiMessage {
                                 role: "Brazen".to_string(),
-                                content: "I have received your request. I am monitoring the browser environment and ready to execute commands via the terminal or MCP bridge.".to_string(),
+                                content: format!("Understood. {}. How can I assist you with the current session?", mcp_status),
                                 timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
                             });
                         }
@@ -3154,9 +3169,9 @@ impl BrazenApp {
                 
                 ui.add_space(8.0);
                 ui.collapsing("Capabilities", |ui| {
-                    ui.checkbox(&mut false, "Observe DOM");
-                    ui.checkbox(&mut false, "Control Terminal");
-                    ui.checkbox(&mut false, "Use MCP Tools");
+                    ui.checkbox(&mut self.shell_state.observe_dom, "Observe DOM");
+                    ui.checkbox(&mut self.shell_state.control_terminal, "Control Terminal");
+                    ui.checkbox(&mut self.shell_state.use_mcp_tools, "Use MCP Tools");
                 });
             });
     }
@@ -3166,139 +3181,168 @@ impl BrazenApp {
             return;
         }
         eframe::egui::CentralPanel::default().show(ctx, |ui| {
-            eframe::egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.add_space(20.0);
-                ui.heading(
-                    eframe::egui::RichText::new("Brazen Command Center")
-                        .size(32.0)
-                        .strong(),
-                );
-                ui.add_space(20.0);
-
-                ui.columns(2, |cols| {
-                    cols[0].vertical(|ui| {
-                        ui.group(|ui| {
-                            ui.set_min_width(ui.available_width());
-                            ui.heading("System Telemetry");
-                            ui.separator();
-                            ui.horizontal(|ui| {
-                                ui.label("Engine:");
-                                ui.strong(&self.shell_state.backend_name);
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Status:");
-                                ui.strong(self.shell_state.engine_status.to_string());
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Total Visits:");
-                                ui.strong(self.shell_state.visit_total.to_string());
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Active Tabs:");
-                                ui.strong(self.shell_state.history.len().to_string());
-                            });
-                        });
-
-                        ui.add_space(10.0);
-
-                        ui.group(|ui| {
-                            ui.set_min_width(ui.available_width());
-                            ui.heading("MCP Server Health");
-                            ui.separator();
-                            let servers = crate::mcp::McpBroker::list_servers();
-                            if servers.is_empty() {
-                                ui.weak("No MCP servers registered.");
-                            } else {
-                                for server_id in servers {
-                                    ui.horizontal(|ui| {
-                                        ui.label(format!("• {}", server_id));
-                                        ui.with_layout(
-                                            eframe::egui::Layout::right_to_left(
-                                                eframe::egui::Align::Center,
-                                            ),
-                                            |ui| {
-                                                ui.label(
-                                                    eframe::egui::RichText::new("ONLINE")
-                                                        .color(eframe::egui::Color32::GREEN)
-                                                        .small(),
-                                                );
-                                            },
-                                        );
-                                    });
-                                }
-                            }
-                        });
-                    });
-
-                    cols[1].vertical(|ui| {
-                        ui.group(|ui| {
-                            ui.set_min_width(ui.available_width());
-                            ui.heading("Live Event Stream");
-                            ui.separator();
-                            eframe::egui::ScrollArea::vertical()
-                                .max_height(200.0)
-                                .stick_to_bottom(true)
-                                .show(ui, |ui| {
-                                    for event in self.shell_state.event_log.iter().rev().take(50) {
-                                        ui.label(
-                                            eframe::egui::RichText::new(event).small().monospace(),
-                                        );
-                                    }
-                                });
-                        });
-
-                        ui.add_space(10.0);
-
-                        ui.group(|ui| {
-                            ui.set_min_width(ui.available_width());
-                            ui.heading("Active Mounts");
-                            ui.separator();
-                            let mounts = self.shell_state.mount_manager.list_mounts();
-                            if mounts.is_empty() {
-                                ui.weak("No resources mounted.");
-                            } else {
-                                for mount in mounts {
-                                    match &mount.mount_type {
-                                        crate::mounts::MountType::FileSystem(path) => {
-                                            ui.label(format!("• {} (FS: {})", mount.name, path.display()));
-                                        }
-                                        crate::mounts::MountType::Terminal => {
-                                            ui.label(format!("• {} (Terminal)", mount.name));
-                                        }
-                                        crate::mounts::MountType::Mcp => {
-                                            ui.label(format!("• {} (MCP)", mount.name));
-                                        }
-                                        crate::mounts::MountType::Tabs => {
-                                            ui.label(format!("• {} (Tabs)", mount.name));
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    });
-                });
-
-                ui.add_space(20.0);
-                ui.group(|ui| {
-                    ui.set_min_width(ui.available_width());
-                    ui.heading("Active Intelligence");
-                    ui.separator();
-                    if self.shell_state.ai_messages.is_empty() {
-                        ui.weak("No active AI session.");
-                    } else {
-                        for msg in self.shell_state.ai_messages.iter().rev().take(3) {
-                            ui.label(format!("{}: {}", msg.role, msg.content));
-                        }
-                    }
-                });
-
-                ui.add_space(40.0);
-                ui.vertical_centered(|ui| {
-                    if ui.button("Close Command Center").clicked() {
+            ui.add_space(20.0);
+            ui.horizontal(|ui| {
+                ui.heading(eframe::egui::RichText::new("Brazen Command Center").size(32.0).strong());
+                ui.with_layout(eframe::egui::Layout::right_to_left(eframe::egui::Align::Center), |ui| {
+                    if ui.button("Exit Dashboard").clicked() {
                         self.panels.dashboard = false;
+                    }
+                    if ui.button("Settings").clicked() {
+                        self.panels.workspace_settings = true;
                     }
                 });
             });
+            ui.separator();
+            ui.add_space(20.0);
+
+            ui.columns(3, |cols| {
+                // Col 1: Files & Assets
+                cols[0].vertical(|ui| {
+                    ui.group(|ui| {
+                        ui.set_min_width(ui.available_width());
+                        ui.heading("Project Assets");
+                        ui.separator();
+                        eframe::egui::ScrollArea::vertical().id_source("dash_assets").show(ui, |ui| {
+                            self.render_resources_content(ui);
+                        });
+                    });
+                });
+
+                // Col 2: AI Assistant (Main Focus)
+                cols[1].vertical(|ui| {
+                    ui.group(|ui| {
+                        ui.set_min_width(ui.available_width());
+                        ui.heading("Brazen AI");
+                        ui.separator();
+                        self.render_ai_assistant_content(ui);
+                    });
+                });
+
+                // Col 3: Terminal & Status
+                cols[2].vertical(|ui| {
+                    ui.group(|ui| {
+                        ui.set_min_width(ui.available_width());
+                        ui.heading("System Telemetry");
+                        ui.separator();
+                        self.render_telemetry_content(ui);
+                    });
+                    ui.add_space(10.0);
+                    ui.group(|ui| {
+                        ui.set_min_width(ui.available_width());
+                        ui.heading("Terminal");
+                        ui.separator();
+                        self.render_terminal_content(ui);
+                    });
+                });
+            });
+        });
+    }
+
+    fn render_resources_content(&mut self, ui: &mut eframe::egui::Ui) {
+        ui.collapsing("📁 Mounts", |ui| {
+            for mount in self.shell_state.mount_manager.list_mounts() {
+                ui.label(format!("• {}", mount.name));
+            }
+        });
+        ui.collapsing("🔌 MCP Servers", |ui| {
+            for server in crate::mcp::McpBroker::list_servers() {
+                ui.horizontal(|ui| {
+                    ui.label(format!("• {}", server));
+                    ui.with_layout(eframe::egui::Layout::right_to_left(eframe::egui::Align::Center), |ui| {
+                        ui.label(eframe::egui::RichText::new("ONLINE").color(eframe::egui::Color32::GREEN).small());
+                    });
+                });
+            }
+        });
+    }
+
+    fn render_telemetry_content(&mut self, ui: &mut eframe::egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Engine:");
+            ui.strong(&self.shell_state.backend_name);
+        });
+        ui.horizontal(|ui| {
+            ui.label("Status:");
+            ui.strong(self.shell_state.engine_status.to_string());
+        });
+        ui.horizontal(|ui| {
+            ui.label("Visits:");
+            ui.strong(self.shell_state.visit_total.to_string());
+        });
+    }
+
+    fn render_ai_assistant_content(&mut self, ui: &mut eframe::egui::Ui) {
+        let chat_height = ui.available_height() - 80.0;
+        eframe::egui::ScrollArea::vertical()
+            .id_source("dash_ai_scroll")
+            .max_height(chat_height)
+            .stick_to_bottom(true)
+            .show(ui, |ui| {
+                for msg in &self.shell_state.ai_messages {
+                    ui.group(|ui| {
+                        ui.strong(&msg.role);
+                        ui.add(eframe::egui::Label::new(&msg.content).wrap());
+                    });
+                }
+            });
+        ui.add_space(10.0);
+        ui.horizontal(|ui| {
+            let response = ui.add(
+                eframe::egui::TextEdit::singleline(&mut self.shell_state.ai_input)
+                    .desired_width(ui.available_width() - 60.0)
+            );
+            if (response.lost_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter))) || ui.button("Send").clicked() {
+                let content = std::mem::take(&mut self.shell_state.ai_input);
+                if !content.is_empty() {
+                    self.shell_state.ai_messages.push(AiMessage {
+                        role: "User".to_string(),
+                        content,
+                        timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
+                    });
+                    
+                    let mcp_status = if self.shell_state.use_mcp_tools {
+                        "MCP Tool bridge is ACTIVE. I can execute local commands and query connected servers."
+                    } else {
+                        "MCP Tool bridge is currently disabled."
+                    };
+
+                    self.shell_state.ai_messages.push(AiMessage {
+                        role: "Brazen".to_string(),
+                        content: format!("Understood. {}. How can I assist you with the current session?", mcp_status),
+                        timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
+                    });
+                }
+            }
+        });
+    }
+
+    fn render_terminal_content(&mut self, ui: &mut eframe::egui::Ui) {
+        eframe::egui::ScrollArea::vertical()
+            .id_source("dash_term_scroll")
+            .max_height(200.0)
+            .stick_to_bottom(true)
+            .show(ui, |ui| {
+                for line in &self.shell_state.terminal_history {
+                    ui.monospace(line);
+                }
+            });
+        ui.horizontal(|ui| {
+            ui.label("$");
+            let response = ui.add_enabled(
+                !self.shell_state.terminal_busy && self.shell_state.control_terminal,
+                eframe::egui::TextEdit::singleline(&mut self.shell_state.terminal_input)
+                    .desired_width(f32::INFINITY)
+            );
+            if response.lost_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter)) {
+                let cmd = std::mem::take(&mut self.shell_state.terminal_input);
+                if !cmd.is_empty() {
+                    self.shell_state.terminal_history.push(format!("$ {}", cmd));
+                    if let Some(tx) = &self.terminal_tx {
+                        let _ = tx.send(cmd);
+                    }
+                }
+            }
         });
     }
 
@@ -3335,7 +3379,7 @@ impl BrazenApp {
                 ui.horizontal(|ui| {
                     ui.label("brazen@local:~$");
                     let response = ui.add_enabled(
-                        !self.shell_state.terminal_busy,
+                        !self.shell_state.terminal_busy && self.shell_state.control_terminal,
                         eframe::egui::TextEdit::singleline(&mut self.shell_state.terminal_input)
                             .desired_width(f32::INFINITY)
                     );

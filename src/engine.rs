@@ -411,7 +411,7 @@ impl NullEngine {
         };
         Self {
             instance_id: 1,
-            status: EngineStatus::NoEngine,
+            status: EngineStatus::Ready,
             active_tab: BrowserTab {
                 id: 1,
                 title: "Platform Skeleton".to_string(),
@@ -436,7 +436,7 @@ impl Default for NullEngine {
 
 impl BrowserEngine for NullEngine {
     fn backend_name(&self) -> &'static str {
-        "null"
+        "scaffold"
     }
 
     fn instance_id(&self) -> EngineInstanceId {
