@@ -387,12 +387,12 @@ pub struct ScaffoldEngine {
     status: EngineStatus,
     active_tab: BrowserTab,
     events: Vec<EngineEvent>,
-    surface: Option<RenderSurfaceMetadata>,
+    _surface: Option<RenderSurfaceMetadata>,
     navigation_state: NavigationState,
     focus: FocusState,
     verbose_logging: bool,
     page_zoom: f32,
-    mount_manager: crate::mounts::MountManager,
+    _mount_manager: crate::mounts::MountManager,
 }
 
 impl ScaffoldEngine {
@@ -418,12 +418,12 @@ impl ScaffoldEngine {
                 current_url: "about:blank".to_string(),
             },
             events: Vec::new(),
-            surface: None,
+            _surface: None,
             navigation_state,
             focus: FocusState::Unfocused,
             verbose_logging: false,
             page_zoom: 1.0,
-            mount_manager: crate::mounts::MountManager::new(),
+            _mount_manager: crate::mounts::MountManager::new(),
         }
     }
 }

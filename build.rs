@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 
 fn main() {
     if std::env::var("CARGO_FEATURE_SERVO").is_ok() {

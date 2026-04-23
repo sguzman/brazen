@@ -87,8 +87,6 @@ pub struct ShellState {
     pub dom_snapshot: Option<String>,
     pub network_log: VecDeque<crate::engine::NetworkRequest>,
     pub extracted_entities: Vec<ExtractedEntity>,
-    pub assistant_messages: Vec<AssistantMessage>,
-    pub assistant_input: String,
     pub terminal_history: Vec<String>,
     pub terminal_input: String,
     pub terminal_busy: bool,
@@ -113,12 +111,6 @@ pub struct ExtractedEntity {
     pub value: String,
     pub label: String,
     pub metadata: HashMap<String, String>,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssistantMessage {
-    pub role: String,
-    pub content: String,
-    pub timestamp: String,
 }
 
 impl ShellState {
@@ -439,8 +431,6 @@ pub fn build_shell_state(
         pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
         dom_snapshot: None,
         network_log: VecDeque::with_capacity(512),
-        assistant_messages: Vec::new(),
-        assistant_input: String::new(),
         terminal_history: Vec::new(),
         terminal_input: String::new(),
         terminal_busy: false,
@@ -526,7 +516,6 @@ pub struct BrazenApp {
     terminal_rx: Option<mpsc::UnboundedReceiver<crate::terminal::TerminalLine>>,
     last_dom_observation: Instant,
     settings_tab: SettingsTab,
-    side_panel_tab: SidePanelTab,
     left_panel_tab: LeftPanelTab,
     processed_mcp_commands: std::collections::HashSet<String>,
 }
@@ -588,7 +577,6 @@ enum SettingsTab {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 enum SidePanelTab {
-    Assistant,
     Terminal,
 }
 
@@ -616,7 +604,6 @@ struct WorkspacePanels {
     tts_controls: bool,
     workspace_settings: bool,
     resources_sidebar: bool,
-    assistant: bool,
     terminal: bool,
     dashboard: bool,
     find_panel_open: bool,
@@ -641,7 +628,6 @@ impl Default for WorkspacePanels {
             tts_controls: false,
             workspace_settings: false,
             resources_sidebar: true,
-            assistant: true,
             terminal: false,
             dashboard: true,
             find_panel_open: false,
@@ -822,7 +808,6 @@ impl BrazenApp {
             terminal_rx: Some(term_out_rx),
             last_dom_observation: Instant::now(),
             settings_tab: SettingsTab::Layout,
-            side_panel_tab: SidePanelTab::Assistant,
             left_panel_tab: LeftPanelTab::Workspace,
             processed_mcp_commands: std::collections::HashSet::new(),
         }
@@ -1223,39 +1208,6 @@ impl BrazenApp {
         self.click_count
     }
 
-    fn update_render_surface(&mut self, ctx: &eframe::egui::Context) {
-        let screen_rect = ctx.content_rect();
-        let pixels_per_point = ctx.pixels_per_point();
-        let metadata = RenderSurfaceMetadata {
-            viewport_width: (screen_rect.width() * pixels_per_point) as u32,
-            viewport_height: (screen_rect.height() * pixels_per_point) as u32,
-            scale_factor_basis_points: (pixels_per_point * 100.0) as u32,
-        };
-
-        if self.last_surface.as_ref() != Some(&metadata) {
-            tracing::info!(
-                target: "brazen::render",
-                viewport_width = metadata.viewport_width,
-                viewport_height = metadata.viewport_height,
-                pixels_per_point,
-                scale_factor = metadata.scale_factor_basis_points,
-                "render surface updated"
-            );
-            self.engine.attach_surface(self.surface_handle.clone());
-            self.engine.set_render_surface(metadata.clone());
-            self.last_surface = Some(metadata);
-            if let Some(startup_url) = self.pending_startup_url.take() {
-                if let Ok(normalized) = normalize_url_input(&startup_url) {
-                    self.shell_state
-                        .record_event(format!("startup navigation: {normalized}"));
-                    self.engine.navigate(&normalized);
-                } else {
-                    self.shell_state
-                        .record_event(format!("startup navigation failed: {startup_url}"));
-                }
-            }
-        }
-    }
 
     fn update_render_frame(&mut self, ctx: &eframe::egui::Context) {
         let Some(frame) = self.engine.render_frame() else {
@@ -2204,7 +2156,6 @@ impl BrazenApp {
             LayoutPreset::Default => WorkspacePanels {
                 sidebar_visible: true,
                 resources_sidebar: true,
-                assistant: true,
                 terminal: false,
                 dashboard: true,
                 bookmarks: false,
@@ -2226,7 +2177,6 @@ impl BrazenApp {
             LayoutPreset::Developer => WorkspacePanels {
                 sidebar_visible: true,
                 resources_sidebar: true,
-                assistant: true,
                 terminal: true,
                 dashboard: false,
                 dom_inspector: true,
@@ -2248,7 +2198,6 @@ impl BrazenApp {
             LayoutPreset::Archive => WorkspacePanels {
                 sidebar_visible: true,
                 resources_sidebar: false,
-                assistant: false,
                 terminal: false,
                 dashboard: false,
                 cache_explorer: true,
@@ -2325,7 +2274,6 @@ impl BrazenApp {
                             ui.separator();
                             changed |= ui.checkbox(&mut self.panels.sidebar_visible, "Show Sidebar").changed();
                             changed |= ui.checkbox(&mut self.panels.resources_sidebar, "Resources Sidebar").changed();
-                            changed |= ui.checkbox(&mut self.panels.assistant, "Assistant").changed();
                             changed |= ui.checkbox(&mut self.panels.terminal, "Terminal Panel").changed();
                             changed |= ui.checkbox(&mut self.panels.dashboard, "Command Center Dashboard").changed();
                         }
@@ -3102,7 +3050,7 @@ impl BrazenApp {
                 ui.menu_button("View", |ui| {
                     ui.checkbox(&mut self.panels.dashboard, "Dashboard");
                     ui.checkbox(&mut self.panels.sidebar_visible, "Left Sidebar");
-                    ui.checkbox(&mut self.panels.assistant, "Right Sidebar");
+                    ui.checkbox(&mut self.panels.terminal, "Right Sidebar (Terminal)");
                     ui.separator();
                     if ui.button("Reload").clicked() {
                         self.apply_palette_command(PaletteCommand::Reload);
@@ -3164,6 +3112,29 @@ impl BrazenApp {
         eframe::egui::CentralPanel::default().show(ctx, |ui| {
             if let Some(texture) = &self.render_texture {
                 let response = ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
+                
+                // Update render surface based on actual widget size
+                let pixels_per_point = ctx.pixels_per_point();
+                let metadata = RenderSurfaceMetadata {
+                    viewport_width: (response.rect.width() * pixels_per_point) as u32,
+                    viewport_height: (response.rect.height() * pixels_per_point) as u32,
+                    scale_factor_basis_points: (pixels_per_point * 100.0) as u32,
+                };
+
+                if self.last_surface.as_ref() != Some(&metadata) {
+                    self.engine.attach_surface(self.surface_handle.clone());
+                    self.engine.set_render_surface(metadata.clone());
+                    self.last_surface = Some(metadata);
+                    
+                    // Handle startup URL on first surface attachment
+                    if let Some(startup_url) = self.pending_startup_url.take() {
+                        if let Ok(normalized) = normalize_url_input(&startup_url) {
+                            self.shell_state.record_event(format!("startup navigation: {normalized}"));
+                            self.engine.navigate(&normalized);
+                        }
+                    }
+                }
+
                 self.render_viewport_rect = Some(response.rect);
                 
                 // Scaffold Mode Overlay
@@ -3230,31 +3201,21 @@ impl BrazenApp {
     }
 
 
-    fn render_assistant_panel(&mut self, ctx: &eframe::egui::Context) {
-        if !self.panels.assistant {
+    fn render_right_sidebar(&mut self, ctx: &eframe::egui::Context) {
+        if !self.panels.terminal {
             return;
         }
         eframe::egui::SidePanel::right("right_panel")
             .resizable(true)
+            .width_range(240.0..=600.0)
             .default_width(320.0)
-            .min_width(240.0)
             .show(ctx, |ui| {
                 ui.add_space(8.0);
-                ui.horizontal(|ui| {
-                    ui.selectable_value(&mut self.side_panel_tab, SidePanelTab::Assistant, "🤖 Assistant");
-                    ui.selectable_value(&mut self.side_panel_tab, SidePanelTab::Terminal, "💻 Terminal");
-                });
+                ui.heading("💻 Terminal");
                 ui.separator();
                 ui.add_space(4.0);
                 
-                match self.side_panel_tab {
-                    SidePanelTab::Assistant => {
-                        self.render_assistant_content(ui);
-                    }
-                    SidePanelTab::Terminal => {
-                        self.render_terminal_content(ui);
-                    }
-                }
+                self.render_terminal_content(ui);
             });
     }
 
@@ -3278,31 +3239,21 @@ impl BrazenApp {
             ui.separator();
             ui.add_space(20.0);
 
-            ui.columns(3, |cols| {
+            ui.columns(2, |cols| {
                 // Col 1: Files & Assets
                 cols[0].vertical(|ui| {
                     ui.group(|ui| {
                         ui.set_min_width(ui.available_width());
                         ui.heading("Project Assets");
                         ui.separator();
-                        eframe::egui::ScrollArea::vertical().id_source("dash_assets").show(ui, |ui| {
+                        eframe::egui::ScrollArea::vertical().id_salt("dash_assets").show(ui, |ui| {
                             self.render_resources_content(ui);
                         });
                     });
                 });
 
-                // Col 2: Assistant (Main Focus)
+                // Col 2: Terminal & Status
                 cols[1].vertical(|ui| {
-                    ui.group(|ui| {
-                        ui.set_min_width(ui.available_width());
-                        ui.heading("Assistant");
-                        ui.separator();
-                        self.render_assistant_content(ui);
-                    });
-                });
-
-                // Col 3: Terminal & Status
-                cols[2].vertical(|ui| {
                     ui.group(|ui| {
                         ui.set_min_width(ui.available_width());
                         ui.heading("System Telemetry");
@@ -3352,61 +3303,6 @@ impl BrazenApp {
             ui.label("Visits:");
             ui.strong(self.shell_state.visit_total.to_string());
         });
-    }
-
-    fn render_assistant_content(&mut self, ui: &mut eframe::egui::Ui) {
-        let chat_height = ui.available_height() - 120.0;
-        eframe::egui::ScrollArea::vertical()
-            .id_source("dash_assistant_scroll")
-            .max_height(chat_height)
-            .stick_to_bottom(true)
-            .show(ui, |ui| {
-                for msg in &self.shell_state.assistant_messages {
-                    ui.group(|ui| {
-                        ui.horizontal(|ui| {
-                            ui.strong(&msg.role);
-                            ui.with_layout(eframe::egui::Layout::right_to_left(eframe::egui::Align::Center), |ui| {
-                                ui.weak(&msg.timestamp);
-                            });
-                        });
-                        ui.add(eframe::egui::Label::new(&msg.content).wrap());
-                    });
-                }
-            });
-            
-        ui.add_space(8.0);
-        ui.separator();
-        ui.horizontal(|ui| {
-            let response = ui.add(
-                eframe::egui::TextEdit::singleline(&mut self.shell_state.assistant_input)
-                    .hint_text("Ask Assistant...")
-                    .desired_width(ui.available_width() - 60.0)
-            );
-            if (response.lost_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter))) || ui.button("Send").clicked() {
-                let content = std::mem::take(&mut self.shell_state.assistant_input);
-                if !content.is_empty() {
-                    self.shell_state.assistant_messages.push(AssistantMessage {
-                        role: "User".to_string(),
-                        content: content.clone(),
-                        timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
-                    });
-                    
-                    let mut response_text = "I'm processing your request.".to_string();
-                    if self.shell_state.use_mcp_tools {
-                        response_text += " I will use MCP tools to gather more information.";
-                    }
-                    if self.shell_state.observe_dom {
-                        response_text += " I am also analyzing the current page structure.";
-                    }
-
-                    self.shell_state.assistant_messages.push(AssistantMessage {
-                        role: "Assistant".to_string(),
-                        content: response_text,
-                        timestamp: chrono::Utc::now().format("%H:%M:%S").to_string(),
-                    });
-                }
-            }
-        });
         
         ui.add_space(4.0);
         ui.collapsing("Capabilities", |ui| {
@@ -3418,7 +3314,7 @@ impl BrazenApp {
 
     fn render_terminal_content(&mut self, ui: &mut eframe::egui::Ui) {
         eframe::egui::ScrollArea::vertical()
-            .id_source("dash_term_scroll")
+            .id_salt("dash_term_scroll")
             .max_height(200.0)
             .stick_to_bottom(true)
             .show(ui, |ui| {
@@ -3702,7 +3598,7 @@ fn empty_to_none(value: &str) -> Option<String> {
 
 impl eframe::App for BrazenApp {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        self.update_render_surface(ctx);
+        // Removed update_render_surface from here, moved to render_browser_view
         self.forward_input_events(ctx);
         self.update_render_frame(ctx);
         self.shell_state.sync_from_engine(self.engine.as_mut());
@@ -3731,7 +3627,7 @@ impl eframe::App for BrazenApp {
             self.render_dashboard(ctx);
         } else {
             self.render_left_sidebar(ctx);
-            self.render_assistant_panel(ctx);
+            self.render_right_sidebar(ctx);
             self.render_browser_view(ctx);
         }
 
@@ -4035,8 +3931,6 @@ mod tests {
             dom_snapshot: None,
             network_log: VecDeque::new(),
             extracted_entities: Vec::new(),
-            assistant_messages: Vec::new(),
-            assistant_input: String::new(),
         };
 
         let mut ready_engine = MockEngine {
@@ -4146,8 +4040,6 @@ mod tests {
             extracted_entities: Vec::new(),
             mount_manager: crate::mounts::MountManager::new(),
             pending_window_screenshot: Arc::new(std::sync::Mutex::new(None)),
-            assistant_messages: Vec::new(),
-            assistant_input: String::new(),
             terminal_history: Vec::new(),
             terminal_input: String::new(),
             terminal_busy: false,
