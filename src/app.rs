@@ -603,7 +603,6 @@ struct WorkspacePanels {
     reader_mode: bool,
     tts_controls: bool,
     workspace_settings: bool,
-    resources_sidebar: bool,
     terminal: bool,
     dashboard: bool,
     find_panel_open: bool,
@@ -627,7 +626,6 @@ impl Default for WorkspacePanels {
             reader_mode: false,
             tts_controls: false,
             workspace_settings: false,
-            resources_sidebar: true,
             terminal: false,
             dashboard: true,
             find_panel_open: false,
@@ -2155,7 +2153,6 @@ impl BrazenApp {
         self.panels = match preset {
             LayoutPreset::Default => WorkspacePanels {
                 sidebar_visible: true,
-                resources_sidebar: true,
                 terminal: false,
                 dashboard: true,
                 bookmarks: false,
@@ -2176,7 +2173,6 @@ impl BrazenApp {
             },
             LayoutPreset::Developer => WorkspacePanels {
                 sidebar_visible: true,
-                resources_sidebar: true,
                 terminal: true,
                 dashboard: false,
                 dom_inspector: true,
@@ -2197,7 +2193,6 @@ impl BrazenApp {
             },
             LayoutPreset::Archive => WorkspacePanels {
                 sidebar_visible: true,
-                resources_sidebar: false,
                 terminal: false,
                 dashboard: false,
                 cache_explorer: true,
@@ -2273,7 +2268,6 @@ impl BrazenApp {
                             });
                             ui.separator();
                             changed |= ui.checkbox(&mut self.panels.sidebar_visible, "Show Sidebar").changed();
-                            changed |= ui.checkbox(&mut self.panels.resources_sidebar, "Resources Sidebar").changed();
                             changed |= ui.checkbox(&mut self.panels.terminal, "Terminal Panel").changed();
                             changed |= ui.checkbox(&mut self.panels.dashboard, "Command Center Dashboard").changed();
                         }
@@ -3051,6 +3045,17 @@ impl BrazenApp {
                     ui.checkbox(&mut self.panels.dashboard, "Dashboard");
                     ui.checkbox(&mut self.panels.sidebar_visible, "Left Sidebar");
                     ui.checkbox(&mut self.panels.terminal, "Right Sidebar (Terminal)");
+                    ui.separator();
+                    ui.menu_button("Panels", |ui| {
+                        ui.checkbox(&mut self.panels.bookmarks, "Bookmarks");
+                        ui.checkbox(&mut self.panels.history, "History");
+                        ui.checkbox(&mut self.panels.downloads, "Downloads");
+                        ui.separator();
+                        ui.checkbox(&mut self.panels.dom_inspector, "DOM Inspector");
+                        ui.checkbox(&mut self.panels.network_inspector, "Network Inspector");
+                        ui.checkbox(&mut self.panels.cache_explorer, "Cache Explorer");
+                        ui.checkbox(&mut self.panels.engine_health, "Engine Health");
+                    });
                     ui.separator();
                     if ui.button("Reload").clicked() {
                         self.apply_palette_command(PaletteCommand::Reload);
