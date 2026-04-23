@@ -576,11 +576,6 @@ enum SettingsTab {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-enum SidePanelTab {
-    Terminal,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 enum LeftPanelTab {
     Workspace,
     Assets,
@@ -3115,87 +3110,90 @@ impl BrazenApp {
 
     fn render_browser_view(&mut self, ctx: &eframe::egui::Context) {
         eframe::egui::CentralPanel::default().show(ctx, |ui| {
-            if let Some(texture) = &self.render_texture {
+            // Determine sizing and get a response object
+            let (rect, _response_opt) = if let Some(texture) = &self.render_texture {
                 let response = ui.add(eframe::egui::Image::from_texture(texture).shrink_to_fit());
-                
-                // Update render surface based on actual widget size
-                let pixels_per_point = ctx.pixels_per_point();
-                let metadata = RenderSurfaceMetadata {
-                    viewport_width: (response.rect.width() * pixels_per_point) as u32,
-                    viewport_height: (response.rect.height() * pixels_per_point) as u32,
-                    scale_factor_basis_points: (pixels_per_point * 100.0) as u32,
-                };
+                (response.rect, Some(response))
+            } else {
+                // Initial placeholder to get a rect and trigger first frame
+                let rect = ui.available_rect_before_wrap();
+                let response = ui.allocate_rect(rect, eframe::egui::Sense::click_and_drag());
+                ui.painter().rect_filled(rect, 0.0, eframe::egui::Color32::BLACK);
+                (rect, Some(response))
+            };
 
-                if self.last_surface.as_ref() != Some(&metadata) {
-                    self.engine.attach_surface(self.surface_handle.clone());
-                    self.engine.set_render_surface(metadata.clone());
-                    self.last_surface = Some(metadata);
-                    
-                    // Handle startup URL on first surface attachment
-                    if let Some(startup_url) = self.pending_startup_url.take() {
-                        if let Ok(normalized) = normalize_url_input(&startup_url) {
-                            self.shell_state.record_event(format!("startup navigation: {normalized}"));
-                            self.engine.navigate(&normalized);
-                        }
+            // Update render surface based on actual widget size
+            let pixels_per_point = ctx.pixels_per_point();
+            let metadata = RenderSurfaceMetadata {
+                viewport_width: (rect.width() * pixels_per_point) as u32,
+                viewport_height: (rect.height() * pixels_per_point) as u32,
+                scale_factor_basis_points: (pixels_per_point * 100.0) as u32,
+            };
+
+            if self.last_surface.as_ref() != Some(&metadata) {
+                self.engine.attach_surface(self.surface_handle.clone());
+                self.engine.set_render_surface(metadata.clone());
+                self.last_surface = Some(metadata);
+                
+                // Handle startup URL on first surface attachment
+                if let Some(startup_url) = self.pending_startup_url.take() {
+                    if let Ok(normalized) = normalize_url_input(&startup_url) {
+                        self.shell_state.record_event(format!("startup navigation: {normalized}"));
+                        self.engine.navigate(&normalized);
                     }
                 }
+            }
 
-                self.render_viewport_rect = Some(response.rect);
+            self.render_viewport_rect = Some(rect);
                 
-                // Scaffold Mode Overlay
-                if self.shell_state.backend_name == "scaffold" {
-                    let painter = ui.painter().with_clip_rect(response.rect);
-                    painter.rect_filled(
-                        response.rect,
-                        0.0,
-                        eframe::egui::Color32::from_black_alpha(180),
-                    );
-                    painter.text(
-                        response.rect.center() - eframe::egui::vec2(0.0, 60.0),
-                        eframe::egui::Align2::CENTER_CENTER,
-                        "SCAFFOLD MODE ACTIVE",
-                        eframe::egui::FontId::proportional(28.0),
-                        eframe::egui::Color32::YELLOW,
-                    );
-                    painter.text(
-                        response.rect.center() - eframe::egui::vec2(0.0, 20.0),
-                        eframe::egui::Align2::CENTER_CENTER,
-                        "To enable full rendering, recompile with:",
-                        eframe::egui::FontId::proportional(16.0),
-                        eframe::egui::Color32::WHITE,
-                    );
-                    painter.text(
-                        response.rect.center() + eframe::egui::vec2(0.0, 10.0),
-                        eframe::egui::Align2::CENTER_CENTER,
-                        "cargo run --features servo",
-                        eframe::egui::FontId::monospace(14.0),
-                        eframe::egui::Color32::GREEN,
-                    );
-                    painter.text(
-                        response.rect.center() + eframe::egui::vec2(0.0, 50.0),
-                        eframe::egui::Align2::CENTER_CENTER,
-                        format!("Viewing: {}", self.shell_state.active_tab.current_url),
-                        eframe::egui::FontId::monospace(12.0),
-                        eframe::egui::Color32::LIGHT_GRAY,
-                    );
-                }
+            // Scaffold Mode Overlay
+            if self.shell_state.backend_name == "scaffold" {
+                let painter = ui.painter().with_clip_rect(rect);
+                painter.rect_filled(
+                    rect,
+                    0.0,
+                    eframe::egui::Color32::from_black_alpha(180),
+                );
+                painter.text(
+                    rect.center() - eframe::egui::vec2(0.0, 60.0),
+                    eframe::egui::Align2::CENTER_CENTER,
+                    "SCAFFOLD MODE ACTIVE",
+                    eframe::egui::FontId::proportional(28.0),
+                    eframe::egui::Color32::YELLOW,
+                );
+                painter.text(
+                    rect.center() - eframe::egui::vec2(0.0, 20.0),
+                    eframe::egui::Align2::CENTER_CENTER,
+                    "To enable full rendering, recompile with:",
+                    eframe::egui::FontId::proportional(16.0),
+                    eframe::egui::Color32::WHITE,
+                );
+                painter.text(
+                    rect.center() + eframe::egui::vec2(0.0, 10.0),
+                    eframe::egui::Align2::CENTER_CENTER,
+                    "cargo run --features servo",
+                    eframe::egui::FontId::monospace(14.0),
+                    eframe::egui::Color32::GREEN,
+                );
+                painter.text(
+                    rect.center() + eframe::egui::vec2(0.0, 50.0),
+                    eframe::egui::Align2::CENTER_CENTER,
+                    format!("Viewing: {}", self.shell_state.active_tab.current_url),
+                    eframe::egui::FontId::monospace(12.0),
+                    eframe::egui::Color32::LIGHT_GRAY,
+                );
+            }
 
-                if self.config.engine.debug_pointer_overlay
-                    && let Some(pos) = self.last_pointer_pos
-                    && response.rect.contains(pos)
-                {
-                    let painter = ui.painter().with_clip_rect(response.rect);
-                    let stroke = eframe::egui::Stroke::new(1.0, eframe::egui::Color32::YELLOW);
-                    let offset = eframe::egui::vec2(8.0, 0.0);
-                    painter.line_segment([pos - offset, pos + offset], stroke);
-                    let offset = eframe::egui::vec2(0.0, 8.0);
-                    painter.line_segment([pos - offset, pos + offset], stroke);
-                }
-            } else {
-                self.render_viewport_rect = None;
-                ui.centered_and_justified(|ui| {
-                    ui.heading("Engine initializing...");
-                });
+            if self.config.engine.debug_pointer_overlay
+                && let Some(pos) = self.last_pointer_pos
+                && rect.contains(pos)
+            {
+                let painter = ui.painter().with_clip_rect(rect);
+                let stroke = eframe::egui::Stroke::new(1.0, eframe::egui::Color32::YELLOW);
+                let offset = eframe::egui::vec2(8.0, 0.0);
+                painter.line_segment([pos - offset, pos + offset], stroke);
+                let offset = eframe::egui::vec2(0.0, 8.0);
+                painter.line_segment([pos - offset, pos + offset], stroke);
             }
             
             // Floating overlays or info could go here
@@ -3590,6 +3588,28 @@ impl BrazenApp {
             }
         }
     }
+
+    fn ensure_engine_initialized(&mut self, ctx: &eframe::egui::Context) {
+        if self.last_surface.is_none() {
+            let pixels_per_point = ctx.pixels_per_point();
+            let metadata = RenderSurfaceMetadata {
+                viewport_width: 1024,
+                viewport_height: 768,
+                scale_factor_basis_points: (pixels_per_point * 100.0) as u32,
+            };
+            self.engine.attach_surface(self.surface_handle.clone());
+            self.engine.set_render_surface(metadata.clone());
+            self.last_surface = Some(metadata);
+
+            if let Some(startup_url) = self.pending_startup_url.take() {
+                if let Ok(normalized) = normalize_url_input(&startup_url) {
+                    self.shell_state
+                        .record_event(format!("background startup navigation: {normalized}"));
+                    self.engine.navigate(&normalized);
+                }
+            }
+        }
+    }
 }
 
 fn empty_to_none(value: &str) -> Option<String> {
@@ -3603,7 +3623,7 @@ fn empty_to_none(value: &str) -> Option<String> {
 
 impl eframe::App for BrazenApp {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        // Removed update_render_surface from here, moved to render_browser_view
+        self.ensure_engine_initialized(ctx);
         self.forward_input_events(ctx);
         self.update_render_frame(ctx);
         self.shell_state.sync_from_engine(self.engine.as_mut());
