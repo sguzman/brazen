@@ -11,32 +11,27 @@ pub mod recovery;
 pub mod workspace;
 pub use state::*;
 
-
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
-use eframe::egui::Color32;
 use std::collections::{HashMap, VecDeque};
-use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 use crate::automation::{
     AutomationCapabilityEvent, AutomationCommand, AutomationHandle, AutomationNavigationEvent,
-    AutomationActivityStatus, drain_automation_commands,
+    drain_automation_commands,
 };
-use crate::cache::{AssetQuery, AssetStore};
+use crate::cache::AssetStore;
 use crate::commands::{AppCommand, dispatch_command};
 use crate::config::BrazenConfig;
 use crate::engine::{
-    AlphaMode, BrowserEngine, BrowserTab, DialogKind, EngineEvent, EngineFactory, EngineLoadStatus,
-    EngineStatus, FocusState, InputEvent, RenderSurfaceHandle, RenderSurfaceMetadata,
-    SecurityWarningKind, WindowDisposition,
+    AlphaMode, BrowserEngine, EngineFactory, EngineLoadStatus, FocusState,
+    RenderSurfaceHandle, RenderSurfaceMetadata, WindowDisposition,
 };
 use crate::navigation::{normalize_url_input, resolve_startup_url};
 use crate::permissions::Capability;
 use crate::platform_paths::RuntimePaths;
 use crate::rendering::{normalize_pixels, probe_frame_stats};
-use crate::session::{NavigationEntry, SessionSnapshot, load_session};
+use crate::session::{SessionSnapshot, load_session};
 use crate::profile_db::ProfileDb;
 use tokio::sync::mpsc;
 
@@ -724,7 +719,3 @@ impl BrazenApp {
 #[cfg(test)]
 mod tests;
 
-
-fn extract_entities(html: &str) -> Vec<ExtractedEntity> {
-    crate::extraction::extract_entities(html)
-}

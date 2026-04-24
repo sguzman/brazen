@@ -1,7 +1,5 @@
-use super::state::*;
-use crate::engine::RenderSurfaceMetadata;
+use super::*;
 use crate::navigation::normalize_url_input;
-use std::collections::VecDeque;
 
 impl super::BrazenApp {
 
@@ -29,16 +27,6 @@ impl super::BrazenApp {
     }
 }
 
-
-
-fn empty_to_none(value: &str) -> Option<String> {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        None
-    } else {
-        Some(trimmed.to_string())
-    }
-}
 
 
 

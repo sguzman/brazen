@@ -1,10 +1,6 @@
 use super::*;
 
 impl BrazenApp {
-    pub(super) fn load_workspace_layout(path: &PathBuf) -> Option<WorkspaceLayout> {
-        let data = std::fs::read_to_string(path).ok()?;
-        serde_json::from_str(&data).ok()
-    }
 
     pub(super) fn save_workspace_layout(&self) {
         let Some(db) = &self.profile_db else {

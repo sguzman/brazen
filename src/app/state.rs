@@ -1,18 +1,15 @@
-use crate::engine::{BrowserEngine, EngineEvent, EngineStatus, FocusState, RenderSurfaceMetadata, SecurityWarningKind, WindowDisposition, BrowserTab, DialogKind};
+use crate::engine::{BrowserEngine, EngineEvent, EngineStatus, SecurityWarningKind, WindowDisposition, BrowserTab, DialogKind};
 use crate::extraction::extract_entities;
-use std::time::Duration;
 use std::collections::VecDeque;
 use crate::platform_paths::RuntimePaths;
 use std::sync::{Arc, RwLock};
 
 use chrono::Utc;
-use crate::session::{NavigationEntry, SessionSnapshot, load_session};
+use crate::session::{NavigationEntry, SessionSnapshot};
 use crate::engine::EngineLoadStatus;
 use crate::profile_db::ProfileDb;
-use std::time::Instant;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

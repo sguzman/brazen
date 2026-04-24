@@ -304,7 +304,7 @@ impl super::BrazenApp {
 
     pub fn render_top_menu(&mut self, ctx: &eframe::egui::Context) {
         eframe::egui::TopBottomPanel::top("top_menu_bar").show(ctx, |ui| {
-            eframe::egui::menu::bar(ui, |ui| {
+            eframe::egui::MenuBar::new().ui(ui, |ui| {
                 ui.menu_button("File", |ui| {
                     if ui.button("New Tab").clicked() {
                         self.apply_palette_command(PaletteCommand::NewTab);

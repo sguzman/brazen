@@ -1,5 +1,5 @@
 use super::*;
-use crate::engine::{InputEvent, AlphaMode};
+use crate::engine::InputEvent;
 
 impl BrazenApp {
     pub(super) fn forward_input_events(&mut self, ctx: &eframe::egui::Context) {

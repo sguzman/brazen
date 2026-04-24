@@ -1,6 +1,4 @@
 use super::*;
-use crate::engine::{RenderSurfaceMetadata};
-use eframe::egui::ColorImage;
 
 impl BrazenApp {
     pub(super) fn update_render_frame(&mut self, ctx: &eframe::egui::Context) {
