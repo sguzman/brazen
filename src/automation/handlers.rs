@@ -353,7 +353,7 @@ pub async fn handle_request(
     if let Some(res_str) = &response {
         let mut entry = audit_entry;
         entry.outcome = if res_str.contains("\"ok\":true") { "success".to_string() } else { "failed".to_string() };
-        state.audit_logger.log(entry);
+        let _ = state.audit_logger.log(entry);
 
         let mut snapshot = state.handle.snapshot.write().expect("snapshot");
         if let Some(act) = snapshot.activities.iter_mut().find(|a| a.id == activity_id) {

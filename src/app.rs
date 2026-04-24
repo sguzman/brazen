@@ -495,7 +495,6 @@ pub struct BrazenApp {
     cache_import_path: String,
     cache_manifest_path: String,
     panels: WorkspacePanels,
-    workspace_layout_path: PathBuf,
     bookmarks: Vec<String>,
     downloads: Vec<String>,
     ui_theme: UiTheme,
@@ -591,6 +590,7 @@ enum DiagnosticTab {
     Automation,
     Cache,
     Capabilities,
+    KnowledgeGraph,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -598,7 +598,6 @@ struct WorkspacePanels {
     sidebar_visible: bool,
     bookmarks: bool,
     history: bool,
-    knowledge_graph: bool,
     reading_queue: bool,
     reader_mode: bool,
     tts_controls: bool,
@@ -617,7 +616,6 @@ impl Default for WorkspacePanels {
             sidebar_visible: true,
             bookmarks: false,
             history: false,
-            knowledge_graph: false,
             reading_queue: false,
             reader_mode: false,
             tts_controls: false,
@@ -658,24 +656,25 @@ impl BrazenApp {
         let pending_startup_url = resolve_startup_url(&config.engine.startup_url)
             .ok()
             .flatten();
-        let workspace_layout_path = shell_state
-            .runtime_paths
-            .data_dir
-            .join("workspace-layout.json");
         let mut panels = WorkspacePanels::default();
         let mut ui_theme = UiTheme::System;
         let mut ui_density = UiDensity::Comfortable;
-        if let Some(layout) = Self::load_workspace_layout(&workspace_layout_path) {
-            panels = layout.panels;
-            ui_theme = layout.theme;
-            ui_density = layout.density;
+
+        let profile_db = ProfileDb::open(shell_state.runtime_paths.active_profile_dir.join("state.sqlite")).ok();
+
+        if let Some(db) = &profile_db {
+            if let Ok(Some(layout_json)) = db.load_workspace_layout() {
+                if let Ok(layout) = serde_json::from_str::<WorkspaceLayout>(&layout_json) {
+                    panels = layout.panels;
+                    ui_theme = layout.theme;
+                    ui_density = layout.density;
+                }
+            }
         }
 
         let (automation_handle, automation_rx) = automation
             .map(|runtime| (Some(runtime.handle), Some(runtime.command_rx)))
             .unwrap_or((None, None));
-
-        let profile_db = ProfileDb::open(shell_state.runtime_paths.active_profile_dir.join("state.sqlite")).ok();
 
         // Register external MCP servers from config
         for (name, srv_config) in &config.mcp.servers {
@@ -784,7 +783,6 @@ impl BrazenApp {
             cache_import_path: "cache-import.json".to_string(),
             cache_manifest_path: "cache-manifest.json".to_string(),
             panels,
-            workspace_layout_path,
             bookmarks: Vec::new(),
             downloads: Vec::new(),
             ui_theme,
@@ -829,6 +827,7 @@ impl BrazenApp {
         for item in self.shell_state.reading_queue.iter() {
             let _ = db.upsert_reading_item(item);
         }
+        self.save_workspace_layout();
     }
 
     fn frame_probe_enabled(&self) -> bool {
@@ -2132,19 +2131,16 @@ impl BrazenApp {
     }
 
     fn save_workspace_layout(&self) {
-        let Some(parent) = self.workspace_layout_path.parent() else {
+        let Some(db) = &self.profile_db else {
             return;
         };
-        if std::fs::create_dir_all(parent).is_err() {
-            return;
-        }
         let payload = WorkspaceLayout {
             panels: self.panels,
             theme: self.ui_theme,
             density: self.ui_density,
         };
-        if let Ok(data) = serde_json::to_vec_pretty(&payload) {
-            let _ = std::fs::write(&self.workspace_layout_path, data);
+        if let Ok(data) = serde_json::to_string_pretty(&payload) {
+            let _ = db.save_workspace_layout(&data);
         }
     }
 
@@ -2152,15 +2148,14 @@ impl BrazenApp {
         self.panels = match preset {
             LayoutPreset::Default => WorkspacePanels {
                 sidebar_visible: true,
-                terminal: false,
-                dashboard: true,
                 bookmarks: false,
                 history: false,
-                knowledge_graph: false,
                 reading_queue: false,
                 reader_mode: false,
                 tts_controls: false,
                 workspace_settings: false,
+                terminal: false,
+                dashboard: true,
                 find_panel_open: false,
                 bottom_panel_visible: false,
                 active_diagnostic_tab: DiagnosticTab::Logs,
@@ -2168,15 +2163,14 @@ impl BrazenApp {
             },
             LayoutPreset::Developer => WorkspacePanels {
                 sidebar_visible: true,
-                terminal: true,
-                dashboard: false,
-                knowledge_graph: false,
+                bookmarks: false,
+                history: false,
                 reading_queue: false,
                 reader_mode: false,
                 tts_controls: false,
-                bookmarks: false,
-                history: true,
-                workspace_settings: true,
+                workspace_settings: false,
+                terminal: true,
+                dashboard: false,
                 find_panel_open: false,
                 bottom_panel_visible: true,
                 active_diagnostic_tab: DiagnosticTab::Network,
@@ -2186,7 +2180,6 @@ impl BrazenApp {
                 sidebar_visible: true,
                 terminal: false,
                 dashboard: false,
-                knowledge_graph: true,
                 reading_queue: true,
                 reader_mode: true,
                 tts_controls: true,
@@ -2195,8 +2188,8 @@ impl BrazenApp {
                 workspace_settings: true,
                 find_panel_open: false,
                 bottom_panel_visible: true,
-                active_diagnostic_tab: DiagnosticTab::Cache,
-                bottom_panel_height: 280.0,
+                active_diagnostic_tab: DiagnosticTab::KnowledgeGraph,
+                bottom_panel_height: 350.0,
             },
         };
         self.shell_state
@@ -2273,7 +2266,7 @@ impl BrazenApp {
                             changed |= ui.selectable_value(&mut self.panels.active_diagnostic_tab, DiagnosticTab::Dom, "DOM Inspector").changed();
                             changed |= ui.selectable_value(&mut self.panels.active_diagnostic_tab, DiagnosticTab::Health, "Engine Health").changed();
                             changed |= ui.selectable_value(&mut self.panels.active_diagnostic_tab, DiagnosticTab::Cache, "Cache Explorer").changed();
-                            changed |= ui.checkbox(&mut self.panels.knowledge_graph, "Knowledge Graph (Window)").changed();
+                            changed |= ui.selectable_value(&mut self.panels.active_diagnostic_tab, DiagnosticTab::KnowledgeGraph, "Knowledge Graph").changed();
                         }
                         SettingsTab::Automation => {
                             changed |= ui.selectable_value(&mut self.panels.active_diagnostic_tab, DiagnosticTab::Automation, "Automation Console").changed();
@@ -2412,6 +2405,7 @@ impl BrazenApp {
                             DiagnosticTab::Automation => self.render_automation_tab(ui),
                             DiagnosticTab::Cache => self.render_cache_panel(ui),
                             DiagnosticTab::Capabilities => self.render_capabilities_tab(ui),
+                            DiagnosticTab::KnowledgeGraph => self.render_knowledge_graph_tab(ui),
                         }
                     });
             });
@@ -2529,82 +2523,71 @@ impl BrazenApp {
         }
     }
 
-    fn render_knowledge_graph_panel(&mut self, ctx: &eframe::egui::Context) {
-        if !self.panels.knowledge_graph {
-            return;
+    fn render_knowledge_graph_tab(&mut self, ui: &mut eframe::egui::Ui) {
+        ui.heading("Virtual Mounts");
+        let mounts = self.shell_state.mount_manager.list_mounts();
+        if mounts.is_empty() {
+            ui.label("No active virtual mounts.");
+        } else {
+            eframe::egui::Grid::new("mounts_grid")
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Name");
+                    ui.label("Type");
+                    ui.label("Access");
+                    ui.end_row();
+                    for mount in mounts {
+                        ui.label(&mount.name);
+                        ui.label(format!("{:?}", mount.mount_type));
+                        ui.label(if mount.read_only { "RO" } else { "RW" });
+                        ui.end_row();
+                    }
+                });
         }
-        let mut open = true;
-        eframe::egui::Window::new("Knowledge Graph")
-            .open(&mut open)
-            .show(ctx, |ui| {
-                ui.heading("Virtual Mounts");
-                let mounts = self.shell_state.mount_manager.list_mounts();
-                if mounts.is_empty() {
-                    ui.label("No active virtual mounts.");
-                } else {
-                    eframe::egui::Grid::new("mounts_grid")
-                        .striped(true)
-                        .show(ui, |ui| {
-                            ui.label("Name");
-                            ui.label("Type");
-                            ui.label("Access");
-                            ui.end_row();
-                            for mount in mounts {
-                                ui.label(&mount.name);
-                                ui.label(format!("{:?}", mount.mount_type));
-                                ui.label(if mount.read_only { "RO" } else { "RW" });
-                                ui.end_row();
-                            }
-                        });
-                }
-                
-                ui.separator();
-                ui.heading("MCP Tools");
-                let tools = crate::mcp::McpBroker::list_tools();
-                if tools.is_empty() {
-                    ui.label("No MCP tools registered.");
-                } else {
-                    for tool in tools {
-                        ui.collapsing(&tool.name, |ui| {
-                            ui.label(format!("Description: {}", tool.description));
-                            ui.label(format!("Schema: {}", serde_json::to_string_pretty(&tool.input_schema).unwrap_or_default()));
-                        });
-                    }
-                }
 
-                ui.separator();
-                ui.heading("Active Entities");
-                if self.shell_state.extracted_entities.is_empty() {
-                    ui.label("No entities extracted from current page.");
-                } else {
-                    let mut grouped: HashMap<String, Vec<&ExtractedEntity>> = HashMap::new();
-                    for entity in &self.shell_state.extracted_entities {
-                        grouped.entry(entity.kind.clone()).or_default().push(entity);
-                    }
-                    
-                    for (kind, entities) in grouped {
-                        ui.collapsing(format!("{} ({})", kind, entities.len()), |ui| {
-                            for entity in entities {
-                                ui.horizontal(|ui| {
-                                    ui.label(&entity.label);
-                                    if !entity.metadata.is_empty() {
-                                        let meta_str = entity.metadata.iter()
-                                            .map(|(k, v)| format!("{}: {}", k, v))
-                                            .collect::<Vec<_>>()
-                                            .join(", ");
-                                        ui.weak(format!("({})", meta_str));
-                                    }
-                                    if ui.button("📋").on_hover_text("Copy to clipboard").clicked() {
-                                        ui.ctx().copy_text(entity.value.clone());
-                                    }
-                                });
+        ui.separator();
+        ui.heading("MCP Tools");
+        let tools = crate::mcp::McpBroker::list_tools();
+        if tools.is_empty() {
+            ui.label("No MCP tools registered.");
+        } else {
+            for tool in tools {
+                ui.collapsing(&tool.name, |ui| {
+                    ui.label(format!("Description: {}", tool.description));
+                    ui.label(format!("Schema: {}", serde_json::to_string_pretty(&tool.input_schema).unwrap_or_default()));
+                });
+            }
+        }
+
+        ui.separator();
+        ui.heading("Active Entities");
+        if self.shell_state.extracted_entities.is_empty() {
+            ui.label("No entities extracted from current page.");
+        } else {
+            let mut grouped: HashMap<String, Vec<&ExtractedEntity>> = HashMap::new();
+            for entity in &self.shell_state.extracted_entities {
+                grouped.entry(entity.kind.clone()).or_default().push(entity);
+            }
+
+            for (kind, entities) in grouped {
+                ui.collapsing(format!("{} ({})", kind, entities.len()), |ui| {
+                    for entity in entities {
+                        ui.horizontal(|ui| {
+                            ui.label(&entity.label);
+                            if !entity.metadata.is_empty() {
+                                let meta_str = entity.metadata.iter()
+                                    .map(|(k, v)| format!("{}: {}", k, v))
+                                    .collect::<Vec<_>>()
+                                    .join(", ");
+                                ui.weak(format!("({})", meta_str));
+                            }
+                            if ui.button("📋").on_hover_text("Copy to clipboard").clicked() {
+                                ui.ctx().copy_text(entity.value.clone());
                             }
                         });
                     }
-                }
-            });
-        if !open {
-            self.panels.knowledge_graph = false;
+                });
+            }
         }
     }
 
@@ -2892,11 +2875,11 @@ impl BrazenApp {
                 ui.menu_button("File", |ui| {
                     if ui.button("New Tab").clicked() {
                         self.apply_palette_command(PaletteCommand::NewTab);
-                        ui.close_menu();
+                        ui.close();
                     }
                     if ui.button("Close Tab").clicked() {
                         self.apply_palette_command(PaletteCommand::CloseTab);
-                        ui.close_menu();
+                        ui.close();
                     }
                     ui.separator();
                     if ui.button("Quit").clicked() {
@@ -2908,12 +2891,12 @@ impl BrazenApp {
                         if let Some(url) = self.shell_state.last_committed_url.as_deref() {
                             ctx.copy_text(url.to_string());
                         }
-                        ui.close_menu();
+                        ui.close();
                     }
                     ui.separator();
                     if ui.button("Find...").clicked() {
                         self.shell_state.find_panel_open = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 ui.menu_button("View", |ui| {
@@ -2926,49 +2909,48 @@ impl BrazenApp {
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Logs, "Logs").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Logs;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Network, "Network").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Network;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Dom, "DOM Inspector").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Dom;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Health, "Engine Health").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Health;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Downloads, "Downloads").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Downloads;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Automation, "Automation").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Automation;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Cache, "Cache Explorer").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Cache;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.selectable_label(self.panels.active_diagnostic_tab == DiagnosticTab::Capabilities, "Capabilities").clicked() {
                             self.panels.active_diagnostic_tab = DiagnosticTab::Capabilities;
                             self.panels.bottom_panel_visible = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                     ui.separator();
                     ui.menu_button("Floating Windows", |ui| {
                         ui.checkbox(&mut self.panels.bookmarks, "Bookmarks");
                         ui.checkbox(&mut self.panels.history, "History");
-                        ui.checkbox(&mut self.panels.knowledge_graph, "Knowledge Graph");
                         ui.checkbox(&mut self.panels.reading_queue, "Reading Queue");
                         ui.checkbox(&mut self.panels.reader_mode, "Reader Mode");
                         ui.checkbox(&mut self.panels.tts_controls, "TTS Controls");
@@ -2976,7 +2958,7 @@ impl BrazenApp {
                     ui.separator();
                     if ui.button("Reload").clicked() {
                         self.apply_palette_command(PaletteCommand::Reload);
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 ui.menu_button("Tools", |ui| {
@@ -2986,7 +2968,7 @@ impl BrazenApp {
                     ui.separator();
                     if ui.button("Settings").clicked() {
                         self.panels.workspace_settings = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 
@@ -3582,10 +3564,6 @@ impl eframe::App for BrazenApp {
 
         // --- Supplemental Windows ---
         self.render_workspace_settings(ctx);
-        self.render_bookmarks_panel(ctx);
-        self.render_history_panel(ctx);
-        self.render_knowledge_graph_panel(ctx);
-        self.render_reading_queue_panel(ctx);
         self.render_reader_mode_panel(ctx);
         self.render_tts_controls_panel(ctx);
 

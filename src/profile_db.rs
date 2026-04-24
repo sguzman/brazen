@@ -104,6 +104,11 @@ impl ProfileDb {
               enabled INTEGER NOT NULL,
               updated_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS workspace_layout (
+              id INTEGER PRIMARY KEY CHECK(id=1),
+              layout_json TEXT NOT NULL
+            );
             "#,
         )
         .map_err(|e| format!("init schema failed: {e}"))?;
@@ -506,6 +511,26 @@ impl ProfileDb {
             out.push((name, enabled != 0));
         }
         Ok(out)
+    }
+    pub fn save_workspace_layout(&self, layout_json: &str) -> Result<(), String> {
+        let conn = self.connect()?;
+        conn.execute(
+            "INSERT INTO workspace_layout(id, layout_json) VALUES(1, ?) ON CONFLICT(id) DO UPDATE SET layout_json=excluded.layout_json",
+            [layout_json],
+        )
+        .map_err(|e| format!("save workspace layout failed: {e}"))?;
+        Ok(())
+    }
+
+    pub fn load_workspace_layout(&self) -> Result<Option<String>, String> {
+        let conn = self.connect()?;
+        let layout: Option<String> = conn
+            .query_row("SELECT layout_json FROM workspace_layout WHERE id=1", [], |row| {
+                row.get(0)
+            })
+            .optional()
+            .map_err(|e| format!("load workspace layout failed: {e}"))?;
+        Ok(layout)
     }
 }
 
