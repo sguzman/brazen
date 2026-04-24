@@ -65,7 +65,7 @@ pub struct AssetMetadata {
     pub request_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
 pub struct AssetQuery {
     pub url: Option<String>,
     pub mime: Option<String>,
