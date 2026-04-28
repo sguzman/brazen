@@ -128,7 +128,7 @@ impl BrazenApp {
                 eframe::egui::Event::MouseWheel { delta, unit, .. } => {
                     if let Some(pos) = input.pointer.latest_pos().or(self.last_pointer_pos)
                         && let Some(local) =
-                            self.map_pointer_to_viewport(ctx, pos, self.pointer_captured)
+                            self.map_pointer_to_viewport(ctx, pos, false)
                     {
                         self.last_pointer_local = Some(local);
                         self.engine.handle_input(InputEvent::PointerMove {
@@ -172,7 +172,7 @@ impl BrazenApp {
                             delta_y = 0.0;
                         }
                         let scale = match unit {
-                            eframe::egui::MouseWheelUnit::Line => 24.0,
+                            eframe::egui::MouseWheelUnit::Line => 100.0,
                             eframe::egui::MouseWheelUnit::Point => 1.0,
                             eframe::egui::MouseWheelUnit::Page => 240.0,
                         };
@@ -239,9 +239,13 @@ impl BrazenApp {
                             self.shell_state.record_event("shortcut: select all");
                             handled_shortcut = true;
                         } else if matches_shortcut(&config.copy, &key, &modifiers) {
+                            self.engine.copy();
                             self.shell_state.record_event("shortcut: copy");
+                            handled_shortcut = true;
                         } else if matches_shortcut(&config.paste, &key, &modifiers) {
+                            self.engine.paste();
                             self.shell_state.record_event("shortcut: paste");
+                            handled_shortcut = true;
                         } else {
                             match key {
                                 eframe::egui::Key::F => {
