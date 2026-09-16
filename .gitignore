@@ -4,3 +4,11 @@ tmp
 out
 libs
 profiles
+
+# Local runtime output
+*.log
+
+# Editor/patch recovery artifacts
+*.orig
+*.rej
+*.bak
