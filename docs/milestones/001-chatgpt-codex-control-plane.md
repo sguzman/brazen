@@ -2,24 +2,46 @@
 
 ## Goal
 
-Replace the human-as-message-bus workflow with a visible, inspectable, locally controlled connection between ChatGPT conversations and local Codex threads.
+Replace the human-as-message-bus workflow with a visible, inspectable, locally controlled wire between **ChatGPT Web** and **Codex App Server**.
 
-The milestone is successful when the operator can work on multiple projects without having to remember which ChatGPT conversation belongs to which Codex thread or manually relay ordinary messages between them.
+This milestone does **not** build Codex. It consumes Codex through OpenAI's first-class App Server interface and concentrates Brazen's original effort on the unsolved cross-surface problem: making ChatGPT routable, pairing endpoints, controlling traffic, preserving provenance, and visualizing the wire.
+
+## The architectural simplification
+
+OpenAI already owns the Codex harness:
+
+- agent loop,
+- thread lifecycle and persistence,
+- config/auth,
+- model discovery,
+- tool execution,
+- turn/item event stream,
+- diffs,
+- approvals,
+- Codex-native protocol semantics.
+
+Brazen must not recreate those systems.
+
+Milestone 1 therefore has three real pieces:
+
+1. **ChatGPT adapter** — turn the website into a reliable routable endpoint.
+2. **Codex App Server adapter** — a thin supported client for an already-machine-addressable endpoint.
+3. **Brazen wire/control plane** — bindings, routing, allow/hold/block, queues, provenance, metrics, topology, and operator intervention.
 
 ## Operator story
 
-The operator opens Brazen and sees several ChatGPT tabs. Beside or beneath them is a control-plane view containing the available Codex threads and explicit links between paired conversations.
+The operator opens Brazen and sees several ChatGPT conversations and several Codex App Server threads. Explicit links show which conversation is paired with which thread.
 
-A link answers, at a glance:
+A link answers at a glance:
 
 - what is connected,
 - which direction traffic is allowed to flow,
 - whether anything is queued or blocked,
-- whether the connection is healthy,
-- how much traffic is moving,
-- and what the last meaningful event was.
+- whether each endpoint is healthy,
+- how much cross-surface traffic is moving,
+- and what the last meaningful routed event was.
 
-The operator can open the connection inspector to see the exact payload history and causal chain.
+The operator can open the connection inspector to see the exact routed payload history and causal chain while still being able to inspect richer Codex-native status/events separately.
 
 ## Architecture boundaries
 
@@ -30,49 +52,65 @@ Responsibility:
 - identify a Brazen tab hosting ChatGPT,
 - identify the current ChatGPT conversation when possible,
 - observe new relevant conversation events,
-- submit routed input to the ChatGPT conversation,
+- submit routed input to the selected conversation,
 - expose health/session state to the control plane.
 
-Use existing Brazen browser/automation seams where practical. Keep ChatGPT-specific DOM/site assumptions isolated behind the adapter rather than scattering selectors and site logic through shell code.
+ChatGPT-specific DOM/site assumptions must remain isolated behind the adapter rather than leaking into routing/UI code.
 
-### Codex adapter
+### Codex App Server adapter
 
-First target: the official Codex App Server interface.
+This is intentionally thin.
 
 Responsibility:
 
 - manage App Server process/connectivity,
-- enumerate and identify Codex threads using the current protocol,
-- send routed input,
-- consume streaming events,
-- surface approvals/failures/status needed by the operator,
-- translate Codex protocol events into Brazen control-plane events.
+- initialize the supported protocol,
+- enumerate/start/resume Codex threads,
+- submit turns/input,
+- consume streaming thread/turn/item events,
+- surface server-initiated approvals to the operator when needed,
+- translate only the necessary Codex-native events into Brazen endpoint/status/provenance concepts,
+- expose version/health/failure state.
 
-Do not make the rest of Brazen depend directly on raw App Server JSON-RPC types.
+The adapter must **not** become a second Codex harness.
 
-Whether this adapter can attach to threads already owned by the separately running Codex desktop app is a **re-entry spike**, not a presumed fact.
+Do not implement custom replacements for App Server thread persistence, tool execution, auth/config, model discovery, diff semantics, approval semantics, or event lifecycle.
+
+Whether Brazen can directly correlate with threads simultaneously visible in the separately running Codex desktop app remains an empirical integration question, not a milestone dependency.
 
 ### Control-plane core
 
-The control-plane core owns bindings, policy, queues, routing decisions, event normalization, metrics, and durable history. UI code should render/control this state rather than becoming the routing implementation.
+The control-plane core owns the cross-surface concepts App Server intentionally does not own:
+
+- endpoint bindings,
+- project association,
+- direction policy,
+- queues,
+- routing decisions,
+- normalized routed events,
+- provenance,
+- cross-surface metrics,
+- durable traffic history.
+
+UI code renders and controls this state; it does not become the router.
 
 ## Minimal domain model
 
-Names may change during implementation, but the concepts should remain explicit.
-
 ### Endpoint
 
-Represents one routable conversation surface.
+Represents one routable work surface.
 
 Suggested fields:
 
 - `endpoint_id`
 - `kind` (`chatgpt` | `codex` initially)
-- `external_id` when the connected system exposes one
+- `external_id`
 - `display_label`
-- `project_id` / project label when assigned
+- `project_id`
 - `health`
 - `last_seen_at`
+
+For Codex, preserve App Server thread identity instead of inventing a competing conversation identity.
 
 ### Binding
 
@@ -88,7 +126,7 @@ Suggested fields:
 - `created_at`
 - `updated_at`
 
-A binding must never silently jump to a different endpoint because a title changed.
+Bindings must never silently jump because a visible title changed.
 
 ### Direction policy
 
@@ -100,13 +138,15 @@ Exactly three operator-facing states for Milestone 1:
 
 Semantics:
 
-- **allow**: eligible event is forwarded immediately.
-- **hold**: event is durably queued, visible, and releasable.
-- **block**: event is not forwarded; the denied routing attempt remains auditable.
+- **allow** — eligible routed traffic forwards immediately.
+- **hold** — eligible routed traffic is durably queued, visible, and releasable.
+- **block** — eligible routed traffic is not delivered; the denied routing attempt remains auditable.
 
-### Traffic event
+### Routed traffic event
 
-Every routing attempt should become a normalized event with enough information to reconstruct the handoff.
+A routed event is **not the same thing as every raw App Server event**.
+
+App Server may produce many low-level/status events for one turn. Brazen should retain useful native provenance without blindly forwarding or counting every internal delta as a cross-surface message.
 
 Minimum fields:
 
@@ -121,8 +161,9 @@ Minimum fields:
 - `delivery_state`
 - `payload_size_bytes`
 - `payload` or durable payload reference
-- upstream/source event identifier when available
+- upstream/source identifier when available
 - downstream/delivery identifier when available
+- Codex thread/turn/item IDs when relevant
 - error/failure detail when applicable
 
 Useful delivery states include `observed`, `queued`, `forwarding`, `delivered`, `blocked`, `failed`, and `released`.
@@ -131,41 +172,42 @@ Useful delivery states include `observed`, `queued`, `forwarding`, `delivered`, 
 
 ### Topology view
 
-The primary control-plane surface should visualize endpoints and bindings rather than hide them in a settings table.
+The primary control-plane surface visualizes endpoints and bindings rather than reproducing the Codex Desktop application.
 
 For each binding show:
 
 - ChatGPT endpoint,
-- Codex endpoint,
+- Codex thread endpoint,
 - two directional lanes/arrows,
 - policy state for each direction,
 - activity/idle state,
 - queued count/size,
-- error state,
-- compact traffic rate.
+- endpoint/adapter health,
+- compact routed traffic rate.
 
-The operator should be able to change allow/hold/block directly from this surface.
+The operator can change allow/hold/block directly from this surface.
 
 ### Traffic inspector
 
-Selecting a connection opens a chronological event stream with:
+Selecting a binding opens a chronological routed-event stream with:
 
 - direction,
 - timestamp,
-- event type,
+- normalized event type,
 - payload size,
 - policy decision,
 - delivery state,
 - payload preview/full inspection,
-- failure information.
+- failure information,
+- relevant native provenance IDs.
 
-Support both individual event inspection and bulk/history views.
+Codex-native telemetry/status may have a secondary inspectable view, but it must not be confused with the cross-surface wire.
 
 ### Metrics
 
 Minimum per-binding, per-direction metrics:
 
-- events/messages per minute,
+- routed messages/events per minute,
 - bytes per minute,
 - queued event count,
 - queued bytes,
@@ -173,7 +215,7 @@ Minimum per-binding, per-direction metrics:
 - failed count,
 - last successful delivery time.
 
-Metrics are operational signals, not vanity dashboards. They should help answer “is this wire alive, jammed, blocked, or flooding?”
+These answer: **is this wire alive, jammed, blocked, or flooding?**
 
 ## Safety / control invariants
 
@@ -182,18 +224,26 @@ Metrics are operational signals, not vanity dashboards. They should help answer 
 - Held traffic must be visibly held.
 - Blocked traffic must not be mistaken for delivered traffic.
 - A failure in one binding must not silently reroute to another.
-- Restarting Brazen must not erase the operator’s ability to explain the recent causal chain.
+- Restarting Brazen must not erase the operator's ability to explain the recent causal chain.
 - UI titles are labels, not authoritative identities.
-- Adapters may fail independently without corrupting binding/history state.
+- App Server failures must not corrupt Brazen binding/history state.
+- Brazen must distinguish provider-native telemetry from actual cross-surface traffic.
 
 ## Compatibility principle
 
-The milestone optimizes for a reliable ChatGPT+Codex workflow, not browser-engine ideology.
+The milestone optimizes for a reliable ChatGPT + App Server workflow, not browser-engine ideology and not Codex-runtime independence.
 
-If current Servo integration runs ChatGPT reliably, use it. If it does not, preserve the existing `BrowserEngine` abstraction and choose the narrowest engine path that satisfies the milestone. Do not turn “make all modern websites work in Servo” into a prerequisite for eliminating the human relay burden.
+If current Servo integration runs ChatGPT reliably, use it. If not, preserve the `BrowserEngine` abstraction and choose the narrowest engine path that satisfies the milestone.
 
-## Explicitly deferred
+For Codex, prefer the supported App Server protocol even when implementing the same behavior ourselves would be technically possible.
 
+## Explicitly deferred / removed from active scope
+
+- our own Codex agent loop,
+- our own Codex conversation persistence,
+- our own Codex approval/diff/tool protocol,
+- rich duplicate Codex chat UI,
+- Codex Desktop GUI automation,
 - generalized many-agent routing language,
 - arbitrary graph cycles,
 - autonomous agent-generated bindings,
@@ -205,17 +255,17 @@ If current Servo integration runs ChatGPT reliably, use it. If it does not, pres
 
 ## Demonstration scenario
 
-The acceptance demo should deliberately include a failure/control case, not only the happy path:
-
 1. Open two ChatGPT conversations in Brazen.
-2. Connect each to a distinct Codex thread.
-3. Allow traffic on the first pair and demonstrate a normal handoff.
-4. Put ChatGPT -> Codex on the second pair into `hold`.
-5. Produce traffic and show that it queues without delivery.
-6. Inspect the queued payload and queue size.
-7. Release it and show delivery.
-8. Put Codex -> ChatGPT into `block` and generate a return event.
-9. Show that the event is auditable as blocked and was not delivered.
-10. Open the traffic history and reconstruct the full sequence without relying on clipboard history or memory.
+2. Discover/start/resume two Codex App Server threads.
+3. Explicitly pair each ChatGPT conversation to one Codex thread.
+4. Allow ChatGPT -> Codex on the first pair and demonstrate a normal handoff.
+5. Show Codex turn/status activity from App Server without pretending all native events are routed messages.
+6. Put ChatGPT -> Codex on the second pair into `hold`.
+7. Produce traffic and show that it queues without delivery.
+8. Inspect the queued payload and queue size.
+9. Release it and show delivery into the selected App Server thread.
+10. Put Codex -> ChatGPT into `block` and generate an eligible return/report event.
+11. Show that the event is auditable as blocked and was not delivered.
+12. Open traffic history and reconstruct the full sequence without clipboard history or memory.
 
-If that scenario works, Brazen has begun doing the job it currently forces the human to do.
+If that scenario works, Brazen is doing the part App Server does not do: **controlling and explaining the wire between work surfaces.**
